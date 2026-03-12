@@ -4,12 +4,11 @@
         {
             "name": "GCC",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/glm",
-                "${workspaceFolder}/Engine/Libraries/include"
+                "${workspaceFolder}/pkengine",
+                "${workspaceFolder}/pkengine/lib/include"
             ],
             "defines": [],
-            "compilerPath": "g++",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64"
