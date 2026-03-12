@@ -5,7 +5,8 @@
             "name": "GCC",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/glm"
+                "${workspaceFolder}/glm",
+                "${workspaceFolder}/Engine/Libraries/include"
             ],
             "defines": [],
             "compilerPath": "g++",
