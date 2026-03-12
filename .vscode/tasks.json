@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+    {
+        "label": "Build Project",
+        "type": "shell",
+        "command": "gcc",
+        "args": [
+            "-g",
+            "-std=c++17",
+            "-I./include",
+            "-L./lib",
+            "src/\\*.cpp",
+            "src/glad.c",
+            "-lglfw3dll",
+            "-o"
+            ],
+        "problemMatcher": []
+    }
+    ]
+}
