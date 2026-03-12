@@ -9,7 +9,7 @@ template <typename T> struct PKEvent {
     private:
         std::vector<PKEventConnection<T>> listeners;
     public:
-        PKEventConnection<T> listen(void (callback*)(T));
+        PKEventConnection<T> listen(void (*callback)(T));
         void fire(T item);
         ~PKEventConnection();
 };
@@ -19,6 +19,8 @@ template <typename T> struct PKEventConnection {
     private:
         PKEvent<T>* event;
         uint16_t index;
+        void (callback*)(T) callback;
+
     public:
         void disconnect();
         ~PKEvent();
