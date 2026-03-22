@@ -3,19 +3,15 @@
 #include <iostream>
 #include "engine.hpp"
 
+#include <thread>
+#include <chrono>
+
 const float iFPS = 1.0f / 60.0f;
 
 namespace PKENGINE {
-    static PKEvent<float> render;
-    static PKEvent<float> frame;
-}
-
-void nextFrame() {
-
-}
-
-void nextTick() {
-    
+    static PKRenderer renderer;
+    static PKEvent<float> frame_stepped;
+    static PKEvent<float> tick_stepped;
 }
 
 
@@ -38,14 +34,21 @@ int main() {
         std::cout << "GLAD not working?!\n";
         return -1;
     }
+    PKENGINE::frame_stepped = PKEvent<float>();
+    PKENGINE::tick_stepped = PKEvent<float>();
+    PKENGINE::renderer = PKRenderer();
 
+    perekop::events::frame_stepped = PKENGINE::frame_stepped.port();
+    perekop::events::tick_stepped = PKENGINE::tick_stepped.port();
 
+    // where the good stuff happens
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
      
+        PKENGINE::frame_stepped.fire(iFPS);
         glfwSwapBuffers(window);
     }
 

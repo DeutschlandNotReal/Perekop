@@ -1,10 +1,10 @@
 #include "events.hpp"
 
 template <typename T>
-PKEvent<T>::PKEvent(): port(PKEventPort(this)) {}
+PKEvent<T>::PKEvent(): evport(PKEventPort(this)) {}
 
 template <typename T>
-inline PKEventPort<T>& PKEvent<T>::getPort() { return port; }
+inline PKEventPort<T>& PKEvent<T>::port() { return evport; }
 
 template <typename T>
 PKEventPort<T>::PKEventPort(PKEvent<T>* ev) : event(ev) {}

@@ -2,11 +2,11 @@
 #include "events.hpp"
 #include "mesh.hpp"
 
-namespace PKEngine {
-    extern PKRenderer Renderer;
+namespace perekop {
+    extern PKRenderer mesh_renderer;
 
-    namespace Events {
-        extern PKEventPort<float> NewTick;
-        extern PKEventPort<float> NewFrame;
+    namespace events {
+        extern PKEventPort<float> tick_stepped;
+        extern PKEventPort<float> frame_stepped;
     }
 }

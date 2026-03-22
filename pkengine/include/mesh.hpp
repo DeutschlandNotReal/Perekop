@@ -25,38 +25,37 @@ struct PKRenderer {
         std::vector<PKMesh*> meshes;
     public:
         void draw();
-        void drawTest(std::function<bool(PKMesh&, PKModel&)>);
-        PKMesh* initMesh();
+        void draw_tested(std::function<bool(PKMesh&, PKModel&)>);
+        PKMesh* create_mesh();
 };
 
 struct PKMesh {
     friend PKModel;
     friend PKRenderer;
-    using GLuint = unsigned int;
     private:
         PKMesh(uint16 i);
         uint16 index;
         std::vector<PKMeshVertex> verts;
         std::vector<PKMeshTrig> trigs;
-        GLuint VAO, VBO, EBO, IBO;
+        unsigned int VAO, VBO, EBO, IBO;
         std::vector<PKModel*> users;
     public:
         PKMesh() = delete;
         ~PKMesh();
-        uint16 popTrig();
-        uint16 pushTrig(uint16 v0, uint16 v1, uint16 v2);
-        uint16 popVert();
-        uint16 pushVert(glm::vec3 pos, glm::vec2 uv = glm::vec2(0, 0));
-        void setPosition(uint16 vid, glm::vec3 pos);
-        void setUV(uint16 vid, glm::vec2 uv);
-        void setTrig(uint16 tid, uint16 v0, uint16 v1, uint16 v2);
+        uint16 pop_triangle();
+        uint16 push_triangle(uint16 v0, uint16 v1, uint16 v2);
+        uint16 pop_vertex();
+        uint16 push_vertex(glm::vec3 pos, glm::vec2 uv = glm::vec2(0, 0));
+        void set_position(uint16 vid, glm::vec3 pos);
+        void set_uv(uint16 vid, glm::vec2 uv);
+        void set_verticies(uint16 tid, uint16 v0, uint16 v1, uint16 v2);
 
-        void clearGeometry();
+        void clear_geometry();
 
         void flush();
 
-        void removeModel(PKModel* M);
-        void addModel(PKModel* M);
+        void disassign_model(PKModel* M);
+        void assign_model(PKModel* M);
 };
 
 struct PKModel {
@@ -70,6 +69,6 @@ struct PKModel {
         glm::vec3 size;
         bool visible;
         ~PKModel();
-        void setMesh(PKMesh* mesh);
-        inline PKMesh* getMesh();
+        void set_mesh(PKMesh* mesh);
+        inline PKMesh* get_mesh();
 };

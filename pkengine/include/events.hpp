@@ -12,10 +12,10 @@ template <typename T> struct PKEvent {
     friend PKEventLink<T>;
     private:
         std::vector<PKEventLink<T>*> connections;
-        PKEventPort<T> port;
+        PKEventPort<T> evport;
     public:
         void fire(T item);
-        inline PKEventPort<T>& getPort();
+        inline PKEventPort<T>& port();
 
         PKEvent();
         ~PKEvent();
