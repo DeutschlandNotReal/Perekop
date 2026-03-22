@@ -1,47 +1,33 @@
 #include "events.hpp"
 
-template <typename T>
-PKEvent<T>::PKEvent(): evport(PKEventPort(this)) {}
+#define generic template <typename T>
 
-template <typename T>
-inline PKEventPort<T>& PKEvent<T>::port() { return evport; }
+namespace pk {
+    generic event<T>::event(): evport(event_port(this)) {}
+    generic inline event_port<T>& event<T>::port() { return evport; }
+    generic event_port<T>::event_port(event_link<T>* event) : ev(event) {}
+    generic event_link<T>::event_link(pk::event<T>* event, uint16 I, std::function<void(T)> C) : ev(event), index(I), call(C) {}
+    generic event_link<T>* event_port<T>::connect(std::function<void(T)> callback) {
+        auto* event = this->ev;
+        auto link = new event_link<T>(event, event->connections.size(), callback);
 
-template <typename T>
-PKEventPort<T>::PKEventPort(PKEvent<T>* ev) : event(ev) {}
+        event->connections.push_back(link);
+        return link;
+    }
+    generic void event_link<T>::disconnect() {
+        if (!ev) return;
 
-template <typename T>
-PKEventLink<T>::PKEventLink(PKEvent<T>* E, uint16 I, std::function<void(T)> C) : event(E), index(I), call(C) {}
+        auto& connections = ev->connections;
+        event_link<T>* back = connections.back();
 
-template <typename T>
-PKEventLink<T>* PKEventPort<T>::connect(std::function<void(T)> callback) {
-    auto* event = this->event;
-    auto link = new PKEventLink<T>(event, event->connections.size(), callback);
-
-    event->connections.push_back(link);
-    return link;
-}
-
-template <typename T>
-void PKEventLink<T>::disconnect() {
-    if (!event) return;
-
-    auto& connections = event->connections;
-    PKEventLink<T>* back = connections.back();
-
-    if (back != this) { back->index = index; connections[index] = back; }
-    event->connections.pop_back();
-}
-
-template <typename T>
-void PKEvent<T>::fire(T item) {
-    for (auto* link : connections) link->call(item);
-}
-
-template <typename T>
-PKEventLink<T>::~PKEventLink() { disconnect(); }
-
-
-template <typename T>
-PKEvent<T>::~PKEvent() {
-    for (auto& con : connections) { con->event = nullptr; delete con; }
+        if (back != this) { back->index = index; connections[index] = back; }
+        ev->connections.pop_back();
+    }
+    generic void event<T>::invoke(T item) {
+        for (auto* link : connections) link->call(item);
+    }
+    generic event_link<T>::~event_link() { disconnect(); }
+    generic event<T>::~event() {
+        for (auto& con : connections) { con->event = nullptr; delete con; }
+    }
 }
