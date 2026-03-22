@@ -5,44 +5,44 @@
 using uint16 = unsigned short;
 
 namespace pk {
-    template <typename T> struct event_port;
-    template <typename T> struct event_link;
+    template <typename T> class EventPort;
+    template <typename T> class EventLink;
 
-    template <typename T> struct event {
-        friend event_port<T>;
-        friend event_link<T>;
+    template <typename T> class Event {
+        friend EventPort<T>;
+        friend EventLink<T>;
         private:
-            std::vector<event_link<T>*> connections;
-            event_port<T> evport;
+            std::vector<EventLink<T>*> connections;
+            EventPort<T> evport;
     public:
         void invoke(T item);
-        inline event_port<T>& port();
+        inline EventPort<T>& port();
 
-        event();
-        ~event();
+        Event();
+        ~Event();
     };
 
-    template <typename T> struct event_port {
-        friend event<T>;
+    template <typename T> class EventPort {
+        friend Event<T>;
         private:
-            event<T>* ev;
-            event_port(event_link<T>* event);
+            Event<T>* event;
+            EventPort(Event<T>* ev);
         public:
-            event_port() = delete;
-            event_link<T>* connect(std::function<void(T)> callback);
+            EventPort() = delete;
+            EventLink<T>* connect(std::function<void(T)> callback);
     };
 
-    template <typename T> struct event_link {
-        friend event<T>;
-        friend event_port<T>;
+    template <typename T> struct EventLink {
+        friend Event<T>;
+        friend EventPort<T>;
         private:
-            event<T>* ev;
+            Event<T>* event;
             uint16 index;
             std::function<void(T)> call;
-            event_link(pk::event<T>* event, uint16 I, std::function<void(T)> C);
+            EventLink(Event<T>* ev, uint16 I, std::function<void(T)> C);
         public:
             void disconnect();
-            ~event_link();
-            event_link() = delete;
+            ~EventLink();
+            EventLink() = delete;
     };
 }

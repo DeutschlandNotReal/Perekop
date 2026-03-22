@@ -2,32 +2,33 @@
 
 #define generic template <typename T>
 
+using std::vector, std::function;
+
 namespace pk {
-    generic event<T>::event(): evport(event_port(this)) {}
-    generic inline event_port<T>& event<T>::port() { return evport; }
-    generic event_port<T>::event_port(event_link<T>* event) : ev(event) {}
-    generic event_link<T>::event_link(pk::event<T>* event, uint16 I, std::function<void(T)> C) : ev(event), index(I), call(C) {}
-    generic event_link<T>* event_port<T>::connect(std::function<void(T)> callback) {
-        auto* event = this->ev;
-        auto link = new event_link<T>(event, event->connections.size(), callback);
+    generic Event<T>::Event(): evport(EventPort(this)) {}
+    generic inline EventPort<T>& Event<T>::port() { return evport; }
+    generic EventPort<T>::EventPort(Event<T>* E) : event(E) {}
+    generic EventLink<T>::EventLink(Event<T>* E, uint16 I, function<void(T)> C) : event(E), index(I), call(C) {}
+    generic EventLink<T>* EventPort<T>::connect(function<void(T)> callback) {
+        auto link = new EventLink<T>(event, event->connections.size(), callback);
 
         event->connections.push_back(link);
         return link;
     }
-    generic void event_link<T>::disconnect() {
-        if (!ev) return;
+    generic void EventLink<T>::disconnect() {
+        if (!event) return;
 
-        auto& connections = ev->connections;
-        event_link<T>* back = connections.back();
+        vector<EventLink*>& connections = event->connections;
+        EventLink<T>* back = connections.back();
 
         if (back != this) { back->index = index; connections[index] = back; }
-        ev->connections.pop_back();
+        event->connections.pop_back();
     }
-    generic void event<T>::invoke(T item) {
-        for (auto* link : connections) link->call(item);
+    generic void Event<T>::invoke(T item) {
+        for (EventLink<T>* link : connections) link->call(item);
     }
-    generic event_link<T>::~event_link() { disconnect(); }
-    generic event<T>::~event() {
-        for (auto& con : connections) { con->event = nullptr; delete con; }
+    generic EventLink<T>::~EventLink() { disconnect(); }
+    generic Event<T>::~Event() {
+        for (EventLink<T>* con : connections) { con->event = nullptr; delete con; }
     }
 }
