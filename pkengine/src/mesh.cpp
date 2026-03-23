@@ -1,6 +1,16 @@
 #include "gl.hpp"
 #include "mesh.hpp"
 
+using glm::vec3, glm::vec2;
+using uint = unsigned int;
+
+uint load_shader(const char* src, GLenum type) {
+    unsigned int shader = glCreateShader(type);
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
+    return shader;
+}
+
 namespace pk {
     Mesh* MeshRenderer::create_mesh() {
         Mesh* mesh = new Mesh(meshes.size());
@@ -45,7 +55,7 @@ namespace pk {
         trigs[tid] = { v0, v1, v2 };
     }
 
-    uint16 Mesh::push_vertex(glm::vec3 pos, glm::vec2 uv) {
+    uint16 Mesh::push_vertex(vec3 pos, vec2 uv) {
         verts.emplace_back(pos, uv);
         return verts.size() - 1;
     }
@@ -57,9 +67,9 @@ namespace pk {
         return vid;
     }
 
-    void Mesh::set_position(uint16 vid, glm::vec3 pos) { verts[vid].pos = pos; }
+    void Mesh::set_position(uint16 vid, vec3 pos) { verts[vid].pos = pos; }
 
-    void Mesh::set_uv(uint16 vid, glm::vec2 uv) { verts[vid].uv = uv; }
+    void Mesh::set_uv(uint16 vid, vec2 uv) { verts[vid].uv = uv; }
 
     void Mesh::clear_geometry() {
         verts.clear();

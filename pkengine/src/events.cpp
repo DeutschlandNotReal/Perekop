@@ -6,7 +6,6 @@ using std::vector, std::function;
 
 namespace pk {
     generic Event<T>::Event(): evport(EventPort(this)) {}
-    generic inline EventPort<T>& Event<T>::port() { return evport; }
     generic EventPort<T>::EventPort(Event<T>* E) : event(E) {}
     generic EventLink<T>::EventLink(Event<T>* E, uint16 I, function<void(T)> C) : event(E), index(I), call(C) {}
     generic EventLink<T>* EventPort<T>::connect(function<void(T)> callback) {

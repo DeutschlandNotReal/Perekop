@@ -2,6 +2,7 @@
 #include "glm/glm.hpp"
 #include <vector>
 #include <functional>
+// really meshmodelmaterial.hpp but that sounds stupid
 
 using uint16 = unsigned short;
 
@@ -11,11 +12,16 @@ namespace pk {
     
     struct MeshVertex { 
         glm::vec3 pos; glm::vec2 uv;
-        MeshVertex(glm::vec3 POS, glm::vec3 UV): pos(POS), uv(UV) {} 
+        MeshVertex(glm::vec3 POS, glm::vec2 UV): pos(POS), uv(UV) {} 
     };
     struct MeshTrig { 
         uint16 v0, v1, v2; 
         MeshTrig(uint16 V0, uint16 V1, uint16 V2): v0(V0), v1(V1), v2(V2) {};
+    };
+    struct MeshMaterial {
+        unsigned int program;
+        MeshMaterial(const char* vsrc, const char* fsrc);
+        MeshMaterial() = delete;
     };
 
     class MeshRenderer {

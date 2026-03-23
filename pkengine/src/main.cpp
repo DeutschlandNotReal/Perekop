@@ -8,12 +8,15 @@
 
 const float iFPS = 1.0f / 60.0f;
 
-namespace PKENGINE {
-    static PKRenderer renderer;
-    static pk::event<float> frame_stepped;
-    static pk::event<float> tick_stepped;
-}
+using pk::Event, pk::MeshRenderer, glm::vec3, glm::vec2; 
+using namespace std::chrono;
 
+namespace PKENGINE {
+    static MeshRenderer renderer = MeshRenderer();
+    static Event<float> frame_stepped = Event<float>();
+    static Event<vec2> frame_resized = Event<vec2>();
+    static Event<int> frame_closed = Event<int>(); // int will just be 0
+}
 
 int main() {
     glfwInit();
@@ -34,15 +37,23 @@ int main() {
         std::cout << "GLAD not working?!\n";
         return -1;
     }
-    PKENGINE::frame_stepped = pk::event<float>();
-    PKENGINE::tick_stepped = pk::event<float>();
-    PKENGINE::renderer = PKRenderer();
 
-    pk::engine::events::frame_stepped = PKENGINE::frame_stepped.port();
-    pk::engine::events::tick_stepped = PKENGINE::tick_stepped.port();
+    // if glfw or glad just doesnt work we quit like chuds
+    // probably breaks game maybe
+
+    {
+        using namespace pk::engine::frame;
+        closed = std::move(PKENGINE::frame_closed.port());
+        resized = std::move(PKENGINE::frame_resized.port());
+        stepped = std::move(PKENGINE::frame_stepped.port());
+    }
+    
 
     // where the good stuff happens
+
+    auto waittime = duration<float>(iFPS);
     while (!glfwWindowShouldClose(window)) {
+        auto frame_start = high_resolution_clock::now();
         glfwPollEvents();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -50,7 +61,15 @@ int main() {
      
         PKENGINE::frame_stepped.invoke(iFPS);
         glfwSwapBuffers(window);
+
+        auto frame_length = high_resolution_clock::now() - frame_start;
+
+        // will probably sleep for negative time
+        // time travel?
+        std::this_thread::sleep_for(waittime - frame_length);
     }
+    // anythign after here is when window closed
+    PKENGINE::frame_closed.invoke(0);
 
     glfwTerminate();
     return 0;

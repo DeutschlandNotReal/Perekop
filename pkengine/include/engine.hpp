@@ -5,8 +5,9 @@
 namespace pk { namespace engine {
     extern MeshRenderer mesh_renderer;
 
-    namespace events {
-        extern EventPort<float> tick_stepped;
-        extern EventPort<float> frame_stepped;
+    namespace frame {
+        extern EventPort<float> stepped;
+        extern EventPort<glm::vec2> resized;
+        extern EventPort<int> closed; // pretty sure closing it just gonna stop everything anyways
     }
 }}

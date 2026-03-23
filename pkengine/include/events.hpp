@@ -4,6 +4,9 @@
 
 using uint16 = unsigned short;
 
+// ts movecopy basically makes it so pc doesnt explode
+#define movecopy(T) T(T&&) = default; T& operator=(T&&) = default; T(const T&) = delete; T& operator=(const T&) = delete;
+
 namespace pk {
     template <typename T> class EventPort;
     template <typename T> class EventLink;
@@ -16,10 +19,12 @@ namespace pk {
             EventPort<T> evport;
     public:
         void invoke(T item);
-        inline EventPort<T>& port();
+        inline EventPort<T>& port() { return evport; };
 
         Event();
         ~Event();
+
+        movecopy(Event)
     };
 
     template <typename T> class EventPort {
@@ -30,6 +35,8 @@ namespace pk {
         public:
             EventPort() = delete;
             EventLink<T>* connect(std::function<void(T)> callback);
+
+            movecopy(EventPort)
     };
 
     template <typename T> struct EventLink {
@@ -44,5 +51,7 @@ namespace pk {
             void disconnect();
             ~EventLink();
             EventLink() = delete;
+
+            movecopy(EventLink)
     };
 }
