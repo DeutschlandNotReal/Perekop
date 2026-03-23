@@ -26,7 +26,16 @@ namespace pk {
 
     MeshMaterial MeshRenderer::create_material(const char* vsrc, const char* fsrc) {
         uint vshader = load_shader(vsrc, GL_VERTEX_SHADER);
+        uint fshader = load_shader(fsrc, GL_FRAGMENT_SHADER);
+
+        uint program = glCreateProgram();
+        glAttachShader(program, vshader);
+        glAttachShader(program, fshader);
         
+        glDeleteShader(vshader);
+        glDeleteShader(fshader);
+        
+        return MeshMaterial(program);
     }
 
     void Mesh::flush() {
