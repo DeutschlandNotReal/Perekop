@@ -1,8 +1,8 @@
 #include "events.hpp"
+#include "util.hpp"
 
 #define generic template <typename T>
-
-using std::vector, std::function;
+using std::function;
 
 namespace pk {
     generic Event<T>::Event(): evport(EventPort(this)) {}
@@ -14,14 +14,10 @@ namespace pk {
         event->connections.push_back(link);
         return link;
     }
-    generic void EventLink<T>::disconnect() {
+    generic void EventLink<T> ::disconnect() {
         if (!event) return;
 
-        vector<EventLink*>& connections = event->connections;
-        EventLink<T>* back = connections.back();
-
-        if (back != this) { back->index = index; connections[index] = back; }
-        event->connections.pop_back();
+        pk::util::swappop<T>(event->connections, index, [](auto& V, auto I) { V->index = I;});
     }
     generic void Event<T>::invoke(T item) {
         for (EventLink<T>* link : connections) link->call(item);

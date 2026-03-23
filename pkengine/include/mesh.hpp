@@ -9,6 +9,7 @@ using uint16 = unsigned short;
 namespace pk {
     class Mesh;
     class Model;
+    struct MeshMaterial;
     
     struct MeshVertex { 
         glm::vec3 pos; glm::vec2 uv;
@@ -18,11 +19,6 @@ namespace pk {
         uint16 v0, v1, v2; 
         MeshTrig(uint16 V0, uint16 V1, uint16 V2): v0(V0), v1(V1), v2(V2) {};
     };
-    struct MeshMaterial {
-        unsigned int program;
-        MeshMaterial(const char* vsrc, const char* fsrc);
-        MeshMaterial() = delete;
-    };
 
     class MeshRenderer {
         friend Mesh;
@@ -31,7 +27,16 @@ namespace pk {
         public:
             int draw();
             int draw_tested(std::function<bool(Mesh&, Model&)>);
+
             Mesh* create_mesh();
+            MeshMaterial create_material(const char* vsrc, const char* fsrc);
+    };
+
+    struct MeshMaterial {
+        friend MeshRenderer;
+        unsigned int program;
+        public: MeshMaterial() = delete;
+        private: MeshMaterial(unsigned int prog);
     };
 
     class Mesh {
@@ -44,6 +49,7 @@ namespace pk {
             std::vector<MeshTrig> trigs;
             unsigned int VAO, VBO, EBO, IBO;
             std::vector<Model*> users;
+            MeshMaterial material;
         public:
             Mesh() = delete;
             ~Mesh();

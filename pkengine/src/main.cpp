@@ -50,8 +50,7 @@ int main() {
     
 
     // where the good stuff happens
-
-    auto waittime = duration<float>(iFPS);
+    auto frame_duration = duration<float>(iFPS);
     while (!glfwWindowShouldClose(window)) {
         auto frame_start = high_resolution_clock::now();
         glfwPollEvents();
@@ -66,7 +65,7 @@ int main() {
 
         // will probably sleep for negative time
         // time travel?
-        std::this_thread::sleep_for(waittime - frame_length);
+        std::this_thread::sleep_for(frame_duration - frame_length);
     }
     // anythign after here is when window closed
     PKENGINE::frame_closed.invoke(0);

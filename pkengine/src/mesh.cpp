@@ -1,10 +1,12 @@
 #include "gl.hpp"
 #include "mesh.hpp"
+#include "util.hpp"
 
 using glm::vec3, glm::vec2;
 using uint = unsigned int;
 
 uint load_shader(const char* src, GLenum type) {
+    // should probably make it detect sloppy shader code
     unsigned int shader = glCreateShader(type);
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
@@ -20,6 +22,11 @@ namespace pk {
         glGenBuffers(1, &mesh->EBO);
         glGenBuffers(1, &mesh->IBO);
         return mesh;
+    }
+
+    MeshMaterial MeshRenderer::create_material(const char* vsrc, const char* fsrc) {
+        uint vshader = load_shader(vsrc, GL_VERTEX_SHADER);
+        
     }
 
     void Mesh::flush() {
@@ -77,14 +84,10 @@ namespace pk {
         flush();
     }
 
-    // is disassign even a word
-    // maybe its deassign, maybe
+    // sounds cooler than unassign
     void Mesh::disassign_model(Model* model) {
         if (model->mesh != this) return;
-        Model* back = users.back();
-        if (back != model) { back->index = model->index; }
-        users[model->index] = back;
-        users.pop_back();
+        pk::util::swappop<Model*>(users, model->index, [](auto& V, auto I){ V->index = I; });
         model->mesh = nullptr;
     }
 
