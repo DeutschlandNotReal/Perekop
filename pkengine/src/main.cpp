@@ -50,9 +50,6 @@ int main() {
         const EventPort<vec2> resized{window_resized};
     }
     
-
-    // where the good stuff happens
-
     PKENGINE::window_began.invoke_once(0);
     auto frame_time = duration<float>(iFPS);
     while (!glfwWindowShouldClose(window)) {
@@ -65,11 +62,11 @@ int main() {
         PKENGINE::window_step.invoke(iFPS);
         glfwSwapBuffers(window);
 
-        auto free_time = high_resolution_clock::now() - frame_start - frame_time;
+        auto free_time = frame_time + frame_start - high_resolution_clock::now();
 
         if (free_time.count() > 0) std::this_thread::sleep_for(free_time);
     }
-    // anythign after here is when window closed
+    // anything after here for when window closes
     PKENGINE::window_ended.invoke_once(0);
 
     glfwTerminate();
