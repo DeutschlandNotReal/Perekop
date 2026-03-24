@@ -2,8 +2,7 @@
 #include "glm/glm.hpp"
 #include <vector>
 #include <functional>
-// really meshmodelmaterial.hpp but that sounds stupid
-
+#include <string>
 using uint16 = unsigned short;
 
 namespace pk {
@@ -29,6 +28,7 @@ namespace pk {
             int draw_tested(std::function<bool(Mesh&, Model&)>);
 
             Mesh* create_mesh();
+            Mesh* upload_mesh(std::string filepath);
             MeshMaterial create_material(const char* vsrc, const char* fsrc);
     };
 

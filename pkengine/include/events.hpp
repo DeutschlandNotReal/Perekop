@@ -12,31 +12,28 @@ namespace pk {
         friend EventLink<T>;
 
         private:
-            std::vector<EventLink<T>*> links;
-            std::shared_ptr<Event<T>> self;
+            std::vector<std::shared_ptr<EventLink<T>>> links;
         public:
+            const EventPort<T> port{this};
             void invoke(T item);
-            void invoke_once(T item); // invokes then lobotomises event
-            std::function<EventLink<T>*(std::function<void(T)>)> filter = nullptr;
-            
-            const EventPort<T> port();
-            Event(): self(std::make_shared(this)) {};
+            void final(T item); // invokes then lobotomises event
+            std::function<std::shared_ptr<EventLink<T>>(std::function<void(T)>)> filter = nullptr;
             ~Event();
     };
 
     template <typename T> class EventPort {
         friend Event<T>;
-        std::shared_ptr<Event<T>> event; 
+        Event<T>* event;
         public:
-            EventPort(const Event<T>& ev): event(ev.self) {};
+            EventPort(Event<T>* ev): event(ev) {};
             EventPort() = delete;
-            EventLink<T>* connect(std::function<void(T)> callback);
+            std::shared_ptr<EventLink<T>> connect(std::function<void(T)> callback);
     };
 
     template <typename T> struct EventLink {
         friend Event<T>;
         friend EventPort<T>;
-        private:
+        private:   
             Event<T>* event;
             unsigned short index;
             std::function<void(T)> call;

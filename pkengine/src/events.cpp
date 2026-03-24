@@ -1,18 +1,16 @@
 #include "events.hpp"
 #include "util.hpp"
 
-using std::function;
+using std::function, std::shared_ptr;
 
 namespace pk {
     template <typename T> EventLink<T>::EventLink(Event<T>* E, unsigned short I, function<void(T)> C) 
         : event(E), index(I), call(C) {}
 
-    template <typename T> const EventPort<T> Event<T>::port() { return EventPort<T>{this}; }
-
-    template <typename T> EventLink<T>* EventPort<T>::connect(function<void(T)> callback) {
+    template <typename T> std::shared_ptr<EventLink<T>> EventPort<T>::connect(function<void(T)> callback) {
         if (event->filter) { return event->filter(callback); }
-        auto link = new EventLink<T>(event, event->links.size(), callback);
 
+        auto link = std::make_shared<EventLink<T>>(event, event->links.size(), callback);
         event->links.push_back(link);
         return link;
     }
@@ -23,18 +21,18 @@ namespace pk {
     }
 
     template <typename T> void Event<T>::invoke(T item) {
-        for (EventLink<T>* link : links) link->call(item);
+        for (auto& link : links) link->call(item);
     }
 
-    template <typename T> void Event<T>::invoke_once(T item) {
+    template <typename T> void Event<T>::final(T item) {
         invoke(item);
-        filter = [item](auto cb){ cb(item); };
-        links->clear();
+        filter = [item](auto cb){ cb(item); return nullptr; };
+        links.clear();
     }
 
     template <typename T> EventLink<T>::~EventLink() { disconnect(); }
 
     template <typename T> Event<T>::~Event() {
-        for (EventLink<T>* link : links) { link->event = nullptr; delete link; }
+        for (auto& link : links) link->event = nullptr;
     }
 }

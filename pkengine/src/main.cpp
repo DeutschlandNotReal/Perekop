@@ -8,16 +8,29 @@
 
 const float iFPS = 1.0f / 60.0f;
 
-using pk::Event, pk::EventPort, pk::MeshRenderer, glm::vec3, glm::vec2; 
+using glm::vec3, glm::vec2; 
 using namespace std::chrono;
+using namespace pk;
 
-namespace PKENGINE {
-    static MeshRenderer renderer = MeshRenderer();
-    static Event<float> window_step = Event<float>();
-    static Event<vec2> window_resized = Event<vec2>();
-    static Event<bool> window_began = Event<bool>();
-    static Event<bool> window_ended = Event<bool>();
-}
+// ts creates the event and the port so i dont gotta write same slop
+#define load_event(T, N) static Event<T> N##_event = Event<T>(); const EventPort<T>& N = N##_event.port;
+
+namespace pk::engine {
+    namespace window {
+        load_event(float, step)
+        load_event(vec2, resized)
+        load_event(bool, began)
+        load_event(bool, ended)
+    }
+    namespace input {
+        load_event(vec2, mouse_moved);
+        load_event(int, key_pressed);
+        load_event(int, key_released);
+        load_event(int, mouse_clicked);
+        load_event(int, mouse_released);
+    }
+};
+#undef load_event
 
 int main() {
     glfwInit();
@@ -40,18 +53,8 @@ int main() {
     }
 
     // if glad or glew doesn't work then we're done for
-
-    {
-        using namespace pk::engine::window;
-        using namespace PKENGINE;
-        const EventPort<bool> began{window_began};
-        const EventPort<bool> ended{window_ended};
-        const EventPort<float> step{window_step};
-        const EventPort<vec2> resized{window_resized};
-    }
-    
-    PKENGINE::window_began.invoke_once(0);
-    auto frame_time = duration<float>(iFPS);
+    engine::window::began_event.final(0);
+    float last_dt = iFPS;
     while (!glfwWindowShouldClose(window)) {
         auto frame_start = high_resolution_clock::now();
         glfwPollEvents();
@@ -59,15 +62,15 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
      
-        PKENGINE::window_step.invoke(iFPS);
+        engine::window::step_event.invoke(last_dt);
         glfwSwapBuffers(window);
 
-        auto free_time = frame_time + frame_start - high_resolution_clock::now();
-
-        if (free_time.count() > 0) std::this_thread::sleep_for(free_time);
+        float this_dt = (high_resolution_clock::now() - frame_start).count();
+        last_dt = this_dt;
+        if (this_dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - this_dt));
     }
     // anything after here for when window closes
-    PKENGINE::window_ended.invoke_once(0);
+    engine::window::ended_event.final(0);
 
     glfwTerminate();
     return 0;
