@@ -54,7 +54,7 @@ int main() {
     // where the good stuff happens
 
     PKENGINE::window_began.invoke_once(0);
-    auto frame_duration = duration<float>(iFPS);
+    auto frame_time = duration<float>(iFPS);
     while (!glfwWindowShouldClose(window)) {
         auto frame_start = high_resolution_clock::now();
         glfwPollEvents();
@@ -65,11 +65,9 @@ int main() {
         PKENGINE::window_step.invoke(iFPS);
         glfwSwapBuffers(window);
 
-        auto frame_length = high_resolution_clock::now() - frame_start;
+        auto free_time = high_resolution_clock::now() - frame_start - frame_time;
 
-        // will probably sleep for negative time
-        // time travel?
-        std::this_thread::sleep_for(frame_duration - frame_length);
+        if (free_time.count() > 0) std::this_thread::sleep_for(free_time);
     }
     // anythign after here is when window closed
     PKENGINE::window_ended.invoke_once(0);
