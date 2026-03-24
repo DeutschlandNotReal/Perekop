@@ -8,14 +8,15 @@
 
 const float iFPS = 1.0f / 60.0f;
 
-using pk::Event, pk::MeshRenderer, glm::vec3, glm::vec2; 
+using pk::Event, pk::EventPort, pk::MeshRenderer, glm::vec3, glm::vec2; 
 using namespace std::chrono;
 
 namespace PKENGINE {
     static MeshRenderer renderer = MeshRenderer();
-    static Event<float> frame_stepped = Event<float>();
-    static Event<vec2> frame_resized = Event<vec2>();
-    static Event<int> frame_closed = Event<int>(); // int will just be 0
+    static Event<float> window_step = Event<float>();
+    static Event<vec2> window_resized = Event<vec2>();
+    static Event<bool> window_began = Event<bool>();
+    static Event<bool> window_ended = Event<bool>();
 }
 
 int main() {
@@ -39,16 +40,20 @@ int main() {
     }
 
     // if glad or glew doesn't work then we're done for
-    
+
     {
-        using namespace pk::engine::frame;
-        closed = std::move(PKENGINE::frame_closed.port());
-        resized = std::move(PKENGINE::frame_resized.port());
-        stepped = std::move(PKENGINE::frame_stepped.port());
+        using namespace pk::engine::window;
+        using namespace PKENGINE;
+        const EventPort<bool> began{window_began};
+        const EventPort<bool> ended{window_ended};
+        const EventPort<float> step{window_step};
+        const EventPort<vec2> resized{window_resized};
     }
     
 
     // where the good stuff happens
+
+    PKENGINE::window_began.invoke_once(0);
     auto frame_duration = duration<float>(iFPS);
     while (!glfwWindowShouldClose(window)) {
         auto frame_start = high_resolution_clock::now();
@@ -57,7 +62,7 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
      
-        PKENGINE::frame_stepped.invoke(iFPS);
+        PKENGINE::window_step.invoke(iFPS);
         glfwSwapBuffers(window);
 
         auto frame_length = high_resolution_clock::now() - frame_start;
@@ -67,7 +72,7 @@ int main() {
         std::this_thread::sleep_for(frame_duration - frame_length);
     }
     // anythign after here is when window closed
-    PKENGINE::frame_closed.invoke(0);
+    PKENGINE::window_ended.invoke_once(0);
 
     glfwTerminate();
     return 0;

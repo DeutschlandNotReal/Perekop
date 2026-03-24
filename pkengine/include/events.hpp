@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <functional>
+#include <memory>
 
 namespace pk {
     template <typename T> class EventPort;
@@ -11,25 +12,23 @@ namespace pk {
         friend EventLink<T>;
 
         private:
-                std::vector<EventLink<T>*> links;
-                std::function<void(std::function<void(T)>)> backcall;
+            std::vector<EventLink<T>*> links;
+            std::shared_ptr<Event<T>> self;
         public:
-            bool frozen;
             void invoke(T item);
-            void set_backcall(std::function<void(std::function<void(T)>)> new_backcall);
+            void invoke_once(T item); // invokes then lobotomises event
+            std::function<EventLink<T>*(std::function<void(T)>)> filter = nullptr;
             
-            EventPort<T> port();
+            const EventPort<T> port();
+            Event(): self(std::make_shared(this)) {};
             ~Event();
     };
 
     template <typename T> class EventPort {
         friend Event<T>;
-        Event<T>* event; 
-        // now multiple eventports can be made all with raw pointers to a single event (not good)
-        // if event is deleted, it will connect to absolute rubbish
-        // probably should fix one day
-
+        std::shared_ptr<Event<T>> event; 
         public:
+            EventPort(const Event<T>& ev): event(ev.self) {};
             EventPort() = delete;
             EventLink<T>* connect(std::function<void(T)> callback);
     };

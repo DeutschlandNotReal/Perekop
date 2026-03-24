@@ -6,27 +6,23 @@
 namespace pk::engine {
     extern MeshRenderer mesh_renderer;
 
-    namespace frame {
-        extern EventPort<float> stepped;
-        extern EventPort<glm::vec2> resized;
-        extern EventPort<int> closed;
-        extern float fps;
-    }
-
     namespace window {
-        extern std::string title;
-        extern glm::vec2 size;
-        extern glm::vec2 position;
-        void close();
+        extern const EventPort<float> step;
+        extern const EventPort<glm::vec2> resized;
+        extern const EventPort<bool> began;
+        extern const EventPort<bool> ended;
+        extern const void close();
+        extern const void resize(glm::vec2 new_size);
+        extern const void rename(std::string new_title);
     }
 
     namespace input {
-        glm::vec2 mouse_xy();
+        extern const glm::vec2 mouse_xy();
 
-        extern EventPort<glm::vec2> mouse_moved; // delta
-        extern EventPort<int> key_pressed;
-        extern EventPort<int> key_released;
-        extern EventPort<int> mouse_clicked;
-        extern EventPort<int> mouse_released; 
+        extern const EventPort<glm::vec2> mouse_moved; // parameter is delta
+        extern const EventPort<int> key_pressed;
+        extern const EventPort<int> key_released;
+        extern const EventPort<int> mouse_clicked;
+        extern const EventPort<int> mouse_released; 
     }
 }
