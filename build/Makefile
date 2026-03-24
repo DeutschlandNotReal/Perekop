@@ -143,6 +143,30 @@ cmake_pch.hxx.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/cmake_pch.hxx.s
 .PHONY : cmake_pch.hxx.s
 
+game/src/main.obj: game/src/main.cpp.obj
+.PHONY : game/src/main.obj
+
+# target to build an object file
+game/src/main.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/game/src/main.cpp.obj
+.PHONY : game/src/main.cpp.obj
+
+game/src/main.i: game/src/main.cpp.i
+.PHONY : game/src/main.i
+
+# target to preprocess a source file
+game/src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/game/src/main.cpp.i
+.PHONY : game/src/main.cpp.i
+
+game/src/main.s: game/src/main.cpp.s
+.PHONY : game/src/main.s
+
+# target to generate assembly for a file
+game/src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/game/src/main.cpp.s
+.PHONY : game/src/main.cpp.s
+
 pkengine/lib/glad/src/glad.obj: pkengine/lib/glad/src/glad.c.obj
 .PHONY : pkengine/lib/glad/src/glad.obj
 
@@ -191,29 +215,29 @@ pkengine/src/events.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/events.cpp.s
 .PHONY : pkengine/src/events.cpp.s
 
-pkengine/src/main.obj: pkengine/src/main.cpp.obj
-.PHONY : pkengine/src/main.obj
+pkengine/src/init.obj: pkengine/src/init.cpp.obj
+.PHONY : pkengine/src/init.obj
 
 # target to build an object file
-pkengine/src/main.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj
-.PHONY : pkengine/src/main.cpp.obj
+pkengine/src/init.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj
+.PHONY : pkengine/src/init.cpp.obj
 
-pkengine/src/main.i: pkengine/src/main.cpp.i
-.PHONY : pkengine/src/main.i
+pkengine/src/init.i: pkengine/src/init.cpp.i
+.PHONY : pkengine/src/init.i
 
 # target to preprocess a source file
-pkengine/src/main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/main.cpp.i
-.PHONY : pkengine/src/main.cpp.i
+pkengine/src/init.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/init.cpp.i
+.PHONY : pkengine/src/init.cpp.i
 
-pkengine/src/main.s: pkengine/src/main.cpp.s
-.PHONY : pkengine/src/main.s
+pkengine/src/init.s: pkengine/src/init.cpp.s
+.PHONY : pkengine/src/init.s
 
 # target to generate assembly for a file
-pkengine/src/main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/main.cpp.s
-.PHONY : pkengine/src/main.cpp.s
+pkengine/src/init.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/init.cpp.s
+.PHONY : pkengine/src/init.cpp.s
 
 pkengine/src/mesh.obj: pkengine/src/mesh.cpp.obj
 .PHONY : pkengine/src/mesh.obj
@@ -251,15 +275,18 @@ help:
 	@echo ... cmake_pch.hxx.gch
 	@echo ... cmake_pch.hxx.i
 	@echo ... cmake_pch.hxx.s
+	@echo ... game/src/main.obj
+	@echo ... game/src/main.i
+	@echo ... game/src/main.s
 	@echo ... pkengine/lib/glad/src/glad.obj
 	@echo ... pkengine/lib/glad/src/glad.i
 	@echo ... pkengine/lib/glad/src/glad.s
 	@echo ... pkengine/src/events.obj
 	@echo ... pkengine/src/events.i
 	@echo ... pkengine/src/events.s
-	@echo ... pkengine/src/main.obj
-	@echo ... pkengine/src/main.i
-	@echo ... pkengine/src/main.s
+	@echo ... pkengine/src/init.obj
+	@echo ... pkengine/src/init.i
+	@echo ... pkengine/src/init.s
 	@echo ... pkengine/src/mesh.obj
 	@echo ... pkengine/src/mesh.i
 	@echo ... pkengine/src/mesh.s

@@ -84,12 +84,12 @@ clean: CMakeFiles/pkengine.dir/clean
 CMakeFiles/pkengine.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=1,2,3,4,5,6 "Built target pkengine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=1,2,3,4,5,6,7 "Built target pkengine"
 .PHONY : CMakeFiles/pkengine.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/pkengine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Projects\Perekop\build\CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Projects\Perekop\build\CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/pkengine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Projects\Perekop\build\CMakeFiles 0
 .PHONY : CMakeFiles/pkengine.dir/rule
@@ -101,7 +101,7 @@ pkengine: CMakeFiles/pkengine.dir/rule
 # codegen rule for target.
 CMakeFiles/pkengine.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=1,2,3,4,5,6 "Finished codegen for target pkengine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=1,2,3,4,5,6,7 "Finished codegen for target pkengine"
 .PHONY : CMakeFiles/pkengine.dir/codegen
 
 # clean rule for target.

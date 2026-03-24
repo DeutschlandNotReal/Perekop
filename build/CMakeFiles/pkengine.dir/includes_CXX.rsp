@@ -1,1 +1,1 @@
--IC:/Projects/Perekop/pkengine/include -I"C:/Projects/Perekop/pkengine/lib/glfw/glfw-3.4.bin.WIN64/include" -I"C:/Projects/Perekop/pkengine/lib/glew/glew-2.2.0/include" -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/lib/glad/include
+-IC:/Projects/Perekop/pkengine/include -IC:/Projects/Perekop/game/include -I"C:/Projects/Perekop/pkengine/lib/glfw/glfw-3.4.bin.WIN64/include" -I"C:/Projects/Perekop/pkengine/lib/glew/glew-2.2.0/include" -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/lib/glad/include

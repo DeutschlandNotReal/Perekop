@@ -17,9 +17,11 @@ CXX_FLAGS = -std=gnu++17
 
 # PCH options: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch_OPTIONS = -Winvalid-pch;-x;c++-header;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
 
+# PCH options: CMakeFiles/pkengine.dir/game/src/main.cpp.obj_OPTIONS = -Winvalid-pch;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
+
 # PCH options: CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj_OPTIONS = -Winvalid-pch;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
 
-# PCH options: CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj_OPTIONS = -Winvalid-pch;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
+# PCH options: CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj_OPTIONS = -Winvalid-pch;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
 
 # PCH options: CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj_OPTIONS = -Winvalid-pch;-include;C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx
 

@@ -6,6 +6,7 @@
 #define exc extern const
 namespace pk::engine {
     extern MeshRenderer mesh_renderer;
+    void init();
 
     namespace window {
         exc EventPort<float>& step;

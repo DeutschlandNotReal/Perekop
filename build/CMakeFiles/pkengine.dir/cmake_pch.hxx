@@ -2,7 +2,7 @@
 
 #pragma GCC system_header
 #ifdef __cplusplus
-#include "C:/Projects/Perekop/pkengine/include/gl.hpp>"
+#include "C:/Projects/Perekop/pkengine/include/gl.hpp"
 #include <vector>
 #include <functional>
 #endif // __cplusplus

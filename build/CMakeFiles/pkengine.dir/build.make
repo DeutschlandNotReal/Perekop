@@ -87,13 +87,30 @@ CMakeFiles/pkengine.dir/cmake_pch.hxx.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pkengine.dir/cmake_pch.hxx.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -x c++-header -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -S C:\Projects\Perekop\build\CMakeFiles\pkengine.dir\cmake_pch.hxx.cxx -o CMakeFiles\pkengine.dir\cmake_pch.hxx.s
 
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/flags.make
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/includes_CXX.rsp
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: C:/Projects/Perekop/game/src/main.cpp
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
+CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/pkengine.dir/game/src/main.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -MD -MT CMakeFiles/pkengine.dir/game/src/main.cpp.obj -MF CMakeFiles\pkengine.dir\game\src\main.cpp.obj.d -o CMakeFiles\pkengine.dir\game\src\main.cpp.obj -c C:\Projects\Perekop\game\src\main.cpp
+
+CMakeFiles/pkengine.dir/game/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/pkengine.dir/game/src/main.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -E C:\Projects\Perekop\game\src\main.cpp > CMakeFiles\pkengine.dir\game\src\main.cpp.i
+
+CMakeFiles/pkengine.dir/game/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pkengine.dir/game/src/main.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -S C:\Projects\Perekop\game\src\main.cpp -o CMakeFiles\pkengine.dir\game\src\main.cpp.s
+
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/flags.make
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/includes_CXX.rsp
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: C:/Projects/Perekop/pkengine/src/events.cpp
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -MD -MT CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj -MF CMakeFiles\pkengine.dir\pkengine\src\events.cpp.obj.d -o CMakeFiles\pkengine.dir\pkengine\src\events.cpp.obj -c C:\Projects\Perekop\pkengine\src\events.cpp
 
 CMakeFiles/pkengine.dir/pkengine/src/events.cpp.i: cmake_force
@@ -104,22 +121,22 @@ CMakeFiles/pkengine.dir/pkengine/src/events.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pkengine.dir/pkengine/src/events.cpp.s"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -S C:\Projects\Perekop\pkengine\src\events.cpp -o CMakeFiles\pkengine.dir\pkengine\src\events.cpp.s
 
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: CMakeFiles/pkengine.dir/flags.make
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: CMakeFiles/pkengine.dir/includes_CXX.rsp
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: C:/Projects/Perekop/pkengine/src/main.cpp
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj"
-	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -MD -MT CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj -MF CMakeFiles\pkengine.dir\pkengine\src\main.cpp.obj.d -o CMakeFiles\pkengine.dir\pkengine\src\main.cpp.obj -c C:\Projects\Perekop\pkengine\src\main.cpp
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/flags.make
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/includes_CXX.rsp
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: C:/Projects/Perekop/pkengine/src/init.cpp
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -MD -MT CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj -MF CMakeFiles\pkengine.dir\pkengine\src\init.cpp.obj.d -o CMakeFiles\pkengine.dir\pkengine\src\init.cpp.obj -c C:\Projects\Perekop\pkengine\src\init.cpp
 
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/pkengine.dir/pkengine/src/main.cpp.i"
-	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -E C:\Projects\Perekop\pkengine\src\main.cpp > CMakeFiles\pkengine.dir\pkengine\src\main.cpp.i
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/pkengine.dir/pkengine/src/init.cpp.i"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -E C:\Projects\Perekop\pkengine\src\init.cpp > CMakeFiles\pkengine.dir\pkengine\src\init.cpp.i
 
-CMakeFiles/pkengine.dir/pkengine/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pkengine.dir/pkengine/src/main.cpp.s"
-	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -S C:\Projects\Perekop\pkengine\src\main.cpp -o CMakeFiles\pkengine.dir\pkengine\src\main.cpp.s
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/pkengine.dir/pkengine/src/init.cpp.s"
+	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -S C:\Projects\Perekop\pkengine\src\init.cpp -o CMakeFiles\pkengine.dir\pkengine\src\init.cpp.s
 
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/flags.make
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/includes_CXX.rsp
@@ -127,7 +144,7 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: C:/Projects/Perekop/pkengine/
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj"
 	C:\msys64\mingw64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -Winvalid-pch -include C:/Projects/Perekop/build/CMakeFiles/pkengine.dir/cmake_pch.hxx -MD -MT CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj -MF CMakeFiles\pkengine.dir\pkengine\src\mesh.cpp.obj.d -o CMakeFiles\pkengine.dir\pkengine\src\mesh.cpp.obj -c C:\Projects\Perekop\pkengine\src\mesh.cpp
 
 CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.i: cmake_force
@@ -142,7 +159,7 @@ CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj: CMakeFiles/pkengine.di
 CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj: CMakeFiles/pkengine.dir/includes_C.rsp
 CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj: C:/Projects/Perekop/pkengine/lib/glad/src/glad.c
 CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj: CMakeFiles/pkengine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj"
 	C:\msys64\mingw64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj -MF CMakeFiles\pkengine.dir\pkengine\lib\glad\src\glad.c.obj.d -o CMakeFiles\pkengine.dir\pkengine\lib\glad\src\glad.c.obj -c C:\Projects\Perekop\pkengine\lib\glad\src\glad.c
 
 CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.i: cmake_force
@@ -155,8 +172,9 @@ CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.s: cmake_force
 
 # Object files for target pkengine
 pkengine_OBJECTS = \
+"CMakeFiles/pkengine.dir/game/src/main.cpp.obj" \
 "CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj" \
-"CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj" \
+"CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj" \
 "CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj" \
 "CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj"
 
@@ -164,17 +182,18 @@ pkengine_OBJECTS = \
 pkengine_EXTERNAL_OBJECTS =
 
 pkengine.exe: CMakeFiles/pkengine.dir/cmake_pch.hxx.gch
+pkengine.exe: CMakeFiles/pkengine.dir/game/src/main.cpp.obj
 pkengine.exe: CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj
-pkengine.exe: CMakeFiles/pkengine.dir/pkengine/src/main.cpp.obj
+pkengine.exe: CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj
 pkengine.exe: CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj
 pkengine.exe: CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj
 pkengine.exe: CMakeFiles/pkengine.dir/build.make
-pkengine.exe: C:/Projects/Perekop/pkengine/lib/glfw/glfw-3.4.bin.WIN64/lib-vc2022/glfw3.lib
+pkengine.exe: C:/Projects/Perekop/pkengine/lib/glfw/glfw-3.4.bin.WIN64/lib-mingw-w64/libglfw3.a
 pkengine.exe: C:/Projects/Perekop/pkengine/lib/glew/glew-2.2.0/lib/Release/x64/glew32.lib
 pkengine.exe: CMakeFiles/pkengine.dir/linkLibs.rsp
 pkengine.exe: CMakeFiles/pkengine.dir/objects1.rsp
 pkengine.exe: CMakeFiles/pkengine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable pkengine.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Projects\Perekop\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable pkengine.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\pkengine.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
