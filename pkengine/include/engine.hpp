@@ -9,7 +9,7 @@ namespace pk::engine {
     namespace frame {
         extern EventPort<float> stepped;
         extern EventPort<glm::vec2> resized;
-        extern EventPort<int> closed; // pretty sure closing it just gonna stop everything anyways
+        extern EventPort<int> closed;
         extern float fps;
     }
 
@@ -23,10 +23,10 @@ namespace pk::engine {
     namespace input {
         glm::vec2 mouse_xy();
 
-        extern EventPort<glm::vec2> mouse_moved; // moved from last frame, not new position!!
+        extern EventPort<glm::vec2> mouse_moved; // delta
         extern EventPort<int> key_pressed;
         extern EventPort<int> key_released;
-        extern EventPort<int> mouse_clicked; // int for these 2 mean nothing cant have void events
+        extern EventPort<int> mouse_clicked;
         extern EventPort<int> mouse_released; 
     }
 }

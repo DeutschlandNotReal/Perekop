@@ -2,11 +2,6 @@
 #include <vector>
 #include <functional>
 
-using uint16 = unsigned short;
-
-// ts movecopy basically makes it so pc doesnt explode
-#define movecopy(T) T(T&&) = default; T& operator=(T&&) = default; T(const T&) = delete; T& operator=(const T&) = delete;
-
 namespace pk {
     template <typename T> class EventPort;
     template <typename T> class EventLink;
@@ -14,29 +9,29 @@ namespace pk {
     template <typename T> class Event {
         friend EventPort<T>;
         friend EventLink<T>;
+
         private:
-            std::vector<EventLink<T>*> connections;
-            EventPort<T> evport;
-    public:
-        void invoke(T item);
-        inline EventPort<T>& port() { return evport; };
-
-        Event();
-        ~Event();
-
-        movecopy(Event)
+                std::vector<EventLink<T>*> links;
+                std::function<void(std::function<void(T)>)> backcall;
+        public:
+            bool frozen;
+            void invoke(T item);
+            void set_backcall(std::function<void(std::function<void(T)>)> new_backcall);
+            
+            EventPort<T> port();
+            ~Event();
     };
 
     template <typename T> class EventPort {
         friend Event<T>;
-        private:
-            Event<T>* event;
-            EventPort(Event<T>* ev);
+        Event<T>* event; 
+        // now multiple eventports can be made all with raw pointers to a single event (not good)
+        // if event is deleted, it will connect to absolute rubbish
+        // probably should fix one day
+
         public:
             EventPort() = delete;
             EventLink<T>* connect(std::function<void(T)> callback);
-
-            movecopy(EventPort)
     };
 
     template <typename T> struct EventLink {
@@ -44,14 +39,12 @@ namespace pk {
         friend EventPort<T>;
         private:
             Event<T>* event;
-            uint16 index;
+            unsigned short index;
             std::function<void(T)> call;
-            EventLink(Event<T>* ev, uint16 I, std::function<void(T)> C);
+            EventLink(Event<T>* ev, unsigned short I, std::function<void(T)> C);
         public:
             void disconnect();
             ~EventLink();
             EventLink() = delete;
-
-            movecopy(EventLink)
     };
 }

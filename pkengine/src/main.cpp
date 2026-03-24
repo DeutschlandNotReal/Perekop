@@ -38,9 +38,8 @@ int main() {
         return -1;
     }
 
-    // if glfw or glad just doesnt work we quit like chuds
-    // probably breaks game maybe
-
+    // if glad or glew doesn't work then we're done for
+    
     {
         using namespace pk::engine::frame;
         closed = std::move(PKENGINE::frame_closed.port());
