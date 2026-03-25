@@ -3,84 +3,62 @@
 #include <vector>
 #include <functional>
 #include <string>
-using uint16 = unsigned short;
+
+#define u16 unsigned short
+#define v3 glm::vec3
 
 namespace pk {
-    class Mesh;
     class Model;
-    struct MeshMaterial;
-    
-    struct MeshVertex { 
-        glm::vec3 pos; glm::vec2 uv;
-        MeshVertex(glm::vec3 POS, glm::vec2 UV): pos(POS), uv(UV) {} 
-    };
-    struct MeshTrig { 
-        uint16 v0, v1, v2; 
-        MeshTrig(uint16 V0, uint16 V1, uint16 V2): v0(V0), v1(V1), v2(V2) {};
-    };
-
-    class MeshRenderer {
-        friend Mesh;
-        private:
-            std::vector<Mesh*> meshes;
-        public:
-            int draw();
-            int draw_tested(std::function<bool(Mesh&, Model&)>);
-
-            Mesh* create_mesh();
-            Mesh* upload_mesh(std::string filepath);
-            MeshMaterial create_material(const char* vsrc, const char* fsrc);
-    };
-
-    struct MeshMaterial {
-        friend MeshRenderer;
-        unsigned int program;
-        public: MeshMaterial() = delete;
-        private: MeshMaterial(unsigned int prog);
-    };
+    class MeshRenderer;
 
     class Mesh {
-        friend Model;
-        friend MeshRenderer;
+        friend Model; friend MeshRenderer;
+
         private:
-            Mesh(uint16 i);
-            uint16 index;
-            std::vector<MeshVertex> verts;
-            std::vector<MeshTrig> trigs;
+            u16 ref;
             unsigned int VAO, VBO, EBO, IBO;
+            std::vector<v3> V;
+            std::vector<u16> T;
             std::vector<Model*> users;
-            MeshMaterial material;
+            Mesh(u16 i);
         public:
             Mesh() = delete;
             ~Mesh();
-            uint16 pop_triangle();
-            uint16 push_triangle(uint16 v0, uint16 v1, uint16 v2);
-            uint16 pop_vertex();
-            uint16 push_vertex(glm::vec3 pos, glm::vec2 uv = glm::vec2(0, 0));
-            void set_position(uint16 vid, glm::vec3 pos);
-            void set_uv(uint16 vid, glm::vec2 uv);
-            void set_verticies(uint16 tid, uint16 v0, uint16 v1, uint16 v2);
 
-            void clear_geometry();
+            inline u16 new_trig(u16 v0, u16 v1, u16 v2);
+            inline u16 pop_trig(u16 tid);
+            inline void set_trig(u16 tid, u16 v0, u16 v1, u16 v2);
+
+            inline u16 new_vert(v3 p);
+            inline u16 pop_vert();
+            inline void set_pos(u16 vid, v3 p);
 
             void flush();
-
-            void disassign_model(Model* model);
-            void assign_model(Model* model);
     };
 
     class Model {
         friend Mesh;
-        friend MeshRenderer;
+
         private:
-            uint16 index;
+            u16 ref;
             Mesh* mesh;
         public:
-            glm::mat3x4 matrix;
-            glm::vec3 size;
-            bool visible;
-            ~Model();
-            void set_mesh(Mesh* new_mesh);
-            inline Mesh* get_mesh();
+            glm::mat3x3 matrix;
+            v3 pos;
+            v3 scale;
+            void set_mesh(Mesh* M);
+            Mesh* get_mesh() { return mesh; }
+    };
+
+    class MeshRenderer {
+        private:
+            std::vector<Mesh*> meshes;
+        public:
+
+            void draw();
+            Mesh* new_mesh();
     };
 }
+
+#undef uint16
+#undef v3

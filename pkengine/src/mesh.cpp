@@ -1,5 +1,6 @@
 #include "gl.hpp"
 #include "mesh.hpp"
+#include "glm/ext/matrix_float3x4.hpp"
 #include "util.hpp"
 
 using glm::vec3, glm::vec2;
@@ -13,109 +14,122 @@ uint load_shader(const char* src, GLenum type) {
     return shader;
 }
 
+uint load_program(const char* vsrc, const char* fsrc) {
+    uint vshader = load_shader(vsrc, GL_VERTEX_SHADER);
+    uint fshader = load_shader(fsrc, GL_FRAGMENT_SHADER);
+
+    uint program = glCreateProgram();
+    glAttachShader(program, vshader);
+    glAttachShader(program, fshader);
+        
+    glDeleteShader(vshader);
+    glDeleteShader(fshader);
+    glLinkProgram(program);
+    return program;
+}
+
 namespace pk {
-    Mesh* MeshRenderer::create_mesh() {
-        Mesh* mesh = new Mesh(meshes.size());
-        meshes.push_back(mesh);
-        glGenVertexArrays(1, &mesh->VAO);
-        glGenBuffers(1, &mesh->VBO);
-        glGenBuffers(1, &mesh->EBO);
-        glGenBuffers(1, &mesh->IBO);
-        return mesh;
-    }
+    static uint default_shader = load_program(
+        "#version 120\n"
+        "attribute vec4 in_vertex;\n"
+        "uniform mat4 model;\n"
+        "uniform mat4 view;\n"
+        "uniform mat4 projection;\n"
+        "void main() {\n"
+        "   gl_Position = projection * view * model * in_vertex;\n"
+        "}\n",
 
-    MeshMaterial MeshRenderer::create_material(const char* vsrc, const char* fsrc) {
-        uint vshader = load_shader(vsrc, GL_VERTEX_SHADER);
-        uint fshader = load_shader(fsrc, GL_FRAGMENT_SHADER);
-
-        uint program = glCreateProgram();
-        glAttachShader(program, vshader);
-        glAttachShader(program, fshader);
-        
-        glDeleteShader(vshader);
-        glDeleteShader(fshader);
-        
-        return MeshMaterial(program);
-    }
+        "#version 120\n"
+        "void main() {\n"
+        "gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+        "};\n"
+    );
 
     void Mesh::flush() {
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, V.size() * 12, V.data(), GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, T.size() * 2, T.data(), GL_STATIC_DRAW);
+    }
+
+    Mesh::Mesh(u16 i): ref(i) {
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+        glGenBuffers(1, &IBO);
+        glGenVertexArrays(1, &VAO);
         glBindVertexArray(VAO);
 
-        // position and uv
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(MeshVertex), verts.data(), GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), 0);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), (void*)12);
-        glEnableVertexAttribArray(1);
 
-        // triangle...
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, trigs.size() * sizeof(MeshTrig), trigs.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, IBO);
+
+        // each row of the transforms need its own attrib array, opengl just sloppy like that
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)0);
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)16);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)32);
+        glEnableVertexAttribArray(1);
+        glEnableVertexAttribArray(2);
+        glEnableVertexAttribArray(3);
+
+        glVertexAttribDivisor(1, 1);
+        glVertexAttribDivisor(2, 1);
+        glVertexAttribDivisor(3, 1);
 
         glBindVertexArray(0);
-    } 
-
-    uint16 Mesh::push_triangle(uint16 v0, uint16 v1, uint16 v2) {
-        trigs.emplace_back(v0, v1, v2);
-        return trigs.size() - 1;
-    }
-
-    uint16 Mesh::pop_triangle() {
-        uint16 tid = trigs.size() - 1;
-        trigs.pop_back();
-        return tid;
-    }
-
-    void Mesh::set_verticies(uint16 tid, uint16 v0, uint16 v1, uint16 v2) {
-        trigs[tid] = { v0, v1, v2 };
-    }
-
-    uint16 Mesh::push_vertex(vec3 pos, vec2 uv) {
-        verts.emplace_back(pos, uv);
-        return verts.size() - 1;
-    }
-
-    // will explode pc if you remove verticies used in trigs
-    uint16 Mesh::pop_vertex() {
-        uint16 vid = verts.size() - 1;
-        verts.pop_back();
-        return vid;
-    }
-
-    void Mesh::set_position(uint16 vid, vec3 pos) { verts[vid].pos = pos; }
-
-    void Mesh::set_uv(uint16 vid, vec2 uv) { verts[vid].uv = uv; }
-
-    void Mesh::clear_geometry() {
-        verts.clear();
-        trigs.clear();
-        flush();
-    }
-
-    // sounds cooler than unassign
-    void Mesh::disassign_model(Model* model) {
-        if (model->mesh != this) return;
-        pk::util::swappop<Model*>(users, model->index, [](auto& V, auto I){ V->index = I; });
-        model->mesh = nullptr;
-    }
-
-    void Mesh::assign_model(Model* model) {
-        if (model->mesh == this) return;
-        if (model->mesh) { model->mesh->disassign_model(model); }
-        users.push_back(model);
-        model->mesh = this;
-        model->index = users.size() - 1;
     }
 
     Mesh::~Mesh() {
-        for (Model* user : users) { user->mesh = nullptr; }
+        for (Model* m : users) { m->mesh = nullptr; }
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteBuffers(1, &IBO);
+        glDeleteVertexArrays(1, &VAO);
     }
 
-    void Model::set_mesh(Mesh* newMesh) {
-        if (mesh == newMesh) return;
-        newMesh->assign_model(this);
+    Mesh* MeshRenderer::new_mesh() {
+        Mesh* mesh = new Mesh(meshes.size());
+        meshes.push_back(mesh);
+
+        return mesh;
+    };
+
+    void MeshRenderer::draw() {
+        glUseProgram(default_shader);
+        for (Mesh* mesh : meshes) {
+            glm::mat3x4* transforms = new glm::mat3x4[mesh->users.size()];
+            for (int i = 0; i < mesh->users.size(); i++) {
+                Model* model = mesh->users[i];
+                auto& mat = model->matrix;
+                auto& scl = model->scale;
+                auto& pos = model->pos;
+
+                transforms[i] = glm::mat3x4 {
+                    {mat[0] * scl.x, pos.x},
+                    {mat[1] * scl.y, pos.y},
+                    {mat[2] * scl.z, pos.z},
+                };
+            }
+            glBindBuffer(GL_ARRAY_BUFFER, mesh->IBO);
+            glBufferData(GL_ARRAY_BUFFER, mesh->users.size() * sizeof(glm::mat3x4), transforms, GL_STATIC_DRAW);
+
+            delete[] transforms;
+        }
+        glBindVertexArray(0);
     }
 
-    inline Mesh* Model::get_mesh() { return mesh; }
+    void Model::set_mesh(Mesh* M) {
+       if (M != mesh) {
+        util::swappop<Model*>(mesh->users, ref, [this](auto& V){ V->ref = ref; });
+        mesh = M;
+        if (mesh == nullptr) return;
+
+        ref = mesh->users.size();
+        mesh->users.push_back(this);
+       }
+    }
+
+
 }

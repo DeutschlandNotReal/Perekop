@@ -60,7 +60,8 @@ void pk::engine::init() {
     }
 
     // if glad or glew doesn't work then we're done for
-    engine::window::began_event.final(0);
+    engine::window::began_event.lock(0);
+    engine::window::ended_event.clear();
     float last_dt = iFPS;
     while (!glfwWindowShouldClose(window)) {
         auto frame_start = high_resolution_clock::now();
@@ -77,7 +78,8 @@ void pk::engine::init() {
         if (this_dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - this_dt));
     }
     // anything after here for when window closes
-    engine::window::ended_event.final(0);
+    engine::window::ended_event.lock(0);
+    engine::window::ended_event.clear();
 
     glfwTerminate();
 }

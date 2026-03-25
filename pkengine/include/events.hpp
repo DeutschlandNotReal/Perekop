@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <memory>
+#include <thread>
 
 namespace pk {
     template <typename T> class EventPort;
@@ -18,13 +19,25 @@ namespace pk {
 
             EventPort<T> port{this};
 
-            void invoke(T item) { for (auto& link : links) link->call(item); };
+            void invoke(T item) { 
+                auto links_copy = links;
+                for (auto& link : links_copy) link->call(item);
+            }
 
-            void final(T item) {
+            void invoke_async(T item) {
+                std::thread([links = links, item](){
+                    for (auto& link : links) link->call(item);
+                 }).detach();
+            }
+
+            void lock(T item) {
                 invoke(item);
-                links.clear();
                 filter = [item](auto cb){ cb(item); return nullptr; };
-            };
+            }
+
+            void unlock() { filter = nullptr; }
+
+            void clear() { links.clear(); }
 
             ~Event<T>() { for (auto& link : links) link->event = nullptr; }
 
@@ -50,12 +63,15 @@ namespace pk {
         friend EventPort<T>;
         private:   
             Event<T>* event;
-            unsigned short index;
+            unsigned short ref;
             std::function<void(T)> call;
-            EventLink(Event<T>* ev, unsigned short I, std::function<void(T)> C): event(ev), index(I), call(C) {};
+            EventLink(Event<T>* ev, unsigned short I, std::function<void(T)> C): event(ev), ref(I), call(C) {};
         public:
             void disconnect() {
-                if (event) pk::util::swappop<T>(event->links, index, [](auto& V, auto I) { V->index = I;});
+                if (event) {
+                    pk::util::swappop<T>(event->links, ref, [this](auto& V){ V->index = ref; }); 
+                    event = nullptr;
+                }
             };
 
             ~EventLink() { disconnect(); }
