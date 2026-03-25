@@ -191,30 +191,6 @@ pkengine/lib/glad/src/glad.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.s
 .PHONY : pkengine/lib/glad/src/glad.c.s
 
-pkengine/src/events.obj: pkengine/src/events.cpp.obj
-.PHONY : pkengine/src/events.obj
-
-# target to build an object file
-pkengine/src/events.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj
-.PHONY : pkengine/src/events.cpp.obj
-
-pkengine/src/events.i: pkengine/src/events.cpp.i
-.PHONY : pkengine/src/events.i
-
-# target to preprocess a source file
-pkengine/src/events.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/events.cpp.i
-.PHONY : pkengine/src/events.cpp.i
-
-pkengine/src/events.s: pkengine/src/events.cpp.s
-.PHONY : pkengine/src/events.s
-
-# target to generate assembly for a file
-pkengine/src/events.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\pkengine.dir\build.make CMakeFiles/pkengine.dir/pkengine/src/events.cpp.s
-.PHONY : pkengine/src/events.cpp.s
-
 pkengine/src/init.obj: pkengine/src/init.cpp.obj
 .PHONY : pkengine/src/init.obj
 
@@ -281,9 +257,6 @@ help:
 	@echo ... pkengine/lib/glad/src/glad.obj
 	@echo ... pkengine/lib/glad/src/glad.i
 	@echo ... pkengine/lib/glad/src/glad.s
-	@echo ... pkengine/src/events.obj
-	@echo ... pkengine/src/events.i
-	@echo ... pkengine/src/events.s
 	@echo ... pkengine/src/init.obj
 	@echo ... pkengine/src/init.i
 	@echo ... pkengine/src/init.s

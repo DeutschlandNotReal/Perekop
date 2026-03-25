@@ -5,8 +5,6 @@ file(REMOVE_RECURSE
   "CMakeFiles/pkengine.dir/game/src/main.cpp.obj.d"
   "CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj"
   "CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj.d"
-  "CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj"
-  "CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj.d"
   "CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj"
   "CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj.d"
   "CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj"

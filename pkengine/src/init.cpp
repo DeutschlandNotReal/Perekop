@@ -11,7 +11,7 @@ cmake -B build -G "MinGW Makefiles" -DCMAKE_CXX_COMPILER="C:/msys64/mingw64/bin/
 cmake --build build -- -j4
 */
 
-const float iFPS = 1.0f / 60.0f;
+const double iFPS = 1.0 / 60.0;
 
 using glm::vec3, glm::vec2; 
 using namespace std::chrono;
@@ -68,7 +68,7 @@ void engine::init() {
     glfwSetFramebufferSizeCallback(window, on_resize);
 
     // if glad or glew doesn't work then we're done for
-    engine::window::began_event.lock(0);
+    engine::window::began_event.lock(true);
     engine::window::ended_event.clear();
     float last_dt = iFPS;
 
@@ -92,11 +92,11 @@ void engine::init() {
         double dt = timer.stop();
 
         std::cout << "Render: " << dt_render << ", Event: " << dt_event;
-        if (dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - dt));
+        if (dt < iFPS) std::this_thread::sleep_for(duration<double>(iFPS - dt));
         last_dt = dt;
     }
     // anything after here for when window closes
-    engine::window::ended_event.lock(0);
+    engine::window::ended_event.lock(true);
     engine::window::ended_event.clear();
 
     glfwTerminate();

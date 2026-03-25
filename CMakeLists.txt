@@ -14,13 +14,10 @@ set(GLEW_LIB ${LIB_DIR}/glew/glew-2.2.0/lib/Release/x64/glew32.lib)
 file(GLOB_RECURSE SRC_FILES pkengine/src/*.cpp game/src/*.cpp)
 list(APPEND SRC_FILES ${LIB_DIR}/glad/src/glad.c)
 add_executable(pkengine ${SRC_FILES})
-target_include_directories(pkengine PRIVATE
-    pkengine/include
-    game/include
-    ${GLFW_INCLUDE}
-    ${GLEW_INCLUDE}
-    ${GLM_INCLUDE}
-    ${GLAD_INCLUDE}
+target_link_libraries(pkengine PRIVATE
+    ${GLFW_LIB}
+    -lglew32
+    opengl32
 )
 target_precompile_headers(pkengine PRIVATE
     "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/pkengine/include/gl.hpp>"

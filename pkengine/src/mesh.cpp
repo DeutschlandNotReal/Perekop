@@ -141,10 +141,12 @@ namespace pk {
 
     void Model::set_mesh(Mesh* M) {
        if (M != mesh) {
-        auto& users = mesh->users;
-        users.back()->ref = ref;
-        users[ref] = users.back();
-        users.pop_back();
+        if (mesh != nullptr) {
+            auto& users = mesh->users;
+            users.back()->ref = ref;
+            users[ref] = users.back();
+            users.pop_back();
+        };
         mesh = M;
         if (mesh == nullptr) return;
 

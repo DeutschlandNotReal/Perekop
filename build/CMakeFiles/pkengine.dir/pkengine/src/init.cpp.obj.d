@@ -307,7 +307,6 @@ CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
- C:/Projects/Perekop/pkengine/include/mesh.hpp \
  C:/msys64/mingw64/include/c++/15.2.0/thread \
  C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
@@ -316,4 +315,19 @@ CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/ratio \
  C:/msys64/mingw64/include/c++/15.2.0/ctime \
  C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h \
+ C:/Projects/Perekop/pkengine/include/mesh.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/include/camera.hpp \
+ C:/Projects/Perekop/pkengine/include/util.hpp \
  C:/msys64/mingw64/include/c++/15.2.0/chrono

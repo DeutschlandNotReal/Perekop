@@ -85,6 +85,7 @@ CMakeFiles/pkengine.dir/cmake_pch.hxx.gch: CMakeFiles/pkengine.dir/cmake_pch.hxx
   CMakeFiles/pkengine.dir/cmake_pch.hxx.cxx
 
 CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx \
+  C:/Projects/Perekop/pkengine/include/camera.hpp \
   C:/Projects/Perekop/pkengine/include/engine.hpp \
   C:/Projects/Perekop/pkengine/include/events.hpp \
   C:/Projects/Perekop/pkengine/include/mesh.hpp \
@@ -132,6 +133,8 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/exponential.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2_precision.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x3.hpp \
@@ -168,6 +171,12 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3_precision.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_int_sized.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_uint_sized.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool2.hpp \
@@ -203,6 +212,10 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/Projects/Perekop/pkengine/lib/glm/glm/fwd.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/geometric.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/glm.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/integer.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x2.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x3.hpp \
@@ -239,6 +252,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h \
@@ -247,6 +261,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/ios_base.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/locale_classes.h \
@@ -261,6 +276,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h \
@@ -271,6 +287,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_function.h \
@@ -285,6 +302,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf_iterator.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/string_view.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stringfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/unique_ptr.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/version.h \
@@ -299,6 +317,7 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/cstdint \
   C:/msys64/mingw64/include/c++/15.2.0/cstdio \
   C:/msys64/mingw64/include/c++/15.2.0/cstdlib \
+  C:/msys64/mingw64/include/c++/15.2.0/ctime \
   C:/msys64/mingw64/include/c++/15.2.0/cwchar \
   C:/msys64/mingw64/include/c++/15.2.0/cwctype \
   C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
@@ -323,12 +342,14 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch
   C:/msys64/mingw64/include/c++/15.2.0/ostream \
   C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
   C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ratio \
   C:/msys64/mingw64/include/c++/15.2.0/stdexcept \
   C:/msys64/mingw64/include/c++/15.2.0/stdlib.h \
   C:/msys64/mingw64/include/c++/15.2.0/streambuf \
   C:/msys64/mingw64/include/c++/15.2.0/string \
   C:/msys64/mingw64/include/c++/15.2.0/string_view \
   C:/msys64/mingw64/include/c++/15.2.0/system_error \
+  C:/msys64/mingw64/include/c++/15.2.0/thread \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/ell_integral.tcc \
@@ -692,102 +713,10 @@ CMakeFiles/pkengine.dir/pkengine/lib/glad/src/glad.c.obj: C:/Projects/Perekop/pk
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xsavesintrin.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xtestintrin.h
 
-CMakeFiles/pkengine.dir/pkengine/src/events.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx \
+CMakeFiles/pkengine.dir/pkengine/src/init.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx \
+  C:/Projects/Perekop/pkengine/include/camera.hpp \
+  C:/Projects/Perekop/pkengine/include/engine.hpp \
   C:/Projects/Perekop/pkengine/include/events.hpp \
-  C:/Projects/Perekop/pkengine/include/util.hpp \
-  C:/msys64/mingw64/include/_mingw_off_t.h \
-  C:/msys64/mingw64/include/_mingw_stat64.h \
-  C:/msys64/mingw64/include/_timeval.h \
-  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bit \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/align.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/alloc_traits.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/allocator.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/move.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_function.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/stringfwd.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/unique_ptr.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
-  C:/msys64/mingw64/include/c++/15.2.0/bits/version.h \
-  C:/msys64/mingw64/include/c++/15.2.0/cwchar \
-  C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
-  C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h \
-  C:/msys64/mingw64/include/c++/15.2.0/exception \
-  C:/msys64/mingw64/include/c++/15.2.0/ext/aligned_buffer.h \
-  C:/msys64/mingw64/include/c++/15.2.0/ext/atomicity.h \
-  C:/msys64/mingw64/include/c++/15.2.0/ext/concurrence.h \
-  C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h \
-  C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h \
-  C:/msys64/mingw64/include/c++/15.2.0/functional \
-  C:/msys64/mingw64/include/c++/15.2.0/iosfwd \
-  C:/msys64/mingw64/include/c++/15.2.0/memory \
-  C:/msys64/mingw64/include/c++/15.2.0/new \
-  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
-  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
-  C:/msys64/mingw64/include/c++/15.2.0/tuple \
-  C:/msys64/mingw64/include/c++/15.2.0/type_traits \
-  C:/msys64/mingw64/include/c++/15.2.0/typeinfo \
-  C:/msys64/mingw64/include/c++/15.2.0/vector \
-  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h \
-  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
-  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h \
-  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h \
-  C:/msys64/mingw64/include/corecrt.h \
-  C:/msys64/mingw64/include/corecrt_startup.h \
-  C:/msys64/mingw64/include/corecrt_stdio_config.h \
-  C:/msys64/mingw64/include/corecrt_wconio.h \
-  C:/msys64/mingw64/include/corecrt_wctype.h \
-  C:/msys64/mingw64/include/corecrt_wstdlib.h \
-  C:/msys64/mingw64/include/crtdefs.h \
-  C:/msys64/mingw64/include/errno.h \
-  C:/msys64/mingw64/include/limits.h \
-  C:/msys64/mingw64/include/process.h \
-  C:/msys64/mingw64/include/pthread.h \
-  C:/msys64/mingw64/include/pthread_compat.h \
-  C:/msys64/mingw64/include/pthread_signal.h \
-  C:/msys64/mingw64/include/pthread_time.h \
-  C:/msys64/mingw64/include/pthread_unistd.h \
-  C:/msys64/mingw64/include/sched.h \
-  C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
-  C:/msys64/mingw64/include/sec_api/wchar_s.h \
-  C:/msys64/mingw64/include/sec_api/wconio_s.h \
-  C:/msys64/mingw64/include/signal.h \
-  C:/msys64/mingw64/include/stddef.h \
-  C:/msys64/mingw64/include/swprintf.inl \
-  C:/msys64/mingw64/include/sys/timeb.h \
-  C:/msys64/mingw64/include/sys/types.h \
-  C:/msys64/mingw64/include/time.h \
-  C:/msys64/mingw64/include/wchar.h \
-  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
-  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h \
-  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h \
-  C:/Projects/Perekop/pkengine/src/events.cpp
-
-CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx \
   C:/Projects/Perekop/pkengine/include/mesh.hpp \
   C:/Projects/Perekop/pkengine/include/util.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/common.hpp \
@@ -834,6 +763,8 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/exponential.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2_precision.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x3.hpp \
@@ -870,6 +801,12 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3_precision.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_int_sized.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_uint_sized.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool2.hpp \
@@ -905,6 +842,10 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/Projects/Perekop/pkengine/lib/glm/glm/fwd.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/geometric.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/glm.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
   C:/Projects/Perekop/pkengine/lib/glm/glm/integer.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x2.hpp \
   C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x3.hpp \
@@ -925,38 +866,81 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/Projects/Perekop/pkengine/lib/glm/glm/vector_relational.hpp \
   C:/msys64/mingw64/include/_mingw_off_t.h \
   C:/msys64/mingw64/include/_mingw_stat64.h \
+  C:/msys64/mingw64/include/_timeval.h \
   C:/msys64/mingw64/include/assert.h \
+  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bit \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/align.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/alloc_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/allocator.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_ios.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_ios.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ios_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/istream.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/locale_classes.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/locale_classes.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/move.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_function.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_types.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf_iterator.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/string_view.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/bits/stringfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/unique_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
   C:/msys64/mingw64/include/c++/15.2.0/bits/version.h \
   C:/msys64/mingw64/include/c++/15.2.0/cassert \
   C:/msys64/mingw64/include/c++/15.2.0/cctype \
   C:/msys64/mingw64/include/c++/15.2.0/cerrno \
   C:/msys64/mingw64/include/c++/15.2.0/cfloat \
+  C:/msys64/mingw64/include/c++/15.2.0/chrono \
   C:/msys64/mingw64/include/c++/15.2.0/climits \
   C:/msys64/mingw64/include/c++/15.2.0/clocale \
   C:/msys64/mingw64/include/c++/15.2.0/cmath \
@@ -964,19 +948,39 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/msys64/mingw64/include/c++/15.2.0/cstdint \
   C:/msys64/mingw64/include/c++/15.2.0/cstdio \
   C:/msys64/mingw64/include/c++/15.2.0/cstdlib \
+  C:/msys64/mingw64/include/c++/15.2.0/ctime \
   C:/msys64/mingw64/include/c++/15.2.0/cwchar \
+  C:/msys64/mingw64/include/c++/15.2.0/cwctype \
+  C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
   C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h \
+  C:/msys64/mingw64/include/c++/15.2.0/exception \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/aligned_buffer.h \
   C:/msys64/mingw64/include/c++/15.2.0/ext/alloc_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/atomicity.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/concurrence.h \
   C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/ext/string_conversions.h \
   C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h \
   C:/msys64/mingw64/include/c++/15.2.0/functional \
   C:/msys64/mingw64/include/c++/15.2.0/initializer_list \
+  C:/msys64/mingw64/include/c++/15.2.0/ios \
   C:/msys64/mingw64/include/c++/15.2.0/iosfwd \
+  C:/msys64/mingw64/include/c++/15.2.0/iostream \
+  C:/msys64/mingw64/include/c++/15.2.0/istream \
   C:/msys64/mingw64/include/c++/15.2.0/limits \
+  C:/msys64/mingw64/include/c++/15.2.0/memory \
+  C:/msys64/mingw64/include/c++/15.2.0/new \
+  C:/msys64/mingw64/include/c++/15.2.0/ostream \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ratio \
+  C:/msys64/mingw64/include/c++/15.2.0/stdexcept \
   C:/msys64/mingw64/include/c++/15.2.0/stdlib.h \
+  C:/msys64/mingw64/include/c++/15.2.0/streambuf \
   C:/msys64/mingw64/include/c++/15.2.0/string \
   C:/msys64/mingw64/include/c++/15.2.0/string_view \
+  C:/msys64/mingw64/include/c++/15.2.0/system_error \
+  C:/msys64/mingw64/include/c++/15.2.0/thread \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/ell_integral.tcc \
@@ -989,11 +993,20 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc \
   C:/msys64/mingw64/include/c++/15.2.0/tr1/special_function_util.h \
+  C:/msys64/mingw64/include/c++/15.2.0/tuple \
   C:/msys64/mingw64/include/c++/15.2.0/type_traits \
+  C:/msys64/mingw64/include/c++/15.2.0/typeinfo \
   C:/msys64/mingw64/include/c++/15.2.0/vector \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h \
   C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
   C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++locale.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/ctype_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/ctype_inline.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/error_constants.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h \
   C:/msys64/mingw64/include/corecrt.h \
+  C:/msys64/mingw64/include/corecrt_startup.h \
   C:/msys64/mingw64/include/corecrt_stdio_config.h \
   C:/msys64/mingw64/include/corecrt_wconio.h \
   C:/msys64/mingw64/include/corecrt_wctype.h \
@@ -1006,14 +1019,336 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
   C:/msys64/mingw64/include/locale.h \
   C:/msys64/mingw64/include/malloc.h \
   C:/msys64/mingw64/include/math.h \
+  C:/msys64/mingw64/include/process.h \
+  C:/msys64/mingw64/include/pthread.h \
+  C:/msys64/mingw64/include/pthread_compat.h \
+  C:/msys64/mingw64/include/pthread_signal.h \
+  C:/msys64/mingw64/include/pthread_time.h \
+  C:/msys64/mingw64/include/pthread_unistd.h \
+  C:/msys64/mingw64/include/sched.h \
   C:/msys64/mingw64/include/sec_api/stdio_s.h \
   C:/msys64/mingw64/include/sec_api/stdlib_s.h \
+  C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
   C:/msys64/mingw64/include/sec_api/wchar_s.h \
   C:/msys64/mingw64/include/sec_api/wconio_s.h \
+  C:/msys64/mingw64/include/signal.h \
   C:/msys64/mingw64/include/stddef.h \
   C:/msys64/mingw64/include/stdio.h \
   C:/msys64/mingw64/include/stdlib.h \
   C:/msys64/mingw64/include/swprintf.inl \
+  C:/msys64/mingw64/include/sys/timeb.h \
+  C:/msys64/mingw64/include/sys/types.h \
+  C:/msys64/mingw64/include/time.h \
+  C:/msys64/mingw64/include/wchar.h \
+  C:/msys64/mingw64/include/wctype.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/float.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stddef.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
+  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/syslimits.h \
+  C:/Projects/Perekop/pkengine/src/init.cpp
+
+CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake_pch.hxx \
+  C:/Projects/Perekop/pkengine/include/camera.hpp \
+  C:/Projects/Perekop/pkengine/include/engine.hpp \
+  C:/Projects/Perekop/pkengine/include/events.hpp \
+  C:/Projects/Perekop/pkengine/include/mesh.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/common.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/_fixes.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/_vectorize.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/compute_common.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/compute_vector_relational.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_common.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_exponential.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_geometric.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_integer.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_matrix.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_packing.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_trigonometric.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_vector_relational.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/qualifier.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/setup.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_half.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_half.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x2.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x3.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x4.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x2.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x3.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x4.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x2.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x3.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x4.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec1.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec1.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec2.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec3.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/exponential.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double2x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_int_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_uint_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_bool4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float2_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float3_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float4_precision.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int2_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int3_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int4_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint2_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint3_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint4_sized.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/fwd.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/geometric.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/glm.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/integer.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat3x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat3x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat3x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat4x2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat4x3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/mat4x4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/matrix.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/packing.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/simd/platform.h \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/trigonometric.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/vec2.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/vec3.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/vec4.hpp \
+  C:/Projects/Perekop/pkengine/lib/glm/glm/vector_relational.hpp \
+  C:/msys64/mingw64/include/_mingw_off_t.h \
+  C:/msys64/mingw64/include/_mingw_stat64.h \
+  C:/msys64/mingw64/include/_timeval.h \
+  C:/msys64/mingw64/include/assert.h \
+  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bit \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/align.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/alloc_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/allocator.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_defines.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/functexcept.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/move.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/std_abs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_function.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/string_view.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/stringfwd.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/unique_ptr.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
+  C:/msys64/mingw64/include/c++/15.2.0/bits/version.h \
+  C:/msys64/mingw64/include/c++/15.2.0/cassert \
+  C:/msys64/mingw64/include/c++/15.2.0/cctype \
+  C:/msys64/mingw64/include/c++/15.2.0/cerrno \
+  C:/msys64/mingw64/include/c++/15.2.0/cfloat \
+  C:/msys64/mingw64/include/c++/15.2.0/climits \
+  C:/msys64/mingw64/include/c++/15.2.0/clocale \
+  C:/msys64/mingw64/include/c++/15.2.0/cmath \
+  C:/msys64/mingw64/include/c++/15.2.0/cstddef \
+  C:/msys64/mingw64/include/c++/15.2.0/cstdint \
+  C:/msys64/mingw64/include/c++/15.2.0/cstdio \
+  C:/msys64/mingw64/include/c++/15.2.0/cstdlib \
+  C:/msys64/mingw64/include/c++/15.2.0/ctime \
+  C:/msys64/mingw64/include/c++/15.2.0/cwchar \
+  C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
+  C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h \
+  C:/msys64/mingw64/include/c++/15.2.0/exception \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/aligned_buffer.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/alloc_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/atomicity.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/concurrence.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/numeric_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/string_conversions.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ext/type_traits.h \
+  C:/msys64/mingw64/include/c++/15.2.0/functional \
+  C:/msys64/mingw64/include/c++/15.2.0/initializer_list \
+  C:/msys64/mingw64/include/c++/15.2.0/iosfwd \
+  C:/msys64/mingw64/include/c++/15.2.0/limits \
+  C:/msys64/mingw64/include/c++/15.2.0/memory \
+  C:/msys64/mingw64/include/c++/15.2.0/new \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
+  C:/msys64/mingw64/include/c++/15.2.0/ratio \
+  C:/msys64/mingw64/include/c++/15.2.0/stdlib.h \
+  C:/msys64/mingw64/include/c++/15.2.0/string \
+  C:/msys64/mingw64/include/c++/15.2.0/string_view \
+  C:/msys64/mingw64/include/c++/15.2.0/thread \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/ell_integral.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/exp_integral.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/gamma.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/hypergeometric.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/legendre_function.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/modified_bessel_func.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_hermite.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/poly_laguerre.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/riemann_zeta.tcc \
+  C:/msys64/mingw64/include/c++/15.2.0/tr1/special_function_util.h \
+  C:/msys64/mingw64/include/c++/15.2.0/tuple \
+  C:/msys64/mingw64/include/c++/15.2.0/type_traits \
+  C:/msys64/mingw64/include/c++/15.2.0/typeinfo \
+  C:/msys64/mingw64/include/c++/15.2.0/vector \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++locale.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h \
+  C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h \
+  C:/msys64/mingw64/include/corecrt.h \
+  C:/msys64/mingw64/include/corecrt_startup.h \
+  C:/msys64/mingw64/include/corecrt_stdio_config.h \
+  C:/msys64/mingw64/include/corecrt_wconio.h \
+  C:/msys64/mingw64/include/corecrt_wctype.h \
+  C:/msys64/mingw64/include/corecrt_wstdlib.h \
+  C:/msys64/mingw64/include/crtdefs.h \
+  C:/msys64/mingw64/include/ctype.h \
+  C:/msys64/mingw64/include/errno.h \
+  C:/msys64/mingw64/include/float.h \
+  C:/msys64/mingw64/include/limits.h \
+  C:/msys64/mingw64/include/locale.h \
+  C:/msys64/mingw64/include/malloc.h \
+  C:/msys64/mingw64/include/math.h \
+  C:/msys64/mingw64/include/process.h \
+  C:/msys64/mingw64/include/pthread.h \
+  C:/msys64/mingw64/include/pthread_compat.h \
+  C:/msys64/mingw64/include/pthread_signal.h \
+  C:/msys64/mingw64/include/pthread_time.h \
+  C:/msys64/mingw64/include/pthread_unistd.h \
+  C:/msys64/mingw64/include/sched.h \
+  C:/msys64/mingw64/include/sec_api/stdio_s.h \
+  C:/msys64/mingw64/include/sec_api/stdlib_s.h \
+  C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
+  C:/msys64/mingw64/include/sec_api/wchar_s.h \
+  C:/msys64/mingw64/include/sec_api/wconio_s.h \
+  C:/msys64/mingw64/include/signal.h \
+  C:/msys64/mingw64/include/stddef.h \
+  C:/msys64/mingw64/include/stdio.h \
+  C:/msys64/mingw64/include/stdlib.h \
+  C:/msys64/mingw64/include/swprintf.inl \
+  C:/msys64/mingw64/include/sys/timeb.h \
+  C:/msys64/mingw64/include/sys/types.h \
+  C:/msys64/mingw64/include/time.h \
   C:/msys64/mingw64/include/wchar.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/float.h \
   C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/limits.h \
@@ -1025,6 +1360,10 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: CMakeFiles/pkengine.dir/cmake
 
 
 C:/Projects/Perekop/pkengine/src/mesh.cpp:
+
+C:/Projects/Perekop/pkengine/src/init.cpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/chrono:
 
 C:/Projects/Perekop/pkengine/include/util.hpp:
 
@@ -1128,29 +1467,31 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vpopcntdqvlint
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vpopcntdqintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vp2intersectintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vnniintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vlintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/enable_special_members.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmivlintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmi2vlintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/cstdlib:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmi2intrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512ifmavlintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512ifmaintrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xsaveintrin.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16intrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512dqintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bwintrin.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bitalgintrin.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.tcc:
 
@@ -1160,13 +1501,13 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/concept_check.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h:
-
 C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.h:
 
 C:/msys64/mingw64/include/oleauto.h:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/climits:
 
@@ -1208,11 +1549,17 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/matrix.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h:
-
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint4.hpp:
 
 C:/msys64/mingw64/include/prsht.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_forced.h:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/detail/_vectorize.hpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint2_sized.hpp:
 
@@ -1238,7 +1585,7 @@ C:/msys64/mingw64/include/wingdi.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_float2.hpp:
 
-C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double4_precision.hpp:
+C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double4.hpp:
 
@@ -1253,6 +1600,12 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x4.hpp:
 C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/ctype_base.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_int_sized.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_exponential.inl:
+
+C:/msys64/mingw64/include/swprintf.inl:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4.hpp:
 
@@ -1290,13 +1643,7 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x3.hpp:
 
 C:/msys64/mingw64/include/reason.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmi2vlintrin.h:
-
 C:/msys64/mingw64/include/limits.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/f16cintrin.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double3x4.hpp:
 
@@ -1316,17 +1663,19 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mwaitxintrin.h:
 
 C:/msys64/mingw64/include/psdk_inc/_fd_types.h:
 
+C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl:
+
 C:/Projects/Perekop/pkengine/lib/glm/glm/exponential.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3_precision.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.hpp:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/movrsintrin.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float3x3_precision.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/debug/debug.h:
-
-C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x3_precision.hpp:
-
-C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec4.hpp:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_uint_sized.hpp:
 
@@ -1368,8 +1717,6 @@ C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec3.inl:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512ifmavlintrin.h:
-
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_types.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/exception:
@@ -1398,13 +1745,13 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/detail/compute_vector_relational.hpp:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x2.hpp:
 
-C:/msys64/mingw64/include/c++/15.2.0/bit:
-
-C:/Projects/Perekop/pkengine/lib/glm/glm/detail/_vectorize.hpp:
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x3.inl:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint4_sized.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double2_precision.hpp:
 
@@ -1447,6 +1794,8 @@ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/amxtransposeintrin.h
 C:/msys64/mingw64/include/winspool.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec1.hpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h:
 
 C:/msys64/mingw64/include/_mingw.h:
 
@@ -1504,6 +1853,12 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/range_access.h:
 
 C:/msys64/mingw64/include/wtypesbase.h:
 
+C:/msys64/mingw64/include/c++/15.2.0/bits/vector.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/enable_special_members.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h:
+
 C:/Projects/Perekop/pkengine/lib/glm/glm/simd/platform.h:
 
 C:/Projects/Perekop/pkengine/include/engine.hpp:
@@ -1522,6 +1877,8 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/functional_hash.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int4.hpp:
 
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl:
+
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_common.inl:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float4x4_precision.hpp:
@@ -1534,11 +1891,15 @@ C:/msys64/mingw64/include/c++/15.2.0/cmath:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_packing.inl:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/sm4intrin.h:
+C:/msys64/mingw64/include/_mingw_stdarg.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.tcc:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bf16vlintrin.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator.h:
+
+C:/Projects/Perekop/pkengine/include/camera.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/memoryfwd.h:
 
@@ -1550,12 +1911,6 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/new_allocator.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/tr1/modified_bessel_func.tcc:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h:
-
-C:/msys64/mingw64/include/crtdefs.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bitalgintrin.h:
-
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_int3.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/cpp_type_traits.h:
@@ -1564,7 +1919,15 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double3_precision.hpp:
 
+C:/msys64/mingw64/include/crtdefs.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h:
+
 C:/msys64/mingw64/include/c++/15.2.0/bits/requires_hosted.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bit:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h:
 
 C:/Projects/Perekop/pkengine/include/events.hpp:
 
@@ -1602,13 +1965,27 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x2.inl:
 
 C:/msys64/mingw64/include/sec_api/sys/timeb_s.h:
 
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_double4_precision.hpp:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp:
+
+C:/msys64/mingw64/include/ktmtypes.h:
+
 C:/Projects/Perekop/pkengine/lib/glad/include/KHR/khrplatform.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_double4x3.hpp:
 
 C:/msys64/mingw64/include/namespaceapi.h:
 
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/xsaveintrin.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/locale_facets.h:
+
 C:/msys64/mingw64/include/_timeval.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/f16cintrin.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h:
 
@@ -1626,8 +2003,6 @@ C:/msys64/mingw64/include/rpcndr.h:
 
 C:/msys64/mingw64/include/stringapiset.h:
 
-C:/Projects/Perekop/pkengine/src/events.cpp:
-
 C:/msys64/mingw64/include/c++/15.2.0/bits/version.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x4_precision.hpp:
@@ -1638,7 +2013,7 @@ C:/msys64/mingw64/include/winnt.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat2x2.hpp:
 
-C:/msys64/mingw64/include/c++/15.2.0/cwchar:
+C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/refwrap.h:
 
@@ -1649,6 +2024,10 @@ C:/msys64/mingw64/include/fileapi.h:
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avxvnniintrin.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/common.hpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/cwchar:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/initializer_list:
 
@@ -1688,23 +2067,7 @@ C:/msys64/mingw64/include/corecrt.h:
 
 C:/msys64/mingw64/include/stdint.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/limits:
-
-C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vlintrin.h:
-
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/vector_uint3_sized.hpp:
-
-C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_exponential.inl:
-
-C:/msys64/mingw64/include/swprintf.inl:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bf16vlintrin.h:
-
-C:/msys64/mingw64/include/_mingw_stdarg.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bwintrin.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/mat2x3.hpp:
 
@@ -1772,10 +2135,6 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/vector_relational.hpp:
 
 C:/msys64/mingw64/include/c++/15.2.0/stdexcept:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf_iterator.h:
-
-C:/msys64/mingw64/include/windows.h:
-
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat3x4.hpp:
 
 C:/msys64/mingw64/include/sec_api/wchar_s.h:
@@ -1793,6 +2152,34 @@ C:/msys64/mingw64/include/c++/15.2.0/typeinfo:
 C:/msys64/mingw64/include/_mingw_stat64.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_vec3.hpp:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/ctime:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/sm4intrin.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ostream.tcc:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/cstdlib:
+
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/limits:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf_iterator.h:
+
+C:/msys64/mingw64/include/windows.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/string_view.tcc:
 
@@ -1852,6 +2239,12 @@ C:/msys64/mingw64/include/heapapi.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h:
 
+C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/c++config.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/ratio:
+
+C:/msys64/mingw64/include/psdk_inc/_ip_types.h:
+
 C:/msys64/mingw64/include/c++/15.2.0/streambuf:
 
 C:/msys64/mingw64/include/c++/15.2.0/string:
@@ -1859,6 +2252,8 @@ C:/msys64/mingw64/include/c++/15.2.0/string:
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/adxintrin.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/system_error:
+
+C:/msys64/mingw64/include/c++/15.2.0/thread:
 
 C:/msys64/mingw64/include/c++/15.2.0/tr1/beta_function.tcc:
 
@@ -1885,6 +2280,12 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/postypes.h:
 C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h:
 
 C:/msys64/mingw64/include/corecrt_startup.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vldqintrin.h:
+
+C:/msys64/mingw64/include/rpcnterr.h:
+
+C:/msys64/mingw64/include/virtdisk.h:
 
 C:/msys64/mingw64/include/c++/15.2.0/bits/stl_iterator_base_funcs.h:
 
@@ -1948,9 +2349,9 @@ C:/msys64/mingw64/include/rpcasync.h:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vp2intersectvlintrin.h:
 
-C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h:
-
 C:/msys64/mingw64/include/psdk_inc/_socket_types.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/ostream_insert.h:
 
 C:/msys64/mingw64/include/stdlib.h:
 
@@ -2042,8 +2443,6 @@ C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator_args.h:
 
 C:/msys64/mingw64/include/imm.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fintrin.h:
-
 C:/msys64/mingw64/include/inaddr.h:
 
 C:/msys64/mingw64/include/nb30.h:
@@ -2054,13 +2453,21 @@ C:/msys64/mingw64/include/ioapiset.h:
 
 C:/msys64/mingw64/include/joystickapi.h:
 
-C:/msys64/mingw64/include/ktmtypes.h:
-
 C:/msys64/mingw64/include/lzexpand.h:
 
 C:/msys64/mingw64/include/sal.h:
 
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16vlintrin.h:
+
+C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf.tcc:
+
+C:/msys64/mingw64/include/mciapi.h:
+
 C:/msys64/mingw64/include/minwinbase.h:
+
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512cdintrin.h:
+
+C:/msys64/mingw64/include/mmeapi.h:
 
 C:/msys64/mingw64/include/_bsd_types.h:
 
@@ -2095,8 +2502,6 @@ C:/msys64/mingw64/include/playsoundapi.h:
 C:/msys64/mingw64/include/poppack.h:
 
 C:/msys64/mingw64/include/propidl.h:
-
-C:/msys64/mingw64/include/psdk_inc/_ip_types.h:
 
 C:/msys64/mingw64/include/psdk_inc/_wsa_errnos.h:
 
@@ -2138,15 +2543,13 @@ C:/msys64/mingw64/include/rpcnsi.h:
 
 C:/msys64/mingw64/include/rpcnsip.h:
 
-C:/msys64/mingw64/include/mmeapi.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmiintrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512cdintrin.h:
+C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bitalgvlintrin.h:
 
-C:/msys64/mingw64/include/rpcnterr.h:
+C:/msys64/mingw64/include/profileapi.h:
 
-C:/msys64/mingw64/include/virtdisk.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vldqintrin.h:
+C:/msys64/mingw64/include/sec_api/stralign_s.h:
 
 C:/msys64/mingw64/include/securitybaseapi.h:
 
@@ -2198,23 +2601,23 @@ C:/msys64/mingw64/include/debugapi.h:
 
 C:/msys64/mingw64/include/winperf.h:
 
+C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl:
+
 C:/msys64/mingw64/include/objidl.h:
 
 C:/msys64/mingw64/include/winsmcrd.h:
 
 C:/msys64/mingw64/include/winver.h:
 
-C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_vector_relational.inl:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vnnivlintrin.h:
+
+C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_vector_relational.inl:
 
 C:/msys64/mingw64/include/wnnc.h:
 
 C:/msys64/mingw64/include/wow64apiset.h:
 
 C:/msys64/mingw64/include/wtypes.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512dqintrin.h:
 
 C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_float2x3_precision.hpp:
 
@@ -2228,30 +2631,4 @@ C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_mat4x3.hpp:
 
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx10_2satcvtintrin.h:
 
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmi2intrin.h:
-
 C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bf16intrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmiintrin.h:
-
-C:/msys64/mingw64/include/profileapi.h:
-
-C:/msys64/mingw64/include/sec_api/stralign_s.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512bitalgvlintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16intrin.h:
-
-C:/msys64/mingw64/include/c++/15.2.0/bits/streambuf.tcc:
-
-C:/msys64/mingw64/include/mciapi.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512fp16vlintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512ifmaintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vbmivlintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vnniintrin.h:
-
-C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/avx512vp2intersectintrin.h:

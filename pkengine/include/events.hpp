@@ -10,6 +10,7 @@ namespace pk {
 
     template <typename T> class Event {
         friend EventLink<T>;
+        friend EventPort<T>;
 
         private:
             std::vector<std::shared_ptr<EventLink<T>>> links;

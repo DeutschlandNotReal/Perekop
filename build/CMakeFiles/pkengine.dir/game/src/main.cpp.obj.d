@@ -87,6 +87,18 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
  C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+ C:/msys64/mingw64/include/c++/15.2.0/thread \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/15.2.0/ratio \
+ C:/msys64/mingw64/include/c++/15.2.0/cstdint \
+ C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
+ C:/msys64/mingw64/include/c++/15.2.0/limits \
+ C:/msys64/mingw64/include/c++/15.2.0/ctime \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h \
+ C:/msys64/mingw64/include/c++/15.2.0/cerrno \
  C:/Projects/Perekop/pkengine/include/mesh.hpp \
  C:/Projects/Perekop/pkengine/lib/glm/glm/glm.hpp \
  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/_fixes.hpp \
@@ -100,7 +112,6 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/mm_malloc.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/specfun.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/stl_algobase.h \
- C:/msys64/mingw64/include/c++/15.2.0/limits \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/gamma.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/special_function_util.h \
  C:/msys64/mingw64/include/c++/15.2.0/tr1/bessel_function.tcc \
@@ -119,8 +130,6 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/cstdlib \
  C:/msys64/mingw64/include/c++/15.2.0/cstddef \
  C:/Projects/Perekop/pkengine/lib/glm/glm/simd/platform.h \
- C:/msys64/mingw64/include/c++/15.2.0/cstdint \
- C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/stdint.h \
  C:/msys64/mingw64/include/c++/15.2.0/climits \
  C:/msys64/mingw64/include/c++/15.2.0/cfloat \
  C:/msys64/mingw64/lib/gcc/x86_64-w64-mingw32/15.2.0/include/float.h \
@@ -256,6 +265,19 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: \
  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_half.inl \
  C:/Projects/Perekop/pkengine/lib/glm/glm/integer.hpp \
  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_integer.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/include/camera.hpp \
  C:/msys64/mingw64/include/c++/15.2.0/string \
  C:/msys64/mingw64/include/c++/15.2.0/bits/char_traits.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/localefwd.h \
@@ -277,7 +299,6 @@ CMakeFiles/pkengine.dir/game/src/main.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/string_view.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/ext/string_conversions.h \
  C:/msys64/mingw64/include/c++/15.2.0/cstdio \
- C:/msys64/mingw64/include/c++/15.2.0/cerrno \
  C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h \

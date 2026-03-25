@@ -180,6 +180,19 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: \
  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/type_half.inl \
  C:/Projects/Perekop/pkengine/lib/glm/glm/integer.hpp \
  C:/Projects/Perekop/pkengine/lib/glm/glm/detail/func_integer.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/scalar_constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/constants.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_projection.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_clip_space.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.hpp \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/ext/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/lib/glm/glm/gtc/matrix_transform.inl \
+ C:/Projects/Perekop/pkengine/include/camera.hpp \
  C:/msys64/mingw64/include/c++/15.2.0/vector \
  C:/msys64/mingw64/include/c++/15.2.0/functional \
  C:/msys64/mingw64/include/c++/15.2.0/string \
@@ -231,4 +244,63 @@ CMakeFiles/pkengine.dir/pkengine/src/mesh.cpp.obj: \
  C:/msys64/mingw64/include/c++/15.2.0/bits/charconv.h \
  C:/msys64/mingw64/include/c++/15.2.0/bits/basic_string.tcc \
  C:/msys64/mingw64/include/c++/15.2.0/bits/memory_resource.h \
- C:/Projects/Perekop/pkengine/include/util.hpp
+ C:/Projects/Perekop/pkengine/include/engine.hpp \
+ C:/Projects/Perekop/pkengine/include/events.hpp \
+ C:/msys64/mingw64/include/c++/15.2.0/memory \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_tempbuf.h \
+ C:/msys64/mingw64/include/c++/15.2.0/new \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_construct.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_pair.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_uninitialized.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/stl_raw_storage_iter.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/align.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bit \
+ C:/msys64/mingw64/include/c++/15.2.0/debug/assertions.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/uses_allocator.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/alloc_traits.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/unique_ptr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/tuple \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_base.h \
+ C:/msys64/mingw64/include/c++/15.2.0/typeinfo \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/allocated_ptr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/ptr_traits.h \
+ C:/msys64/mingw64/include/c++/15.2.0/ext/aligned_buffer.h \
+ C:/msys64/mingw64/include/c++/15.2.0/ext/atomicity.h \
+ C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/gthr-default.h \
+ C:/msys64/mingw64/include/pthread.h \
+ C:/msys64/mingw64/include/sys/types.h \
+ C:/msys64/mingw64/include/process.h \
+ C:/msys64/mingw64/include/corecrt_startup.h \
+ C:/msys64/mingw64/include/signal.h \
+ C:/msys64/mingw64/include/pthread_signal.h \
+ C:/msys64/mingw64/include/time.h C:/msys64/mingw64/include/sys/timeb.h \
+ C:/msys64/mingw64/include/sec_api/sys/timeb_s.h \
+ C:/msys64/mingw64/include/_timeval.h \
+ C:/msys64/mingw64/include/pthread_time.h \
+ C:/msys64/mingw64/include/pthread_compat.h \
+ C:/msys64/mingw64/include/sched.h \
+ C:/msys64/mingw64/include/pthread_unistd.h \
+ C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32/bits/atomic_word.h \
+ C:/msys64/mingw64/include/c++/15.2.0/ext/concurrence.h \
+ C:/msys64/mingw64/include/c++/15.2.0/exception \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/exception.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/exception_ptr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/cxxabi_init_exception.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/move.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/nested_exception.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/shared_ptr_atomic.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_base.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/atomic_lockfree_defines.h \
+ C:/msys64/mingw64/include/c++/15.2.0/backward/auto_ptr.h \
+ C:/msys64/mingw64/include/c++/15.2.0/pstl/glue_memory_defs.h \
+ C:/msys64/mingw64/include/c++/15.2.0/pstl/execution_defs.h \
+ C:/msys64/mingw64/include/c++/15.2.0/thread \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/std_thread.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/invoke.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/this_thread_sleep.h \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/chrono.h \
+ C:/msys64/mingw64/include/c++/15.2.0/ratio \
+ C:/msys64/mingw64/include/c++/15.2.0/ctime \
+ C:/msys64/mingw64/include/c++/15.2.0/bits/parse_numbers.h
