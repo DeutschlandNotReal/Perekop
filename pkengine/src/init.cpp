@@ -24,7 +24,7 @@ using namespace pk;
 namespace pk::engine {
     MeshRenderer mesh_renderer{};
     namespace window {
-        load_event(float, step)
+        load_event(double, step)
         load_event(vec2, resized)
         load_event(bool, began)
         load_event(bool, ended)
@@ -63,19 +63,24 @@ void pk::engine::init() {
     engine::window::began_event.lock(0);
     engine::window::ended_event.clear();
     float last_dt = iFPS;
+
+    util::timer frame_timer(10);
     while (!glfwWindowShouldClose(window)) {
-        auto frame_start = high_resolution_clock::now();
+        frame_timer.push();
         glfwPollEvents();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-     
+    
+        double render_time = frame_timer.record([](){mesh_renderer.draw();});
+        std::cout << "Render took " << render_time << "s.\n";
+
         engine::window::step_event.invoke(last_dt);
         glfwSwapBuffers(window);
 
-        float this_dt = (high_resolution_clock::now() - frame_start).count();
-        last_dt = this_dt;
-        if (this_dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - this_dt));
+        double dt = frame_timer.pop();
+        if (dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - dt));
+        last_dt = dt;
     }
     // anything after here for when window closes
     engine::window::ended_event.lock(0);

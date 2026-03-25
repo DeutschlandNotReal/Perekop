@@ -9,7 +9,7 @@ namespace pk::engine {
     void init();
 
     namespace window {
-        exc EventPort<float>& step;
+        exc EventPort<double>& step;
         exc EventPort<glm::vec2>& resized;
         exc EventPort<bool>& began;
         exc EventPort<bool>& ended;
