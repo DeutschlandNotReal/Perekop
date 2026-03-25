@@ -2,9 +2,8 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include "engine.hpp"
-
+#include "util.hpp"
 #include <thread>
-#include <chrono>
 
 /*
 Remove-Item -Recurse -Force build
@@ -24,6 +23,7 @@ using namespace pk;
 namespace pk::engine {
     MeshRenderer mesh_renderer{};
     namespace window {
+        static glm::vec2 size;
         load_event(double, step)
         load_event(vec2, resized)
         load_event(bool, began)
@@ -39,7 +39,13 @@ namespace pk::engine {
 };
 #undef load_event
 
-void pk::engine::init() {
+void on_resize(GLFWwindow* win, int x, int y) {
+    glm::vec2 size(x, y);
+    engine::window::size = size;
+    engine::window::resized_event.invoke_async(size);
+}
+
+void engine::init() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -58,6 +64,8 @@ void pk::engine::init() {
         std::cout << "GLAD not working?!\n";
         return;
     }
+
+    glfwSetFramebufferSizeCallback(window, on_resize);
 
     // if glad or glew doesn't work then we're done for
     engine::window::began_event.lock(0);

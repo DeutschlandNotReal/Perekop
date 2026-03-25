@@ -1,7 +1,7 @@
 #include "gl.hpp"
 #include "mesh.hpp"
 #include "glm/ext/matrix_float3x4.hpp"
-#include "util.hpp"
+#include "engine.hpp"
 
 using glm::vec3, glm::vec2;
 #define u16 unsigned short
@@ -35,6 +35,7 @@ namespace pk {
         "\n attribute vec4 t0;"
         "\n attribute vec4 t1;"
         "\n attribute vec4 t2;"
+        "\n uniform mat4 VP;"
         "\n void main() {"
         "\n     mat4 model = mat4("
         "\n         vec4(t0.xyz, 0.0),"
@@ -42,7 +43,7 @@ namespace pk {
         "\n         vec4(t2.xyz, 0.0),"
         "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
         "\n     );"
-        "\n     gl_Position = model * vec4(v, 1.0);"
+        "\n     gl_Position = VP * model * vec4(v, 1.0);"
         "\n };",
 
         "\n#version 120"
@@ -104,7 +105,14 @@ namespace pk {
     };
 
     void MeshRenderer::draw() {
+        auto VP = cam.proj_matrix(pk::engine::window::get_size()) * cam.view_matrix();
         glUseProgram(default_shader);
+        glUniformMatrix4fv(
+            glGetUniformLocation(default_shader, "VP"), 
+            1, 
+            GL_FALSE, 
+            &VP[0][0]
+        );
         for (Mesh* mesh : meshes) {
             glBindVertexArray(mesh->VAO);
             glm::mat3x4* transforms = new glm::mat3x4[mesh->users.size()];

@@ -16,6 +16,7 @@ namespace pk::engine {
         exc void close();
         exc void resize(glm::vec2 new_size);
         exc void rename(std::string new_title);
+        exc glm::vec2 get_size();
     }
 
     namespace input {

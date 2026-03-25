@@ -1,5 +1,7 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "camera.hpp"
 #include <vector>
 #include <functional>
 #include <string>
@@ -57,8 +59,21 @@ namespace pk {
             int mesh_count() { return meshes.size(); }
             void draw();
             Mesh* new_mesh();
+            Camera cam;
     };
+
+    inline glm::mat4 Camera::view_matrix() const {
+        return glm::lookAt(origin, look, glm::vec3(0, 1, 0));
+    }
+
+    inline glm::mat4 Camera::proj_matrix(glm::vec2 dim) const {
+        return glm::perspective(
+            glm::radians(fov), 
+            (float)dim.x / (float)dim.y,
+            n, f
+        );
+    }
 }
 
-#undef uint16
+#undef u16
 #undef v3
