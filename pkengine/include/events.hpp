@@ -69,7 +69,10 @@ namespace pk {
         public:
             void disconnect() {
                 if (event) {
-                    pk::util::swappop<T>(event->links, ref, [this](auto& V){ V->index = ref; }); 
+                    auto& links = event->links;
+                    links.back()->ref = ref;
+                    links[ref] = links.back();
+                    links.pop_back();
                     event = nullptr;
                 }
             };

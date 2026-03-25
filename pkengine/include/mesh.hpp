@@ -54,7 +54,7 @@ namespace pk {
         private:
             std::vector<Mesh*> meshes;
         public:
-
+            int mesh_count() { return meshes.size(); }
             void draw();
             Mesh* new_mesh();
     };

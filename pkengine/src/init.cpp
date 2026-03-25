@@ -64,21 +64,26 @@ void pk::engine::init() {
     engine::window::ended_event.clear();
     float last_dt = iFPS;
 
-    util::timer frame_timer(10);
+    util::timer timer(10);
     while (!glfwWindowShouldClose(window)) {
-        frame_timer.push();
+        timer.begin();
         glfwPollEvents();
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     
-        double render_time = frame_timer.record([](){mesh_renderer.draw();});
-        std::cout << "Render took " << render_time << "s.\n";
-
-        engine::window::step_event.invoke(last_dt);
+        timer.begin();
+        mesh_renderer.draw();
         glfwSwapBuffers(window);
+        double dt_render = timer.stop();
 
-        double dt = frame_timer.pop();
+        timer.begin();
+        engine::window::step_event.invoke(last_dt);
+        double dt_event = timer.stop();
+
+        double dt = timer.stop();
+
+        std::cout << "Render: " << dt_render << ", Event: " << dt_event;
         if (dt < iFPS) std::this_thread::sleep_for(duration<float>(iFPS - dt));
         last_dt = dt;
     }

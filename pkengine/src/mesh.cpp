@@ -37,12 +37,12 @@ namespace pk {
         "\n attribute vec4 t2;"
         "\n void main() {"
         "\n     mat4 model = mat4("
-        "\n         vec4(t0.xyz, 0.0)"
-        "\n         vec4(t1.xyz, 0.0)"
-        "\n         vec4(t2.xyz, 0.0)"
+        "\n         vec4(t0.xyz, 0.0),"
+        "\n         vec4(t1.xyz, 0.0),"
+        "\n         vec4(t2.xyz, 0.0),"
         "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
         "\n     );"
-        "\n     gl_Position = model * vec4(v, 1.0)"
+        "\n     gl_Position = model * vec4(v, 1.0);"
         "\n };",
 
         "\n#version 120"
@@ -133,7 +133,10 @@ namespace pk {
 
     void Model::set_mesh(Mesh* M) {
        if (M != mesh) {
-        util::swappop<Model*>(mesh->users, ref, [this](auto& V){ V->ref = ref; });
+        auto& users = mesh->users;
+        users.back()->ref = ref;
+        users[ref] = users.back();
+        users.pop_back();
         mesh = M;
         if (mesh == nullptr) return;
 
