@@ -3,30 +3,30 @@
 #include "mesh.hpp"
 #include <string>
 
-#define exc extern const
 namespace pk::engine {
     extern MeshRenderer mesh_renderer;
     void init();
 
     namespace window {
-        exc EventPort<double>& step;
-        exc EventPort<glm::vec2>& resized;
-        exc EventPort<bool>& began;
-        exc EventPort<bool>& ended;
-        exc void close();
-        exc void resize(glm::vec2 new_size);
-        exc void rename(std::string new_title);
-        exc glm::vec2 get_size();
+        extern const EventPort<double>& step;
+        extern const EventPort<glm::vec2>& resized;
+        extern const EventPort<bool>& began;
+        extern const EventPort<bool>& ended;
+        extern void close();
+        extern void resize(glm::vec2 new_size);
+        extern void rename(std::string new_title);
+        extern glm::vec2 get_size();
     }
 
     namespace input {
-        exc glm::vec2 mouse_xy();
+        extern glm::vec2 mouse_xy();
 
-        exc EventPort<glm::vec2>& mouse_moved; // parameter is delta
-        exc EventPort<int>& key_pressed;
-        exc EventPort<int>& key_released;
-        exc EventPort<int>& mouse_clicked;
-        exc EventPort<int>& mouse_released; 
+        extern EventPort<glm::vec2>& mouse_moved; // parameter is delta
+        extern EventPort<int>& key_pressed;
+        extern EventPort<int>& key_released;
+        extern EventPort<int>& mouse_clicked;
+        extern EventPort<int>& mouse_released; 
     }
 }
+
 #undef exc

@@ -1,71 +1,86 @@
 #pragma once
 #include <vector>
+#include <stack>
 #include <functional>
-#include <memory>
 #include <thread>
 
 namespace pk {
-    template <typename T> class EventPort;
-    template <typename T> class EventLink;
+    template <typename... A> class EventPort;
+    template <typename... A> class EventLink;
 
-    template <typename T> class Event {
-        friend EventLink<T>;
-        friend EventPort<T>;
+    template <typename... A> class Event {
+        using elink = EventLink<A...>;
+        using eport = EventPort<A...>;
+        friend elink;
+        friend eport;
 
         private:
-            std::vector<std::shared_ptr<EventLink<T>>> links;
+            int active_invokes = 0;
+            std::stack<elink*> stack;
+            std::vector<elink*> links;
         public:
-            std::function<std::shared_ptr<EventLink<T>>(std::function<void(T)>)> filter = nullptr;
+            std::function<elink*(std::function<void(A...)>)> filter = nullptr;
 
-            EventPort<T> port{this};
+            EventPort<A...> port{this};
 
-            void invoke(T item) { 
-                auto links_copy = links;
-                for (auto& link : links_copy) link->call(item);
+            void invoke(A&... items) { 
+                active_invokes++;
+                for (elink* link : links) { link->callback(items...); }
+                active_invokes--;
+                if (0 == active_invokes) {
+                    while (!stack.empty()) {
+                        links.push_back(stack.top());
+                        stack.pop();
+                    }
+                }
             }
 
-            void invoke_async(T item) {
-                std::thread([links = links, item](){
-                    for (auto& link : links) link->call(item);
-                 }).detach();
+            void invoke_async(A&... items) {
+                std::thread([this, items...](){ invoke(items...); }).detach();
             }
 
-            void lock(T item) {
-                invoke(item);
-                filter = [item](auto cb){ cb(item); return nullptr; };
+            void lock(A&... items) {
+                invoke(items...);
+                filter = [items...](auto cb){ cb(items...); return nullptr; };
             }
 
             void unlock() { filter = nullptr; }
 
-            void clear() { links.clear(); }
+            void clear() { 
+                for (elink* link : links) link->disconnect();
+                links.clear();
 
-            ~Event<T>() { for (auto& link : links) link->event = nullptr; }
+            }
+
+            ~Event() { for (elink* link : links) link->event = nullptr; }
 
     };
 
-    template <typename T> class EventPort {
-        friend Event<T>;
-        Event<T>* event;
+    template <typename... A> class EventPort {
+        using elink = EventLink<A...>;
+        friend Event<A...>;
+        Event<A...>* event;
         public:
-            EventPort(Event<T>* ev): event(ev) {}
+            EventPort(Event<A...>* ev): event(ev) {}
             EventPort() = delete;
-            [[nodiscard]] std::shared_ptr<EventLink<T>> connect(std::function<void(T)> callback) const {
+            [[nodiscard]] elink connect(std::function<void(A...)> callback) const {
                 if (event->filter) { return event->filter(callback); }
 
-                auto link = std::make_shared<EventLink<T>>(event, event->links.size(), callback);
-                event->links.push_back(link);
-                return link;
+                elink* link = new elink(event);
+
+                if (event->active_invokes) { event->stack.push(link); } else { event->links.push_back(link); }
+                return *link;
             };
     };
 
-    template <typename T> struct EventLink {
-        friend Event<T>;
-        friend EventPort<T>;
+    template <typename... T> struct EventLink {
+        friend Event<T...>;
+        friend EventPort<T...>;
         private:   
-            Event<T>* event;
+            Event<T...>* event;
             unsigned short ref;
-            std::function<void(T)> call;
-            EventLink(Event<T>* ev, unsigned short I, std::function<void(T)> C): event(ev), ref(I), call(C) {};
+            std::function<void(T...)> call;
+            EventLink(Event<T...>* ev, unsigned short I, std::function<void(T...)> C): event(ev), ref(I), call(C) {};
         public:
             void disconnect() {
                 if (event) {
