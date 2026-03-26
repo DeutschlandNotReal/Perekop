@@ -28,7 +28,7 @@ namespace pk {
             ~Mesh();
 
             inline u16 new_trig(u16 v0, u16 v1, u16 v2);
-            inline u16 pop_trig(u16 tid);
+            inline u16 pop_trig();
             inline void set_trig(u16 tid, u16 v0, u16 v1, u16 v2);
 
             inline u16 new_vert(v3 p);

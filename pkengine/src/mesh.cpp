@@ -155,5 +155,17 @@ namespace pk {
        }
     }
 
+    u16 Mesh::new_vert(vec3 p) { V.emplace_back(p); return V.size() - 1; }
+    u16 Mesh::pop_vert() { V.pop_back(); return V.size(); }
+    void Mesh::set_pos(u16 vid, vec3 p) { V[vid] = p; }
+
+    // BLOAT (debloat soon)
+    u16 Mesh::new_trig(u16 v0, u16 v1, u16 v2) { T.push_back(v0); T.push_back(v1); T.push_back(v2); return T.size() / 3 - 1; }
+    u16 Mesh::pop_trig() { T.pop_back(); T.pop_back(); T.pop_back(); return T.size() / 3; }
+    void Mesh::set_trig(u16 tid, u16 v0, u16 v1, u16 v2) {
+        T[tid * 3] = v0;
+        T[tid * 3 + 1] = v1;
+        T[tid * 3 + 2] = v2;
+    }
 
 }

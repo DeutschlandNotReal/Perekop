@@ -70,6 +70,7 @@ void engine::init() {
 
     util::timer timer(10);
     while (!glfwWindowShouldClose(window)) {
+        // todo: frame events (step) should be async
         timer.begin();
         glfwPollEvents();
 

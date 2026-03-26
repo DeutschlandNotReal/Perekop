@@ -3,6 +3,7 @@
 
 using namespace pk;
 using namespace pk::engine;
+using glm::vec3;
 
 int main() {
     window::began << [](){
@@ -20,6 +21,10 @@ int main() {
     window::step << [](auto dt) {
         std::cout << "new frame (dt: " << dt << ")";
     };
+
+    Mesh* cubler = mesh_renderer.new_mesh();
+    
+    cubler->new_vert(vec3(-1, -1, -1));
 
     init();
     // anything after here wont work until window closed
