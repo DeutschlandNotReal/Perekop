@@ -10,8 +10,8 @@ namespace pk::engine {
     namespace window {
         extern const EventPort<double>& step;
         extern const EventPort<glm::vec2>& resized;
-        extern const EventPort<bool>& began;
-        extern const EventPort<bool>& ended;
+        extern const EventPort<>& began;
+        extern const EventPort<>& ended;
         extern void close();
         extern void resize(glm::vec2 new_size);
         extern void rename(std::string new_title);
@@ -21,11 +21,9 @@ namespace pk::engine {
     namespace input {
         extern glm::vec2 mouse_xy();
 
-        extern EventPort<glm::vec2>& mouse_moved; // parameter is delta
-        extern EventPort<int>& key_pressed;
-        extern EventPort<int>& key_released;
-        extern EventPort<int>& mouse_clicked;
-        extern EventPort<int>& mouse_released; 
+        extern const EventPort<glm::vec2>& mouse_moved; // parameter is delta
+        extern const EventPort<int>& input_began;
+        extern const EventPort<int>& input_ended;
     }
 }
 

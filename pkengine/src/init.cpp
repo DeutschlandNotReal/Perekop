@@ -17,24 +17,21 @@ using glm::vec3, glm::vec2;
 using namespace std::chrono;
 using namespace pk;
 
-// ts creates the event and the port so i dont gotta write same slop
-#define load_event(T, N) static Event<T> N##_event = Event<T>(); const EventPort<T>& N = N##_event.port;
+#define load_event(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); const EventPort<__VA_ARGS__>& N = N##_event.port;
 
 namespace pk::engine {
     MeshRenderer mesh_renderer{};
     namespace window {
         static glm::vec2 size;
-        load_event(double, step)
-        load_event(vec2, resized)
-        load_event(bool, began)
-        load_event(bool, ended)
+        load_event(step, double)
+        load_event(resized, vec2)
+        load_event(began)
+        load_event(ended)
     }
     namespace input {
-        load_event(vec2, mouse_moved);
-        load_event(int, key_pressed);
-        load_event(int, key_released);
-        load_event(int, mouse_clicked);
-        load_event(int, mouse_released);
+        load_event(mouse_moved, vec2);
+        load_event(input_began, int);
+        load_event(input_ended, int);
     }
 };
 #undef load_event
@@ -42,7 +39,7 @@ namespace pk::engine {
 void on_resize(GLFWwindow* win, int x, int y) {
     glm::vec2 size(x, y);
     engine::window::size = size;
-    engine::window::resized_event.invoke_async(size);
+    engine::window::resized_event.invoke(size);
 }
 
 void engine::init() {
@@ -68,9 +65,8 @@ void engine::init() {
     glfwSetFramebufferSizeCallback(window, on_resize);
 
     // if glad or glew doesn't work then we're done for
-    engine::window::began_event.lock(true);
-    engine::window::ended_event.clear();
-    float last_dt = iFPS;
+    engine::window::began_event.lock();
+    double last_dt = iFPS;
 
     util::timer timer(10);
     while (!glfwWindowShouldClose(window)) {
@@ -96,8 +92,7 @@ void engine::init() {
         last_dt = dt;
     }
     // anything after here for when window closes
-    engine::window::ended_event.lock(true);
-    engine::window::ended_event.clear();
+    engine::window::ended_event.lock();
 
     glfwTerminate();
 }
