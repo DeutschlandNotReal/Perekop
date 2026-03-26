@@ -2,18 +2,27 @@
 #include <iostream>
 
 using namespace pk;
-
-void frame(double dt) {
-    std::cout << "new frame?!\n";
-}
-
+using namespace pk::engine;
 
 int main() {
-    engine::init();
+    window::began << [](){
+        std::cout << "frame began?!";
+    };
 
-    auto bcon = engine::window::began.connect([](bool i){ std::cout << "began!\n"; });
-    auto econ = engine::window::ended.connect([](bool i){ std::cout << "ended?\n"; });
-    auto rcon = engine::window::resized.connect([](glm::vec2 newsize){ std::cout << "resized to " << newsize.x << ", " << newsize.y << "\n"; });
-    auto scon = engine::window::step.connect(frame);
+    window::ended << []() {
+        std::cout << "frame ended...";
+    };
+
+    window::resized << [](auto size) {
+        std::cout << "resized to " << size.x << ", " << size.y;
+    };
+
+    window::step << [](auto dt) {
+        std::cout << "new frame (dt: " << dt << ")";
+    };
+
+    init();
+    // anything after here wont work until window closed
+
     return 0;
 }

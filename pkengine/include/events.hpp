@@ -2,6 +2,7 @@
 #include <vector>
 #include <functional>
 
+// user MUSTST make sure to delete their 
 namespace pk {
     template <typename... A> class EventPort;
     template <typename... A> class EventLink;
@@ -38,13 +39,17 @@ namespace pk {
         public:
             EventPort(Event<A...>* ev): event(ev) {}
             EventPort() = delete;
-            [[nodiscard]] elink* connect(std::function<void(A...)> callback) const {
+
+            elink* connect(std::function<void(A...)> callback) const {
                 if (event->filter) { return event->filter(callback); }
 
                 elink* link = new elink(event, event->links.size(), callback);
                 event->links.push_back(link);
                 return link;
             };
+
+            // cool pk::engine::window::began << [](){} sybtax...
+            elink* operator<<(std::function<void(A...)> callback) const { return connect(callback); }
     };
 
     template <typename... A> struct EventLink {
@@ -64,10 +69,11 @@ namespace pk {
                 links[ref] = links.back();
                 links.pop_back();
                 event = nullptr;
-                delete this;
             };
 
-            ~EventLink() { disconnect(); };
+            ~EventLink() { 
+                disconnect();
+             };
 
             EventLink() = delete;
     };
