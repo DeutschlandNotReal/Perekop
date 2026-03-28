@@ -1,9 +1,10 @@
-#include "gl.hpp"
 #include <glm/glm.hpp>
 #include <iostream>
+#include <thread>
+
 #include "engine.hpp"
 #include "util.hpp"
-#include <thread>
+#include "window.hpp"
 
 /*
 Remove-Item -Recurse -Force build
@@ -20,7 +21,6 @@ using namespace pk;
 #define load_event(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); const EventPort<__VA_ARGS__>& N = N##_event.port;
 
 namespace pk::engine {
-    MeshRenderer mesh_renderer{};
     namespace window {
         static glm::vec2 size;
         load_event(step, double)
@@ -42,35 +42,23 @@ void on_resize(GLFWwindow* win, int x, int y) {
     engine::window::resized_event.invoke(size);
 }
 
-void engine::init() {
+int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(410, 670, "Perekop", NULL, NULL);
-    if (window == NULL) {
-        std::cout << "GLFW not working?!?!\n";
-        glfwTerminate();
-        return;
-    }
+    Window main_window(400, 800, "Perekop");
+    main_window.make_current();
 
-    glfwMakeContextCurrent(window);
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) { return -1; }
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "GLAD not working?!\n";
-        return;
-    }
-
-    glfwSetFramebufferSizeCallback(window, on_resize);
-
-    // if glad or glew doesn't work then we're done for
     engine::window::began_event.lock();
     double last_dt = iFPS;
 
-    util::timer timer(10);
-    while (!glfwWindowShouldClose(window)) {
-        // todo: frame events (step) should be async
+    util::StackTimer<double, 10> timer{};
+
+    while (main_window.is_open()) {
         timer.begin();
         glfwPollEvents();
 
@@ -78,10 +66,9 @@ void engine::init() {
         glClear(GL_COLOR_BUFFER_BIT);
     
         timer.begin();
-        mesh_renderer.draw();
-        glfwSwapBuffers(window);
+        draw();
         double dt_render = timer.stop();
-
+ 
         timer.begin();
         engine::window::step_event.invoke(last_dt);
         double dt_event = timer.stop();
@@ -89,7 +76,8 @@ void engine::init() {
         double dt = timer.stop();
 
         std::cout << "Render: " << dt_render << ", Event: " << dt_event;
-        if (dt < iFPS) std::this_thread::sleep_for(duration<double>(iFPS - dt));
+
+        timer.sleep(iFPS - dt);
         last_dt = dt;
     }
     // anything after here for when window closes

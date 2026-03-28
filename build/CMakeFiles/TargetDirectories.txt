@@ -1,3 +1,0 @@
-C:/Projects/Perekop/build/CMakeFiles/pkengine.dir
-C:/Projects/Perekop/build/CMakeFiles/edit_cache.dir
-C:/Projects/Perekop/build/CMakeFiles/rebuild_cache.dir

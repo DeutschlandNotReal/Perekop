@@ -1,31 +1,27 @@
 #pragma once
 #include <chrono>
+#include <thread>
 
 namespace pk::util {
-    struct timer {
+    template <typename T, short L> struct StackTimer {
         private:
-            int ptr = -1;
-            int end;
-            double* records;
+            short ptr = -1;
+            T records[L];
         public:
-            double now() const { 
-                return std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
-            }
-            timer() = delete;
-            timer(int capacity): end(capacity-1) {
-                records = new double[capacity];
-            }
-            ~timer() { delete[] records; }
-
-            void begin() {
-                if (ptr != end) records[++ptr] = now();
+            static T now() noexcept { 
+                return std::chrono::duration<T>(std::chrono::steady_clock::now().time_since_epoch()).count();
             }
 
-            double stop() {
-                return (ptr > -1) ? now() - records[ptr--] : 0;
+            static void sleep(T duration) {
+                std::this_thread::sleep_for(std::chrono::duration<T>(duration));
             }
-            
-            timer(const timer&) = delete;
-            timer& operator=(const timer&) = delete;
+
+            void begin() noexcept {
+                if (ptr != L - 1) records[++ptr] = now();
+            }
+
+            T stop() noexcept {
+                return (ptr > -1) ? now() - records[ptr--] : T(0);
+            }
     };
 }

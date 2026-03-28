@@ -1,12 +1,11 @@
 #pragma once
+#include "camera.hpp"
 #include "events.hpp"
 #include "mesh.hpp"
 #include <string>
+#include <vector>
 
 namespace pk::engine {
-    extern MeshRenderer mesh_renderer;
-    void init();
-
     namespace window {
         extern const EventPort<double>& step;
         extern const EventPort<glm::vec2>& resized;

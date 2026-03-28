@@ -1,3 +1,0 @@
-C:\msys64\mingw64\bin\cmake.exe -E rm -f CMakeFiles\pkengine.dir/objects.a
-C:\msys64\mingw64\bin\ar.exe qc CMakeFiles\pkengine.dir/objects.a @CMakeFiles\pkengine.dir\objects1.rsp
-C:\msys64\mingw64\bin\g++.exe -Wl,--whole-archive CMakeFiles\pkengine.dir/objects.a -Wl,--no-whole-archive -o pkengine.exe -Wl,--out-implib,libpkengine.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\pkengine.dir\linkLibs.rsp

@@ -1,4 +1,4 @@
-#include "gl.hpp"
+#include "window.hpp"
 #include "mesh.hpp"
 #include "glm/ext/matrix_float3x4.hpp"
 #include "engine.hpp"
@@ -54,13 +54,13 @@ namespace pk {
 
     void Mesh::flush() {
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, V.size() * 12, V.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, vnum * 12, vert, GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, T.size() * 2, T.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, tnum * 6, trig, GL_STATIC_DRAW);
     }
 
-    Mesh::Mesh(u16 i): ref(i) {
+    Mesh::Mesh(u16 trig_count, u16 vert_count, u16* trigbuf, vec3* vertbuf): tnum(trig_count), vnum(vert_count), trig(trigbuf), vert(vertbuf) {
         glGenBuffers(1, &VBO);
         glGenBuffers(1, &EBO);
         glGenBuffers(1, &IBO);
@@ -97,46 +97,37 @@ namespace pk {
         glDeleteVertexArrays(1, &VAO);
     }
 
-    Mesh* MeshRenderer::new_mesh() {
-        Mesh* mesh = new Mesh(meshes.size());
-        meshes.push_back(mesh);
-
-        return mesh;
-    };
-
-    void MeshRenderer::draw() {
-        auto VP = cam.proj_matrix(pk::engine::window::get_size()) * cam.view_matrix();
+    void engine::draw(std::vector<Mesh*> &mesh_pool, Camera camera) {
+        vec2 screen_size = pk::engine::window::get_size();
+        auto vp_matrix = camera.proj_matrix(screen_size) * camera.view_matrix();
         glUseProgram(default_shader);
         glUniformMatrix4fv(
-            glGetUniformLocation(default_shader, "VP"), 
-            1, 
-            GL_FALSE, 
-            &VP[0][0]
+            glGetUniformLocation(default_shader, "VP"),
+            1,
+            GL_FALSE,
+            (float*) &vp_matrix
         );
-        for (Mesh* mesh : meshes) {
+        for (Mesh* mesh : mesh_pool) {
             glBindVertexArray(mesh->VAO);
             glm::mat3x4* transforms = new glm::mat3x4[mesh->users.size()];
             for (int i = 0; i < mesh->users.size(); i++) {
                 Model* model = mesh->users[i];
                 auto& mat = model->matrix;
-                auto& scl = model->scale;
+                auto& scl = model->scl;
                 auto& pos = model->pos;
-
-                transforms[i] = glm::mat3x4 {
+                transforms[i] = glm::mat3x4{
                     {mat[0] * scl.x, pos.x},
                     {mat[1] * scl.y, pos.y},
-                    {mat[2] * scl.z, pos.z},
+                    {mat[2] * scl.z, pos.z}
                 };
             }
-
-            glBindVertexArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, mesh->IBO);
             glBufferData(GL_ARRAY_BUFFER, mesh->users.size() * sizeof(glm::mat3x4), transforms, GL_DYNAMIC_DRAW);
-            glDrawElementsInstanced(GL_TRIANGLES, mesh->T.size(), GL_UNSIGNED_SHORT, 0, mesh->users.size());
+            glDrawElementsInstanced(GL_TRIANGLES, mesh->tnum, GL_UNSIGNED_SHORT, 0, mesh->users.size());
+            glBindVertexArray(0);
 
             delete[] transforms;
         }
-        glBindVertexArray(0);
     }
 
     void Model::set_mesh(Mesh* M) {
@@ -154,18 +145,4 @@ namespace pk {
         mesh->users.push_back(this);
        }
     }
-
-    u16 Mesh::new_vert(vec3 p) { V.emplace_back(p); return V.size() - 1; }
-    u16 Mesh::pop_vert() { V.pop_back(); return V.size(); }
-    void Mesh::set_pos(u16 vid, vec3 p) { V[vid] = p; }
-
-    // BLOAT (debloat soon)
-    u16 Mesh::new_trig(u16 v0, u16 v1, u16 v2) { T.push_back(v0); T.push_back(v1); T.push_back(v2); return T.size() / 3 - 1; }
-    u16 Mesh::pop_trig() { T.pop_back(); T.pop_back(); T.pop_back(); return T.size() / 3; }
-    void Mesh::set_trig(u16 tid, u16 v0, u16 v1, u16 v2) {
-        T[tid * 3] = v0;
-        T[tid * 3 + 1] = v1;
-        T[tid * 3 + 2] = v2;
-    }
-
 }
