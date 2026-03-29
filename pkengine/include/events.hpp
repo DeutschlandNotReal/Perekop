@@ -69,7 +69,6 @@ namespace pk {
                 }
             }
             EventPort() = delete;
-            ~EventPort() = delete;
     };
 }
 #undef yield

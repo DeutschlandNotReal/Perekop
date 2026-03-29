@@ -1,27 +1,33 @@
 cmake_minimum_required(VERSION 3.10)
 project(Perekop)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/pkengine/lib)
-set(GLFW_INCLUDE ${LIB_DIR}/glfw/glfw-3.4.bin.WIN64/include)
-set(GLEW_INCLUDE ${LIB_DIR}/glew/glew-2.2.0/include)
-set(GLM_INCLUDE  ${LIB_DIR}/glm)
-set(GLAD_INCLUDE ${LIB_DIR}/glad/include)
-set(GLFW_LIB ${LIB_DIR}/glfw/glfw-3.4.bin.WIN64/lib-vc2022/glfw3.lib)
-set(GLEW_LIB ${LIB_DIR}/glew/glew-2.2.0/lib/Release/x64/glew32.lib)
-file(GLOB_RECURSE SRC_FILES pkengine/src/*.cpp game/src/*.cpp)
-list(APPEND SRC_FILES ${LIB_DIR}/glad/src/glad.c)
-add_executable(pkengine ${SRC_FILES})
-target_include_directories(pkengine PRIVATE
-    ${GLFW_INCLUDE}
-    ${GLEW_INCLUDE}
-    ${GLM_INCLUDE}
-    ${GLAD_INCLUDE}
+set(GAME_DIR ${CMAKE_SOURCE_DIR}/game)
+
+add_subdirectory(${LIB_DIR}/glfw)
+
+include_directories(
+    ${LIB_DIR}/glfw/include
+    ${LIB_DIR}/glad/include
+    ${LIB_DIR}/glm
     ${CMAKE_SOURCE_DIR}/pkengine/include
-    ${CMAKE_SOURCE_DIR}/game/include
+    ${GAME_DIR}/include
 )
-target_link_libraries(pkengine PRIVATE
-    ${GLFW_LIB}
-    ${GLEW_LIB}
+
+file(GLOB_RECURSE ENGINE_SRC ${CMAKE_SOURCE_DIR}/pkengine/src/*.cpp)
+file(GLOB_RECURSE GAME_SRC ${GAME_DIR}/src/*.cpp)
+
+add_executable(perekop
+    ${ENGINE_SRC}
+    ${GAME_SRC}
+    ${LIB_DIR}/glad/src/glad.c
+)
+
+target_link_libraries(perekop
+    glfw
     opengl32
 )

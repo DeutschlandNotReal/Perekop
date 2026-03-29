@@ -7,9 +7,9 @@ namespace pk::engine {
     namespace window {
         extern EventPort<double>& step;
         extern EventPort<glm::vec2>& resized;
-        extern void close();
-        extern void resize(glm::vec2 new_size);
-        extern void rename(std::string new_title);
+        //extern void close();
+        //extern void resize(glm::vec2 new_size);
+        //extern void rename(std::string new_title);
         extern glm::vec2 get_size();
     }
 

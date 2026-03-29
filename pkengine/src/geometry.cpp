@@ -30,28 +30,7 @@ GLuint load_program(const char* vsrc, const char* fsrc) {
 }
 
 namespace pk {
-    static unsigned int default_shader = load_program(
-        "#version 120"
-        "\n attribute vec3 v;"
-        "\n attribute vec4 t0;"
-        "\n attribute vec4 t1;"
-        "\n attribute vec4 t2;"
-        "\n uniform mat4 VP;"
-        "\n void main() {"
-        "\n     mat4 model = mat4("
-        "\n         vec4(t0.xyz, 0.0),"
-        "\n         vec4(t1.xyz, 0.0),"
-        "\n         vec4(t2.xyz, 0.0),"
-        "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
-        "\n     );"
-        "\n     gl_Position = VP * model * vec4(v, 1.0);"
-        "\n };",
-
-        "#version 120"
-        "\n void main() {"
-        "\n gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
-        "\n };"
-    );
+    static unsigned int default_shader;
 
     void Mesh::flush() {
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -196,6 +175,31 @@ namespace pk {
         for (ID_T i = 0; i < meshes_count; i++) {
             meshes[i]->renderer = nullptr;
         }
+    }
+
+    void MeshRenderer::init() {
+        default_shader = load_program(
+        "#version 120"
+        "\n attribute vec3 v;"
+        "\n attribute vec4 t0;"
+        "\n attribute vec4 t1;"
+        "\n attribute vec4 t2;"
+        "\n uniform mat4 VP;"
+        "\n void main() {"
+        "\n     mat4 model = mat4("
+        "\n         vec4(t0.xyz, 0.0),"
+        "\n         vec4(t1.xyz, 0.0),"
+        "\n         vec4(t2.xyz, 0.0),"
+        "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
+        "\n     );"
+        "\n     gl_Position = VP * model * vec4(v, 1.0);"
+        "\n };",
+
+        "#version 120"
+        "\n void main() {"
+        "\n gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+        "\n };"
+    );
     }
 
     void Model::set_mesh(Mesh* M) {

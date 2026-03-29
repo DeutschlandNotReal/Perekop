@@ -4,15 +4,33 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/pkengine/include",
+                "${workspaceFolder}/pkengine/lib",
                 "${workspaceFolder}/pkengine/lib/glad/include",
-                "${workspaceFolder}/pkengine/lib/glfw/glfw-3.4.bin.WIN64/include",
-                "${workspaceFolder}/pkengine/lib/glew/glew-2.2.0/include",
-                "${workspaceFolder}/pkengine/lib/glm"
+                "${workspaceFolder}/pkengine/lib/glfw/include",
+                "${workspaceFolder}/pkengine/lib/glm",
+                "${workspaceFolder}/game/include",
+                "C:/msys64/mingw64/include/c++/15.2.0",
+                "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
+                "C:/msys64/mingw64/include"
             ],
             "defines": [],
-            "cppStandard": "c++17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+            "intelliSenseMode": "windows-gcc-x64",
+            "cppStandard": "c++17"
         }
     ],
-    "version": 4
+    "version": 4,
+    "browse": {
+        "path": [
+            "${workspaceFolder}/pkengine/include",
+            "${workspaceFolder}/pkengine/lib/glad/include",
+            "${workspaceFolder}/pkengine/lib/glfw/include",
+            "${workspaceFolder}/pkengine/lib/glm",
+            "${workspaceFolder}/game/include",
+            "C:/msys64/mingw64/include/c++/15.2.0",
+            "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
+            "C:/msys64/mingw64/include"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+    }
 }

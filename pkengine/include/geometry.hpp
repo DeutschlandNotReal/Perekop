@@ -1,12 +1,11 @@
 #pragma once
-#include "glm/fwd.hpp"
-#include "glm/glm.hpp"
+#include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 
 #define ID_T unsigned short
 
 // shorthand but also makes resize function for each
-#define PK_ARRAY(T, N) T* N; ID_T N##_count = 0; ID_T N##_capacity = 0; void resize_##N(ID_T size) { N##_capacity = size; T* prev = N; N = new T[size]; for (ID_T i = 0; i < N##_count; i++) N[i] = prev[i]; delete[] prev; };
+#define PK_ARRAY(T, N) T* N = new T[1]; ID_T N##_count = 0; ID_T N##_capacity = 1; void resize_##N(ID_T size) { if (!size) return; N##_capacity = size; T* prev = N; N = new T[size]; for (ID_T i = 0; i < N##_count; i++) N[i] = prev[i]; delete[] prev; };
 
 namespace pk {
     class Model;
@@ -62,6 +61,7 @@ namespace pk {
             PK_ARRAY(Mesh*, meshes)
             PK_ARRAY(glm::mat3x4, transforms)
         public:
+            static void init();
             Mesh* create_mesh();
             void draw(Camera cam);    
             ~MeshRenderer(); 
