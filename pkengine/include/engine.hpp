@@ -1,7 +1,6 @@
 #pragma once
-#include "camera.hpp"
 #include "events.hpp"
-#include "mesh.hpp"
+#include "geometry.hpp"
 #include <string>
 #include <vector>
 
@@ -15,6 +14,11 @@ namespace pk::engine {
         extern void resize(glm::vec2 new_size);
         extern void rename(std::string new_title);
         extern glm::vec2 get_size();
+    }
+
+    namespace scene {
+        extern Mesh* new_mesh();
+        extern const Camera camera;
     }
 
     namespace input {
