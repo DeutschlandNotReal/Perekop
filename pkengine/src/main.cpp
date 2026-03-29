@@ -18,15 +18,13 @@ const double iFPS = 1.0 / 60.0;
 using glm::vec3, glm::vec2; 
 using namespace pk;
 
-#define load_event(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); const EventPort<__VA_ARGS__>& N = N##_event.port;
+#define load_event(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace pk::engine {
     static MeshRenderer renderer = MeshRenderer();
     namespace window {
         static glm::vec2 size;
         load_event(step, double)
         load_event(resized, vec2)
-        load_event(began)
-        load_event(ended)
     }
     namespace input {
         load_event(mouse_moved, vec2);
@@ -59,8 +57,7 @@ int main() {
 
     //if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) { return -1; }
 
-    engine::window::began_event.invoke();
-    engine::window::began_event.freeze();
+    engine::game::launch();
     double last_dt = iFPS;
 
     util::StackTimer<double, 10> timer{};
@@ -88,9 +85,7 @@ int main() {
         timer.sleep(iFPS - dt);
         last_dt = dt;
     }
-    
-    engine::window::ended_event.invoke();
-    engine::window::ended_event.freeze();
+    engine::game::close();
 
     glfwTerminate();
 }

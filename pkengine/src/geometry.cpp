@@ -3,6 +3,7 @@
 #include "geometry.hpp"
 #include "glm/ext/matrix_float3x4.hpp"
 #include "engine.hpp"
+#include "glm/geometric.hpp"
 
 using glm::vec3, glm::vec2, glm::mat3x4;
 
@@ -212,6 +213,16 @@ namespace pk {
     }
 
     Model::~Model() { set_mesh(nullptr); }
+
+    void Model::look_at(glm::vec3 at, glm::vec3 up) {
+        auto look = glm::normalize(at - pos);
+        auto right = glm::normalize(glm::cross(look, up));
+        up = glm::normalize(up);
+
+        matrix[0] = right;
+        matrix[1] = up;
+        matrix[2] = -look;
+    }
 
     glm::mat4 Camera::view_matrix() const {
         return glm::lookAt(origin, look, vec3(0, 1, 0));

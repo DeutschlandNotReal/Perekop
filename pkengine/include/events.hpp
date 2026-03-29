@@ -39,8 +39,8 @@ namespace pk {
                 while (flags) yield();
                 flags = 2;
                 for (short i = 0; i < cur; ++i) {
-                    bool quit = buf[i](args...);
-                    if (quit) { buf[i--] = buf[--cur]; }
+                    bool remain = buf[i](args...);
+                    if (!remain) { buf[i--] = buf[--cur]; }
                 }
                 flags = 0;
             }

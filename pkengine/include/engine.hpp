@@ -2,14 +2,11 @@
 #include "events.hpp"
 #include "geometry.hpp"
 #include <string>
-#include <vector>
 
 namespace pk::engine {
     namespace window {
-        extern const EventPort<double>& step;
-        extern const EventPort<glm::vec2>& resized;
-        extern const EventPort<>& began;
-        extern const EventPort<>& ended;
+        extern EventPort<double>& step;
+        extern EventPort<glm::vec2>& resized;
         extern void close();
         extern void resize(glm::vec2 new_size);
         extern void rename(std::string new_title);
@@ -24,9 +21,14 @@ namespace pk::engine {
     namespace input {
         extern glm::vec2 mouse_xy();
 
-        extern const EventPort<glm::vec2>& mouse_moved; // parameter is delta
-        extern const EventPort<int>& input_began;
-        extern const EventPort<int>& input_ended;
+        extern EventPort<glm::vec2>& mouse_moved; // parameter is delta
+        extern EventPort<int>& input_began;
+        extern EventPort<int>& input_ended;
+    }
+
+    namespace game {
+        extern void launch();
+        extern void close();
     }
 }
 

@@ -13,8 +13,14 @@ namespace pk {
     class MeshRenderer;
     class Camera;
 
-    class MeshVertex { glm::vec3 pos; glm::vec2 uv; };
-    class MeshTriangle { ID_T v0, v1, v2; };
+    struct MeshVertex { 
+        glm::vec3 pos; glm::vec2 uv;
+        MeshVertex(): pos(0), uv(0) {}
+        MeshVertex(float x, float y, float z): pos(x, y, z), uv(0) {};
+        MeshVertex(float x, float y, float z, float u, float v): pos(x, y, z), uv(u, v) {}
+        MeshVertex(const glm::vec3& p): pos(p), uv(0) {}
+    };
+    struct MeshTriangle { ID_T v0, v1, v2; };
 
     class Mesh {
         friend Model; friend MeshRenderer;
@@ -34,9 +40,14 @@ namespace pk {
             ID_T pop_vertex();
             void set_vertex(ID_T vid, MeshVertex new_vertex);
 
+            ID_T push_vertex(float x, float y, float z) { return push_vertex(MeshVertex{x, y, z}); }
+            ID_T push_vertex(float x, float y, float z, float u, float v) { return push_vertex(MeshVertex{x, y, z, u, v}); }
+
             ID_T push_triangle(MeshTriangle triangle);
             ID_T pop_triangle();
             void set_triangle(ID_T vid, MeshTriangle new_triangle);
+
+            ID_T push_triangle(ID_T v0, ID_T v1, ID_T v2) { return push_triangle(MeshTriangle{v0, v1, v2}); } 
 
             void load(); // into VRAM
             void flush();
@@ -66,7 +77,11 @@ namespace pk {
             glm::vec3 pos = glm::vec3(0), scl = glm::vec3(1);
             void set_mesh(Mesh* M);
             Mesh* get_mesh() { return mesh; }
+            Model() = default;
+            Model(Mesh* M) { set_mesh(M); }
             ~Model();
+
+            void look_at(glm::vec3 at, glm::vec3 up);
     };
 
     struct Camera {
