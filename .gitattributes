@@ -1,0 +1,3 @@
+.vscode/** linguist-vendored
+pkengine/lib/** linguist-vendored
+pkengine/lib/** -diff

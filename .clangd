@@ -1,11 +1,2 @@
 CompileFlags:
-  Add:
-    - -I${workspaceFolder}/pkengine/include
-    - -I${workspaceFolder}/pkengine/lib/glad/include
-    - -I${workspaceFolder}/pkengine/lib/glfw/include
-    - -I${workspaceFolder}/pkengine/lib/glm
-    - -I${workspaceFolder}/game/include
-    - -IC:/msys64/mingw64/include/c++/15.2.0
-    - -IC:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32
-    - -IC:/msys64/mingw64/include
-CompileCommands: build/compile_commands.json
+  CompilationDatabase: build

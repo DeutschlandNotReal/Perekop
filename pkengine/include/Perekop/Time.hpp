@@ -2,7 +2,7 @@
 #include <chrono>
 #include <thread>
 
-namespace pk::util {
+namespace pk {
     template <typename T, short L> struct StackTimer {
         private:
             short ptr = -1;
@@ -16,12 +16,16 @@ namespace pk::util {
                 std::this_thread::sleep_for(std::chrono::duration<T>(duration));
             }
 
-            void begin() noexcept {
+            void push() noexcept {
                 if (ptr != L - 1) records[++ptr] = now();
             }
 
-            T stop() noexcept {
+            [[nodiscard]] T pop() noexcept {
                 return (ptr > -1) ? now() - records[ptr--] : T(0);
+            }
+
+            void pop(T& val) {
+                val = (ptr > -1) ? now() - records[ptr--]: T(0);
             }
     };
 }

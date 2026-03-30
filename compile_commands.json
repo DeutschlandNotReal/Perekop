@@ -1,152 +1,152 @@
 [
 {
   "directory": "C:/Projects/Perekop/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/perekop.dir/includes_CXX.rsp -std=gnu++17 -o CMakeFiles\\perekop.dir\\pkengine\\src\\geometry.cpp.obj -c C:\\Projects\\Perekop\\pkengine\\src\\geometry.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glad/include -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/include -IC:/Projects/Perekop/game/include -g -std=gnu++17 -o CMakeFiles\\perekop.dir\\pkengine\\src\\geometry.cpp.obj -c C:\\Projects\\Perekop\\pkengine\\src\\geometry.cpp",
   "file": "C:/Projects/Perekop/pkengine/src/geometry.cpp",
-  "output": "CMakeFiles/perekop.dir/pkengine/src/geometry.cpp.obj"
+  "output": "C:/Projects/Perekop/build/CMakeFiles/perekop.dir/pkengine/src/geometry.cpp.obj"
 },
 {
   "directory": "C:/Projects/Perekop/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/perekop.dir/includes_CXX.rsp -std=gnu++17 -o CMakeFiles\\perekop.dir\\pkengine\\src\\main.cpp.obj -c C:\\Projects\\Perekop\\pkengine\\src\\main.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glad/include -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/include -IC:/Projects/Perekop/game/include -g -std=gnu++17 -o CMakeFiles\\perekop.dir\\pkengine\\src\\main.cpp.obj -c C:\\Projects\\Perekop\\pkengine\\src\\main.cpp",
   "file": "C:/Projects/Perekop/pkengine/src/main.cpp",
-  "output": "CMakeFiles/perekop.dir/pkengine/src/main.cpp.obj"
+  "output": "C:/Projects/Perekop/build/CMakeFiles/perekop.dir/pkengine/src/main.cpp.obj"
 },
 {
   "directory": "C:/Projects/Perekop/build",
-  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/perekop.dir/includes_CXX.rsp -std=gnu++17 -o CMakeFiles\\perekop.dir\\game\\src\\game.cpp.obj -c C:\\Projects\\Perekop\\game\\src\\game.cpp",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glad/include -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/include -IC:/Projects/Perekop/game/include -g -std=gnu++17 -o CMakeFiles\\perekop.dir\\game\\src\\game.cpp.obj -c C:\\Projects\\Perekop\\game\\src\\game.cpp",
   "file": "C:/Projects/Perekop/game/src/game.cpp",
-  "output": "CMakeFiles/perekop.dir/game/src/game.cpp.obj"
+  "output": "C:/Projects/Perekop/build/CMakeFiles/perekop.dir/game/src/game.cpp.obj"
 },
 {
   "directory": "C:/Projects/Perekop/build",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe  @CMakeFiles/perekop.dir/includes_C.rsp  -o CMakeFiles\\perekop.dir\\pkengine\\lib\\glad\\src\\glad.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glad\\src\\glad.c",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glad/include -IC:/Projects/Perekop/pkengine/lib/glm -IC:/Projects/Perekop/pkengine/include -IC:/Projects/Perekop/game/include -g -o CMakeFiles\\perekop.dir\\pkengine\\lib\\glad\\src\\glad.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glad\\src\\glad.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glad/src/glad.c",
-  "output": "CMakeFiles/perekop.dir/pkengine/lib/glad/src/glad.c.obj"
+  "output": "C:/Projects/Perekop/build/CMakeFiles/perekop.dir/pkengine/lib/glad/src/glad.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\context.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\context.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/context.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/context.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/context.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\init.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\init.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/init.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/init.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/init.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\input.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\input.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\input.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\input.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/input.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/input.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/input.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\monitor.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\monitor.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/monitor.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/monitor.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/monitor.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\platform.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\platform.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\platform.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\platform.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/platform.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/platform.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/platform.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\vulkan.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\vulkan.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\vulkan.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\vulkan.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/vulkan.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/vulkan.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/vulkan.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\window.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\window.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/window.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/window.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/window.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\egl_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\egl_context.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\egl_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\egl_context.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/egl_context.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/egl_context.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/egl_context.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\osmesa_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\osmesa_context.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\osmesa_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\osmesa_context.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/osmesa_context.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/osmesa_context.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/osmesa_context.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\null_init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_init.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\null_init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_init.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/null_init.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_init.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_init.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\null_monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_monitor.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\null_monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_monitor.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/null_monitor.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_monitor.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_monitor.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\null_window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_window.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\null_window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_window.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/null_window.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_window.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_window.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\null_joystick.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_joystick.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\null_joystick.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\null_joystick.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/null_joystick.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_joystick.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/null_joystick.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_module.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_module.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_module.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_module.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_module.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_module.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_module.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_time.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_time.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_time.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_time.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_time.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_time.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_time.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_thread.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_thread.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_thread.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_thread.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_thread.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_thread.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_thread.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_init.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_init.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_init.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_init.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_init.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_init.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_joystick.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_joystick.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_joystick.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_joystick.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_joystick.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_joystick.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_joystick.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_monitor.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_monitor.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_monitor.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_monitor.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_monitor.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_monitor.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\win32_window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_window.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\win32_window.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\win32_window.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/win32_window.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_window.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/win32_window.c.obj"
 },
 {
-  "directory": "C:/Projects/Perekop/build/pkengine/lib/glfw/src",
-  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE @CMakeFiles/glfw.dir/includes_C.rsp -std=c99 -Wall -o CMakeFiles\\glfw.dir\\wgl_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\wgl_context.c",
+  "directory": "C:/Projects/Perekop/build",
+  "command": "C:\\msys64\\mingw64\\bin\\gcc.exe -DUNICODE -D_GLFW_WIN32 -D_UNICODE -IC:/Projects/Perekop/pkengine/lib/glfw/include -IC:/Projects/Perekop/pkengine/lib/glfw/src -IC:/Projects/Perekop/build/pkengine/lib/glfw/src -g -std=c99 -Wall -o pkengine\\lib\\glfw\\src\\CMakeFiles\\glfw.dir\\wgl_context.c.obj -c C:\\Projects\\Perekop\\pkengine\\lib\\glfw\\src\\wgl_context.c",
   "file": "C:/Projects/Perekop/pkengine/lib/glfw/src/wgl_context.c",
-  "output": "pkengine/lib/glfw/src/CMakeFiles/glfw.dir/wgl_context.c.obj"
+  "output": "C:/Projects/Perekop/build/pkengine/lib/glfw/src/CMakeFiles/glfw.dir/wgl_context.c.obj"
 }
 ]

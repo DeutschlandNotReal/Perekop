@@ -1,19 +1,6 @@
 {
-    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
-    "C_Cpp.default.includePath": [
-        "${workspaceFolder}/pkengine/include",
-        "${workspaceFolder}/pkengine/lib/glad/include",
-        "${workspaceFolder}/pkengine/lib/glfw/include",
-        "${workspaceFolder}/pkengine/lib/glm",
-        "${workspaceFolder}/game/include",
-        "C:/msys64/mingw64/include/c++/15.2.0",
-        "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
-        "C:/msys64/mingw64/include"
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build"
     ],
-    "C_Cpp.default.configuration": "Win32",
-    "C_Cpp.intelliSenseEngine": "Default",
-    "C_Cpp.autocomplete": "Default",
-    "C_Cpp.formatting": "Default",
-    "C_Cpp.errorSquiggles": "Enabled",
-    "cmake.buildDirectory": "${workspaceFolder}/build"
+    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe"
 }

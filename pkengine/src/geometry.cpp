@@ -1,9 +1,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include "geometry.hpp"
-#include "glm/ext/matrix_float3x4.hpp"
-#include "engine.hpp"
-#include "glm/geometric.hpp"
+#include <glm/geometric.hpp>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <Perekop/Geometry.hpp>
+#include <Perekop/Engine.hpp>
+#include <iostream>
 
 using glm::vec3, glm::vec2, glm::mat3x4;
 
@@ -49,7 +51,7 @@ namespace pk {
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 12, 0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), 0);
         glEnableVertexAttribArray(0);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -125,9 +127,8 @@ namespace pk {
         delete[] users; delete[] vertex; delete[] triangle;
     }
 
-    void MeshRenderer::draw(Camera cam) {
-        vec2 screen_size = pk::engine::window::get_size();
-        auto vp_matrix = cam.proj_matrix(screen_size.x, screen_size.y) * cam.view_matrix();
+    void MeshRenderer::draw(Camera cam, int screenx, int screeny) {
+        auto vp_matrix = cam.proj_matrix(screenx, screeny) * cam.view_matrix();
         glUseProgram(default_shader);
         glUniformMatrix4fv(
             glGetUniformLocation(default_shader, "VP"),
@@ -135,6 +136,8 @@ namespace pk {
             GL_FALSE,
             (float*) &vp_matrix
         );
+
+        int drawn_meshes = 0, drawn_models = 0;
 
         ID_T& tcur = transforms_count, tsize = transforms_capacity;
         for (ID_T i = 0; i < meshes_count; i++) {
@@ -145,6 +148,8 @@ namespace pk {
                 tsize <<= 1;
                 transforms = new mat3x4[tsize];
             }
+            drawn_meshes++;
+            drawn_models+=mesh.users_count;
             for (tcur = 0; tcur < mesh.users_count; tcur++) {
                 Model* model = mesh.users[tcur];
                 auto& mat = model->matrix;
@@ -158,7 +163,7 @@ namespace pk {
             }
             glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
             glBufferData(GL_ARRAY_BUFFER, tcur * sizeof(glm::mat3x4), transforms, GL_DYNAMIC_DRAW);
-            glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle_count, GL_UNSIGNED_SHORT, 0, mesh.users_count);
+            glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle_count * 3, GL_UNSIGNED_SHORT, 0, mesh.users_count);
             glBindVertexArray(0);
         }
     }
@@ -179,7 +184,7 @@ namespace pk {
 
     void MeshRenderer::init() {
         default_shader = load_program(
-        "#version 120"
+        "#version 330"
         "\n attribute vec3 v;"
         "\n attribute vec4 t0;"
         "\n attribute vec4 t1;"
@@ -195,9 +200,9 @@ namespace pk {
         "\n     gl_Position = VP * model * vec4(v, 1.0);"
         "\n };",
 
-        "#version 120"
+        "#version 330"
         "\n void main() {"
-        "\n gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+        "\n     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
         "\n };"
     );
     }
@@ -219,17 +224,17 @@ namespace pk {
     Model::~Model() { set_mesh(nullptr); }
 
     void Model::look_at(glm::vec3 at, glm::vec3 up) {
-        auto look = glm::normalize(at - pos);
-        auto right = glm::normalize(glm::cross(look, up));
-        up = glm::normalize(up);
+        glm::vec3 f = glm::normalize(at - pos);
+        glm::vec3 r = glm::normalize(glm::cross(f, up));
+        glm::vec3 u = glm::cross(r, f);
 
-        matrix[0] = right;
-        matrix[1] = up;
-        matrix[2] = -look;
+        matrix[0] = r;
+        matrix[1] = u;
+        matrix[2] = f;
     }
 
     glm::mat4 Camera::view_matrix() const {
-        return glm::lookAt(origin, look, vec3(0, 1, 0));
+        return glm::lookAt(origin, origin + look, vec3(0, 1, 0));
     };
 
     glm::mat4 Camera::proj_matrix(int x, int y) const {

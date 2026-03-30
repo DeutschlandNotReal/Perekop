@@ -2,35 +2,8 @@
     "configurations": [
         {
             "name": "Win32",
-            "includePath": [
-                "${workspaceFolder}/pkengine/include",
-                "${workspaceFolder}/pkengine/lib",
-                "${workspaceFolder}/pkengine/lib/glad/include",
-                "${workspaceFolder}/pkengine/lib/glfw/include",
-                "${workspaceFolder}/pkengine/lib/glm",
-                "${workspaceFolder}/game/include",
-                "C:/msys64/mingw64/include/c++/15.2.0",
-                "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
-                "C:/msys64/mingw64/include"
-            ],
-            "defines": [],
-            "compilerPath": "C:/msys64/mingw64/bin/g++.exe",
-            "intelliSenseMode": "windows-gcc-x64",
-            "cppStandard": "c++17"
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
-    "version": 4,
-    "browse": {
-        "path": [
-            "${workspaceFolder}/pkengine/include",
-            "${workspaceFolder}/pkengine/lib/glad/include",
-            "${workspaceFolder}/pkengine/lib/glfw/include",
-            "${workspaceFolder}/pkengine/lib/glm",
-            "${workspaceFolder}/game/include",
-            "C:/msys64/mingw64/include/c++/15.2.0",
-            "C:/msys64/mingw64/include/c++/15.2.0/x86_64-w64-mingw32",
-            "C:/msys64/mingw64/include"
-        ],
-        "limitSymbolsToIncludedHeaders": true
-    }
+    "version": 4
 }

@@ -3,7 +3,7 @@
 #include <thread>
 #include <atomic>
 
-#define yield std::this_thread::yield
+#define yield_while(t) while(t) std::this_thread::yield();
 
 namespace pk {
     template <typename... A> class EventPort;
@@ -14,11 +14,10 @@ namespace pk {
             callback* buf;
             short cur = 0, size = 10;
             std::atomic<char> flags; // resizing: 1, invoking: 2, both: 3
-            std::function<void(callback)> connector = nullptr;
 
             void alloc() {
                 if (flags & 1) return;
-                while(flags & 2) yield();
+                yield_while(flags & 2)
                 flags = 1;
                 callback* old_buf = buf;
                 buf = new callback[size];
@@ -36,7 +35,7 @@ namespace pk {
         public:
             EventPort<A...> port{this};
             void invoke(A... args) {
-                while (flags) yield();
+                yield_while(flags)
                 flags = 2;
                 for (short i = 0; i < cur; ++i) {
                     bool remain = buf[i](args...);
@@ -45,11 +44,7 @@ namespace pk {
                 flags = 0;
             }
 
-            void freeze(A... args) {
-                connector = [args...](callback& cb){ cb(args...); };
-            }
-
-            void unfreeze() { connector = nullptr; }
+            std::function<void(callback)> connector = nullptr;
 
             Event(): buf(new callback[10]) {}
             ~Event() { delete[] buf; }
@@ -71,4 +66,4 @@ namespace pk {
             EventPort() = delete;
     };
 }
-#undef yield
+#undef yield_while

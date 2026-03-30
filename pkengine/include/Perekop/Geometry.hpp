@@ -1,6 +1,5 @@
 #pragma once
 #include <glm/glm.hpp>
-#include "glm/gtc/matrix_transform.hpp"
 
 #define ID_T unsigned short
 
@@ -26,7 +25,7 @@ namespace pk {
 
         private:
             unsigned int VAO = 0, VBO = 0, EBO = 0, IBO = 0;
-            ID_T meshid = 0 ;
+            ID_T meshid = 0;
             MeshRenderer* renderer;
             
             PK_ARRAY(MeshVertex, vertex)
@@ -48,9 +47,9 @@ namespace pk {
 
             ID_T push_triangle(ID_T v0, ID_T v1, ID_T v2) { return push_triangle(MeshTriangle{v0, v1, v2}); } 
 
-            void load(); // into VRAM
+            void load();
             void flush();
-            void unload(); // outta VRAM
+            void unload();
 
             void dismiss();
     };
@@ -63,7 +62,7 @@ namespace pk {
         public:
             static void init();
             Mesh* create_mesh();
-            void draw(Camera cam);    
+            void draw(Camera cam, int x, int y);    
             ~MeshRenderer(); 
     };
 
