@@ -1,3 +1,4 @@
+#include "glm/matrix.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/geometric.hpp>
@@ -5,9 +6,9 @@
 #include <glm/ext.hpp>
 #include <Perekop/Geometry.hpp>
 #include <Perekop/Engine.hpp>
-#include <iostream>
 
-using glm::vec3, glm::vec2, glm::mat3x4;
+using namespace glm;
+using namespace Perekop;
 
 GLuint load_shader(const char* src, GLenum type) {
     // should probably make it detect sloppy shader code
@@ -127,14 +128,16 @@ namespace pk {
         delete[] users; delete[] vertex; delete[] triangle;
     }
 
-    void MeshRenderer::draw(Camera cam, int screenx, int screeny) {
-        auto vp_matrix = cam.proj_matrix(screenx, screeny) * cam.view_matrix();
+    void MeshRenderer::draw() {
+        int screenx, screeny;
+        Perekop::Window::get_size(screenx, screeny);
+        auto VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
         glUseProgram(default_shader);
         glUniformMatrix4fv(
             glGetUniformLocation(default_shader, "VP"),
             1,
             GL_FALSE,
-            (float*) &vp_matrix
+            (float*) &VP
         );
 
         int drawn_meshes = 0, drawn_models = 0;
@@ -145,20 +148,15 @@ namespace pk {
             glBindVertexArray(mesh.VAO);
             if (mesh.users_count > tsize) {
                 delete[] transforms;
-                tsize <<= 1;
+                tsize = mesh.users_count;
                 transforms = new mat3x4[tsize];
             }
             drawn_meshes++;
             drawn_models+=mesh.users_count;
             for (tcur = 0; tcur < mesh.users_count; tcur++) {
                 Model* model = mesh.users[tcur];
-                auto& mat = model->matrix;
-                auto& scl = model->scl;
-                auto& pos = model->pos;
                 new (&transforms[tcur]) mat3x4{
-                    {mat[0] * scl.x, pos.x},
-                    {mat[1] * scl.y, pos.y},
-                    {mat[2] * scl.z, pos.z}
+                    model->transform.scale(model->scl)
                 };
             }
             glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
@@ -230,25 +228,11 @@ namespace pk {
 
     Model::~Model() { set_mesh(nullptr); }
 
-    void Model::look_at(glm::vec3 at, glm::vec3 up) {
-        glm::vec3 f = glm::normalize(at - pos);
-        glm::vec3 r = glm::normalize(glm::cross(f, up));
-        glm::vec3 u = glm::cross(r, f);
-
-        matrix[0] = r;
-        matrix[1] = u;
-        matrix[2] = f;
-    }
-
-    glm::mat4 Camera::view_matrix() const {
-        return glm::lookAt(origin, origin + look, vec3(0, 1, 0));
-    };
-
-    glm::mat4 Camera::proj_matrix(int x, int y) const {
+    glm::mat4 Camera::get_viewproj(int screen_x, int screen_y) const {
         return glm::perspective(
             glm::radians(fov), 
-            (float)x / (float)y,
+            (float)screen_x / (float)screen_y,
             n, f
-        );
+        ) * glm::inverse((mat4)transform);
     }
 }

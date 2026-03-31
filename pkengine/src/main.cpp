@@ -7,7 +7,6 @@
 #include <Perekop/Engine.hpp>
 #include <Perekop/Geometry.hpp>
 #include <Perekop/Time.hpp>
-#include <stdexcept>
 
 using glm::vec3, glm::vec2; 
 using namespace pk;
@@ -21,12 +20,74 @@ namespace Perekop {
         static GLFWwindow* win;
 
         EVENT(step, double)
-        EVENT(resized, int, int)  
+        EVENT(resized, int, int);
+        
+        glm::vec2 get_size() { 
+            int x, y;
+            glfwGetWindowSize(win, &x, &y);
+            return glm::vec2(x, y);
+        }
+        void get_size(int& x, int& y) {
+            glfwGetWindowSize(win, &x, &y);
+        }
+        void set_size(int x, int y) {
+            glfwSetWindowSize(win, x, y);
+        }
+        void set_size(glm::vec2 d) {
+            set_size(d.x, d.y);
+        }
+        std::string get_title() {
+            return std::string(glfwGetWindowTitle(win));
+        }
+        void set_title(const std::string& title) {
+            glfwSetWindowTitle(win, title.c_str());
+        }
+        void maximize() {
+            glfwMaximizeWindow(win);
+        }
+        void minimize() {
+            glfwIconifyWindow(win);
+        }
+        void close() {
+            glfwSetWindowShouldClose(win, GLFW_TRUE);
+        }
+    }
+    namespace Mouse {
+        glm::vec2 pos() { 
+            double x, y;
+            glfwGetCursorPos(Window::win, &x, &y);
+            return glm::vec2(x, y);
+        }
+        glm::vec2 normalized_pos() {
+            double x, y;
+            int w, h;
+            glfwGetCursorPos(Window::win, &x, &y);
+            glfwGetWindowSize(Window::win, &w, &h);
+            return glm::vec2(x/(double)w, y/(double)h);
+        }
+        void set_pos(glm::vec2 pos) {
+            glfwSetCursorPos(Window::win, pos.x, pos.y);
+        }
+        void set_normalized_pos(glm::vec2 pos) {
+            glm::vec2 size = Window::get_size();
+            glfwSetCursorPos(Window::win, pos.x * size.x, pos.y * size.y);
+        }
+
+        EVENT(rmb_down)
+        EVENT(rmb_up)
+        EVENT(lmb_down)
+        EVENT(lmb_up)
+        EVENT(move, double, double)
+        bool is_rmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS; }
+        bool is_lmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS; }
     }
     namespace Input {
-        EVENT(mouse_moved, vec2);
-        EVENT(input_began, int);
-        EVENT(input_ended, int);
+        EVENT(key_down, int)
+        EVENT(key_up, int)
+
+        std::string get_clipboard() { return std::string(glfwGetClipboardString(Window::win)); }
+        void set_clipboard(const std::string& content) { glfwSetClipboardString(Window::win, content.c_str()); }
+        bool is_key_down(int key) { return glfwGetKey(Window::win, key) == GLFW_PRESS; }
     }
     namespace Scene {
         static MeshRenderer Renderer = MeshRenderer();
@@ -38,21 +99,6 @@ namespace Perekop {
 };
 #undef EVENT
 
-void on_resize(GLFWwindow* win, int x, int y) {
-    Window::screen_x = x; Window::screen_y = y;
-    if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
-    glViewport(0, 0, x, y);
-    Window::resized_event.invoke(x, y);
-}
-
-glm::vec2 Window::get_size() {
-    return glm::vec2(Window::screen_x, Window::screen_y);
-}
-
-void glfw_error(int error, const char* lore) {
-    std::cerr << "glfw error " << error << ": " << lore << "\n";
-}
-
 int main() {
     std::cout << "begin?\n";
     glfwInit();
@@ -60,7 +106,6 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    glfwSetErrorCallback(glfw_error);
 
     Window::win = glfwCreateWindow(400, 800, "Perekop", NULL, NULL);
     glfwMakeContextCurrent(Window::win);
@@ -77,22 +122,46 @@ int main() {
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(Window::win, on_resize);
+    glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
+        Window::screen_x = x; Window::screen_y = y;
+        if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
+        glViewport(0, 0, x, y);
+        Window::resized_event.invoke(x, y);
+    });
+
+    glfwSetCursorPosCallback(Window::win, [](GLFWwindow*, double x, double y){
+        Mouse::move_event.invoke(x, y);
+    });
+
+    glfwSetKeyCallback(Window::win, [](GLFWwindow*, int key, int act, int, int){
+        if (act == GLFW_PRESS) { Input::key_down_event.invoke(key); return; }
+        if (act == GLFW_RELEASE) { Input::key_up_event.invoke(key); return; }
+    });
+
+    glfwSetMouseButtonCallback(Window::win, [](GLFWwindow*, int button, int act, int){
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            if (act == GLFW_PRESS) Mouse::lmb_down_event.invoke();
+            if (act == GLFW_RELEASE) Mouse::lmb_up_event.invoke();
+            return;
+        }
+        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+            if (act == GLFW_PRESS) Mouse::rmb_down_event.invoke();
+            if (act == GLFW_RELEASE) Mouse::rmb_down_event.invoke();
+        }
+    });
 
     StackTimer<double, 3> frame_timer;
     double last_time = frame_timer.now();
     while (true) {
         double dt = frame_timer.delta(last_time);
-        frame_timer.push();
         glfwPollEvents();
+        frame_timer.push();
         if (glfwWindowShouldClose(Window::win)) break;
 
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-        if (Window::screen_x + Window::screen_y > 0) {
-            Scene::Renderer.draw(Scene::camera, Window::screen_x, Window::screen_y);
-        }
+        if (Window::screen_x + Window::screen_y > 0) Scene::Renderer.draw();
 
         Window::step_event.invoke(dt);
         glfwSwapBuffers(Window::win);

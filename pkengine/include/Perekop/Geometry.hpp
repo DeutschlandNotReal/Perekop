@@ -1,5 +1,7 @@
 #pragma once
+#include "Transform.hpp"
 #include <glm/glm.hpp>
+#include <Perekop/Geometry.hpp>
 
 using ID_T = unsigned short;
 
@@ -62,7 +64,7 @@ namespace pk {
         public:
             static void init();
             Mesh* create_mesh();
-            void draw(Camera cam, int x, int y);    
+            void draw();    
             ~MeshRenderer(); 
     };
 
@@ -72,25 +74,21 @@ namespace pk {
             ID_T ref = 0; // where this model is in its mesh's user
             Mesh* mesh = nullptr;
         public:
-            glm::mat3x3 matrix = glm::mat3x3(1);
-            glm::vec3 pos = glm::vec3(0), scl = glm::vec3(1);
+            pk::Transform transform;
+            glm::vec3 scl = glm::vec3(1);
             void set_mesh(Mesh* M);
             Mesh* get_mesh() { return mesh; }
             Model() = default;
             Model(Mesh* M) { set_mesh(M); }
             ~Model();
-
-            void look_at(glm::vec3 at, glm::vec3 up);
     };
 
     struct Camera {
-        float f = 100, n = .01f;
+        float f = 200, n = .1f;
         float fov = 75;
-        glm::vec3 origin;
-        glm::vec3 look;
+        pk::Transform transform;
 
-        glm::mat4 view_matrix() const;
-        glm::mat4 proj_matrix(int x, int y) const;
+        glm::mat4 get_viewproj(int screen_x, int screen_y) const;
     };
 }
 

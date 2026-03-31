@@ -1,15 +1,26 @@
 #pragma once
 #include <Perekop/Event.hpp>
 #include <Perekop/Geometry.hpp>
-#include <string>
 
 #define Port extern pk::EventPort
+
 namespace Perekop {
     namespace Window {
         extern float FPS;
-        Port<double>& step;
         Port<int, int>& resized;
-        extern glm::vec2 get_size();
+        Port<double>& step;
+        
+        [[nodiscard]] extern glm::vec2 get_size();
+        extern void get_size(int& x, int& y);
+        extern void set_size(glm::vec2 d);
+        extern void set_size(int x, int y);
+
+        [[nodiscard]] extern std::string get_title();
+        extern void set_title(const std::string& title);
+
+        extern void maximize();
+        extern void minimize();
+        extern void close();
     }
 
     namespace Scene {
@@ -17,12 +28,27 @@ namespace Perekop {
         extern pk::Camera camera;
     }
 
-    namespace Input {
-        extern glm::vec2 mouse_xy();
+    namespace Mouse {
+        [[nodiscard]] glm::vec2 pos();
+        [[nodiscard]] glm::vec2 normalized_pos();
+        extern void set_pos(glm::vec2 pos);
+        extern void set_normalized_pos(glm::vec2 pos);
 
-        Port<glm::vec2>& mouse_moved; // parameter is delta
-        Port<int>& input_began;
-        Port<int>& input_ended;
+        Port<>& rmb_down;
+        Port<>& rmb_up;
+        Port<>& lmb_down;
+        Port<>& lmb_up;
+        Port<double, double>& move;
+        extern bool is_rmb_down();
+        extern bool is_lmb_down();
+    }
+
+    namespace Input {
+        Port<int>& key_down;
+        Port<int>& key_up;
+        [[nodiscard]] std::string get_clipboard();
+        extern void set_clipboard(const std::string& content);
+        extern bool is_key_down(int key);
     }
 
     namespace Game {

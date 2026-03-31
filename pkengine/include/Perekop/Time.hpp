@@ -14,7 +14,9 @@ namespace pk {
             }
 
             static void sleep(T duration) {
-                std::this_thread::sleep_for(std::chrono::duration<T>(duration));
+                if (duration > T(0)) {
+                    std::this_thread::sleep_for(std::chrono::duration<T>(duration));
+                } else { std::this_thread::yield(); }
             }
 
             void push() noexcept {
@@ -25,9 +27,15 @@ namespace pk {
                 return (ptr > -1) ? now() - records[ptr--] : T(0);
             }
 
+            [[nodiscard]] T peek() const noexcept {
+                return (ptr > -1) ? records[ptr] : T(0);
+            }
+
             void pop(T& val) {
                 val = (ptr > -1) ? now() - records[ptr--]: T(0);
             }
+
+            T elapsed() { return now() - peek(); }
 
             void pop_message(const std::string& title) {
                 T time = pop();
