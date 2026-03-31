@@ -184,11 +184,13 @@ namespace pk {
 
     void MeshRenderer::init() {
         default_shader = load_program(
+            // maybe writing shaders like this isnt the meta
         "#version 330"
-        "\n attribute vec3 v;"
-        "\n attribute vec4 t0;"
-        "\n attribute vec4 t1;"
-        "\n attribute vec4 t2;"
+        "\n in vec3 v;"
+        "\n in vec4 t0;"
+        "\n in vec4 t1;"
+        "\n in vec4 t2;"
+        "\n out float Z;"
         "\n uniform mat4 VP;"
         "\n void main() {"
         "\n     mat4 model = mat4("
@@ -197,12 +199,17 @@ namespace pk {
         "\n         vec4(t2.xyz, 0.0),"
         "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
         "\n     );"
-        "\n     gl_Position = VP * model * vec4(v, 1.0);"
+        "\n     vec4 clip = VP * model * vec4(v, 1.0);"
+        "\n     Z = clip.z / clip.w;"
+        "\n     Z = Z * 0.5 + 0.5;"
+        "\n     gl_Position = clip;"
         "\n };",
 
         "#version 330"
+        "\n in float Z;"
+        "\n out vec4 fragColor;"
         "\n void main() {"
-        "\n     gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);"
+        "\n     fragColor = vec4(1.0 / (1+Z), 0.0, 0.0, 1.0);"
         "\n };"
     );
     }

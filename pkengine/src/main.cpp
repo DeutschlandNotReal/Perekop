@@ -1,3 +1,4 @@
+#include <exception>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>   
@@ -6,25 +7,26 @@
 #include <Perekop/Engine.hpp>
 #include <Perekop/Geometry.hpp>
 #include <Perekop/Time.hpp>
+#include <stdexcept>
 
 using glm::vec3, glm::vec2; 
 using namespace pk;
 using namespace Perekop;
 
-#define load_event(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
+#define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace Perekop {
     namespace Window {
         float FPS = 60;
         static int screen_x = 100, screen_y = 100;
-            static GLFWwindow* win;
+        static GLFWwindow* win;
 
-        load_event(step, double)
-        load_event(resized, int, int)  
+        EVENT(step, double)
+        EVENT(resized, int, int)  
     }
     namespace Input {
-        load_event(mouse_moved, vec2);
-        load_event(input_began, int);
-        load_event(input_ended, int);
+        EVENT(mouse_moved, vec2);
+        EVENT(input_began, int);
+        EVENT(input_ended, int);
     }
     namespace Scene {
         static MeshRenderer Renderer = MeshRenderer();
@@ -34,7 +36,7 @@ namespace Perekop {
         }
     }
 };
-#undef load_event
+#undef EVENT
 
 void on_resize(GLFWwindow* win, int x, int y) {
     Window::screen_x = x; Window::screen_y = y;
@@ -69,14 +71,18 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
 
-    Game::launch();
     MeshRenderer::init();
+    try { Game::launch(); } catch (const std::exception &e) {
+        std::cout << "launch() thrown error: " << e.what() << "\n";
+        return -1;
+    }
 
     glfwSetFramebufferSizeCallback(Window::win, on_resize);
 
     StackTimer<double, 3> frame_timer;
-    double dt = 0;
+    double last_time = frame_timer.now();
     while (true) {
+        double dt = frame_timer.delta(last_time);
         frame_timer.push();
         glfwPollEvents();
         if (glfwWindowShouldClose(Window::win)) break;
@@ -90,11 +96,13 @@ int main() {
 
         Window::step_event.invoke(dt);
         glfwSwapBuffers(Window::win);
-
-        frame_timer.pop(dt);
-        frame_timer.sleep((double)(1 / Window::FPS) - dt);
+        double ftime = frame_timer.pop();
+        
+        frame_timer.sleep((double)(1 / Window::FPS) - ftime);
     }
-    Game::close();
+    try { Game::close(); } catch (const std::exception &e) {
+        std::cout << "close() thrown error: " << e.what() << "\n";
+    }
 
     glfwTerminate();
 }

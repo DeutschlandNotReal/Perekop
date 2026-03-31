@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <thread>
+#include <iostream>
 
 namespace pk {
     template <typename T, short L> struct StackTimer {
@@ -26,6 +27,17 @@ namespace pk {
 
             void pop(T& val) {
                 val = (ptr > -1) ? now() - records[ptr--]: T(0);
+            }
+
+            void pop_message(const std::string& title) {
+                T time = pop();
+                std::cout << title << ": " << time * T(1000.f) << "ms\n";
+            }
+
+            static T delta(T& prev) {
+                T dt = now() - prev;
+                prev += dt;
+                return dt;
             }
     };
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 
-#define ID_T unsigned short
+using ID_T = unsigned short;
 
 // shorthand but also makes resize function for each
 #define PK_ARRAY(T, N) T* N = new T[1]; ID_T N##_count = 0; ID_T N##_capacity = 1; void resize_##N(ID_T size) { if (!size) return; N##_capacity = size; T* prev = N; N = new T[size]; for (ID_T i = 0; i < N##_count; i++) N[i] = prev[i]; delete[] prev; };
