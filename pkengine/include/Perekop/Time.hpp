@@ -37,9 +37,9 @@ namespace pk {
 
             T elapsed() { return now() - peek(); }
 
-            void pop_message(const std::string& title) {
+            void pop_log(const std::string& title, T multiple = T(1000), const std::string& suffix = "ms") {
                 T time = pop();
-                std::cout << title << ": " << time * T(1000.f) << "ms\n";
+                std::cout << title << ": " << (time * multiple) << suffix << "\n";
             }
 
             static T delta(T& prev) {

@@ -1,8 +1,9 @@
-#include "GLFW/glfw3.h"
-#include "Perekop/Geometry.hpp"
+#include <GLFW/glfw3.h>
 #include <Perekop/Engine.hpp>
 #include <Perekop/Time.hpp>
+
 #include <iostream>
+
 using namespace Perekop;
 using namespace pk;
 
@@ -16,7 +17,7 @@ float camera_pitch = 0, camera_yaw = 0;
 int i = 0;
 bool on_step(double dt) {
     ++i;
-    glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt);
+    glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt) * 50.f;
     if (Mouse::is_rmb_down()) {
         camera_pitch = glm::clamp(camera_pitch + delta.y, -2.f, 2.f);
         camera_yaw += delta.x;
@@ -64,7 +65,7 @@ void Game::launch() {
         }
     }
 
-    Window::step.connect(on_step);
+    Window::step.listen(on_step);
 }
 
 void Game::close() {

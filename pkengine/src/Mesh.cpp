@@ -1,11 +1,12 @@
-#include "glm/matrix.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/geometric.hpp>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
-#include <Perekop/Geometry.hpp>
+
 #include <Perekop/Engine.hpp>
+#include <Perekop/Mesh.hpp>
+#include <Perekop/Model.hpp>
 
 using namespace glm;
 using namespace Perekop;
@@ -183,56 +184,32 @@ namespace pk {
     void MeshRenderer::init() {
         default_shader = load_program(
             // maybe writing shaders like this isnt the meta
-        "#version 330"
-        "\n in vec3 v;"
-        "\n in vec4 t0;"
-        "\n in vec4 t1;"
-        "\n in vec4 t2;"
-        "\n out float Z;"
-        "\n uniform mat4 VP;"
-        "\n void main() {"
-        "\n     mat4 model = mat4("
-        "\n         vec4(t0.xyz, 0.0),"
-        "\n         vec4(t1.xyz, 0.0),"
-        "\n         vec4(t2.xyz, 0.0),"
-        "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
-        "\n     );"
-        "\n     vec4 clip = VP * model * vec4(v, 1.0);"
-        "\n     Z = clip.z / clip.w;"
-        "\n     Z = Z * 0.5 + 0.5;"
-        "\n     gl_Position = clip;"
-        "\n };",
+            "#version 330"
+            "\n in vec3 v;"
+            "\n in vec4 t0;"
+            "\n in vec4 t1;"
+            "\n in vec4 t2;"
+            "\n out float Z;"
+            "\n uniform mat4 VP;"
+            "\n void main() {"
+            "\n     mat4 model = mat4("
+            "\n         vec4(t0.xyz, 0.0),"
+            "\n         vec4(t1.xyz, 0.0),"
+            "\n         vec4(t2.xyz, 0.0),"
+            "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
+            "\n     );"
+            "\n     vec4 clip = VP * model * vec4(v, 1.0);"
+            "\n     Z = clip.z / clip.w;"
+            "\n     Z = Z * 0.5 + 0.5;"
+            "\n     gl_Position = clip;"
+            "\n };",
 
-        "#version 330"
-        "\n in float Z;"
-        "\n out vec4 fragColor;"
-        "\n void main() {"
-        "\n     fragColor = vec4(1.0 / (1+Z), 0.0, 0.0, 1.0);"
-        "\n };"
+            "#version 330"
+            "\n in float Z;"
+            "\n out vec4 fragColor;"
+            "\n void main() {"
+            "\n     fragColor = vec4(1.0 / (1+Z), 0.0, 0.0, 1.0);"
+            "\n };"
     );
-    }
-
-    void Model::set_mesh(Mesh* M) {
-       if (M == mesh) return;
-       if (mesh) { // already has mesh (disconnect)
-            mesh->users[ref] = mesh->users[--mesh->users_count];
-       }
-       mesh = M;
-       if (!mesh) return;
-       auto& count = mesh->users_count;
-       auto& cap = mesh->users_capacity;
-       ref = count;
-       if (count == cap) { mesh->resize_users(cap << 1); }
-       mesh->users[count++] = this;
-    }
-
-    Model::~Model() { set_mesh(nullptr); }
-
-    glm::mat4 Camera::get_viewproj(int screen_x, int screen_y) const {
-        return glm::perspective(
-            glm::radians(fov), 
-            (float)screen_x / (float)screen_y,
-            n, f
-        ) * glm::inverse((mat4)transform);
     }
 }

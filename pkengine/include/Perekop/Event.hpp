@@ -1,23 +1,22 @@
 #pragma once
-#include <functional>
 #include <thread>
 #include <atomic>
 
-#define yield_while(t) while(t) std::this_thread::yield();
+#define YIELD_WHILE(t) while(t) std::this_thread::yield();
 
 namespace pk {
     template <typename... A> class EventPort;
     template <typename... A> class Event {
         friend EventPort<A...>;
-        using callback = std::function<bool(A...)>;
+        using callback = bool(*)(A...);
         private:
             callback* buf;
-            short cur = 0, size = 10;
+            short cur = 0, size = 2;
             std::atomic<char> flags; // resizing: 1, invoking: 2, both: 3
 
-            void alloc() {
+            void _alloc() {
                 if (flags & 1) return;
-                yield_while(flags & 2)
+                YIELD_WHILE(flags & 2)
                 flags = 1;
                 callback* old_buf = buf;
                 buf = new callback[size];
@@ -27,43 +26,44 @@ namespace pk {
                 delete[] old_buf;
                 flags = 0;
             }
-            void append(const callback& cb) {
-                if (cur == size) { size <<= 1; alloc(); }
+            void _append(const callback& cb) {
+                if (cur == size) { size <<= 1; _alloc(); }
                 buf[cur++] = cb;
             }
 
         public:
             EventPort<A...> port{this};
-            void invoke(A... args) {
-                yield_while(flags)
+            void invoke(A... items) {
+                YIELD_WHILE(flags)
                 flags = 2;
                 for (short i = 0; i < cur; ++i) {
-                    bool remain = buf[i](args...);
-                    if (!remain) { buf[i--] = buf[--cur]; }
+                    if (!buf[i](items...)) { buf[i--] = buf[--cur]; }
                 }
                 flags = 0;
             }
 
-            std::function<void(callback)> connector = nullptr;
+            void(*connector)(callback) = nullptr;
 
-            Event(): buf(new callback[10]) {}
+            Event(): buf(new callback[2]) {}
             ~Event() { delete[] buf; }
     };
 
     template <typename... A> class EventPort {
         friend Event<A...>;
+        using callback = bool(*)(A...);
         private:
             Event<A...>* event;
             EventPort(Event<A...>* e): event(e) {};
         public:
-            void connect(std::function<bool(A...)> callback) { 
+            void listen(callback callback) { 
                 if (event->connector) { 
                     event->connector(callback); 
                 } else {
-                   event->append(callback);  
+                   event->_append(callback);  
                 }
             }
             EventPort() = delete;
     };
 }
-#undef yield_while
+
+#undef YIELD_WHILE

@@ -1,6 +1,7 @@
 #pragma once
 #include <Perekop/Event.hpp>
-#include <Perekop/Geometry.hpp>
+#include <Perekop/Model.hpp>
+#include <Perekop/Mesh.hpp>
 
 #define Port extern pk::EventPort
 

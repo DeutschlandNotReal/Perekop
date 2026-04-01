@@ -5,7 +5,6 @@
 #include <iostream>
 
 #include <Perekop/Engine.hpp>
-#include <Perekop/Geometry.hpp>
 #include <Perekop/Time.hpp>
 
 using glm::vec3, glm::vec2; 
