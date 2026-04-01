@@ -1,3 +1,4 @@
+#include "Perekop/Mesh.hpp"
 #include <GLFW/glfw3.h>
 #include <Perekop/Engine.hpp>
 #include <Perekop/Time.hpp>
@@ -17,7 +18,7 @@ float camera_pitch = 0, camera_yaw = 0;
 int i = 0;
 bool on_step(double dt) {
     ++i;
-    glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt) * 50.f;
+    glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt);
     if (Mouse::is_rmb_down()) {
         camera_pitch = glm::clamp(camera_pitch + delta.y, -2.f, 2.f);
         camera_yaw += delta.x;
@@ -34,16 +35,18 @@ bool on_step(double dt) {
     if (Input::is_key_down(GLFW_KEY_Q)) disp -= glm::vec3(0, 1, 0);
 
     Scene::camera.transform.displace_local(disp * float(dt));
-
-    glm::vec3 look = Scene::camera.transform.rot[0];
-    std::cout << "( " << look.x << ", " << look.y << ", " << look.z << ")\n";
     return true;
 }
 
 void Game::launch() {
     std::cout << "game's so back\n";
 
-    Mesh* pyramidler = Scene::new_mesh();
+    MeshMaterial chudmat(
+        "void main() {gl_Position = VP * model() * vec4(_pos, 1.0); }",
+        "void main() {fragColor = vec4(1.0, 1.0, 1.0, 1.0); }"
+    );
+
+    Mesh* pyramidler = Scene::new_mesh(chudmat); 
     pyramidler->push_vertex(0, 1, 0);
     pyramidler->push_vertex(cosxy(0));
     pyramidler->push_vertex(cosxy(120));
@@ -53,8 +56,8 @@ void Game::launch() {
     pyramidler->push_triangle(0, 3, 1);
     pyramidler->push_triangle(0, 1, 2);
 
-    pyramidler->load();
-    pyramidler->flush();
+    pyramidler->refresh();
+    Scene::camera.transform.pos = glm::vec3(112, 112, -200);
 
     for (int x = 0; x < 10; x++) {
         for (int y = 0; y < 10; y++) {

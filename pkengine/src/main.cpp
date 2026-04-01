@@ -1,3 +1,4 @@
+#include "Perekop/Mesh.hpp"
 #include <exception>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,7 +16,6 @@ using namespace Perekop;
 namespace Perekop {
     namespace Window {
         float FPS = 60;
-        static int screen_x = 100, screen_y = 100;
         static GLFWwindow* win;
 
         EVENT(step, double)
@@ -89,10 +89,14 @@ namespace Perekop {
         bool is_key_down(int key) { return glfwGetKey(Window::win, key) == GLFW_PRESS; }
     }
     namespace Scene {
+        static MeshMaterial default_mat = MeshMaterial();
         static MeshRenderer Renderer = MeshRenderer();
         Camera camera = Camera();
+        Mesh* new_mesh(MeshMaterial material) {
+            return Renderer.create_mesh(material); 
+        }
         Mesh* new_mesh() {
-            return Renderer.create_mesh(); 
+            return Renderer.create_mesh(default_mat); 
         }
     }
 };
@@ -105,24 +109,21 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-
     Window::win = glfwCreateWindow(400, 800, "Perekop", NULL, NULL);
     glfwMakeContextCurrent(Window::win);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) { return -1; }
 
+    Scene::default_mat = MeshMaterial(
+        "void main() { gl_Position = VP * model() * vec4(_pos, 1.0); }",
+        "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
+    ); 
+
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
 
-    MeshRenderer::init();
-    try { Game::launch(); } catch (const std::exception &e) {
-        std::cout << "launch() thrown error: " << e.what() << "\n";
-        return -1;
-    }
-
     glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
-        Window::screen_x = x; Window::screen_y = y;
         if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
         glViewport(0, 0, x, y);
         Window::resized_event.invoke(x, y);
@@ -149,10 +150,16 @@ int main() {
         }
     });
 
+    try { Game::launch(); } catch (const std::exception &e) {
+        std::cout << "launch() thrown error: " << e.what() << "\n";
+        return -1;
+    }
+
     StackTimer<double, 3> frame_timer;
     double last_time = frame_timer.now();
     while (true) {
         double dt = frame_timer.delta(last_time);
+        glm::vec2 size = Window::get_size();
         glfwPollEvents();
         frame_timer.push();
         if (glfwWindowShouldClose(Window::win)) break;
@@ -160,8 +167,7 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-        if (Window::screen_x + Window::screen_y > 0) Scene::Renderer.draw();
-
+        if (size.x + size.y > 0) Scene::Renderer.draw();
         Window::step_event.invoke(dt);
         glfwSwapBuffers(Window::win);
         double ftime = frame_timer.pop();

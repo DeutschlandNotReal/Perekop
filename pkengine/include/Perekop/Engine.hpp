@@ -26,6 +26,7 @@ namespace Perekop {
 
     namespace Scene {
         extern pk::Mesh* new_mesh();
+        extern pk::Mesh* new_mesh(pk::MeshMaterial mat);
         extern pk::Camera camera;
     }
 

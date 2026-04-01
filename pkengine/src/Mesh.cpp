@@ -11,17 +11,19 @@
 using namespace glm;
 using namespace Perekop;
 
-GLuint load_shader(const char* src, GLenum type) {
+GLuint load_shader(const char** src, GLenum type) {
     // should probably make it detect sloppy shader code
     GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &src, NULL);
+    glShaderSource(shader, 2, src, NULL);
     glCompileShader(shader);
     return shader;
 }
 
-GLuint load_program(const char* vsrc, const char* fsrc) {
-    GLuint vshader = load_shader(vsrc, GL_VERTEX_SHADER);
-    GLuint fshader = load_shader(fsrc, GL_FRAGMENT_SHADER);
+GLuint load_program(const char* pre_vsrc, const char* pre_fsrc, const char* vsrc, const char* fsrc) {
+    const char* full_vsrc[] = {pre_vsrc, vsrc};
+    const char* full_fsrc[] = {pre_fsrc, fsrc};
+    GLuint vshader = load_shader(full_vsrc, GL_VERTEX_SHADER);
+    GLuint fshader = load_shader(full_fsrc, GL_FRAGMENT_SHADER);
 
     GLuint program = glCreateProgram();
     glAttachShader(program, vshader);
@@ -33,10 +35,45 @@ GLuint load_program(const char* vsrc, const char* fsrc) {
     return program;
 }
 
-namespace pk {
-    static unsigned int default_shader;
+template <typename O, int i> struct attrib_builder {
+    long long stride = 0, index = i;
+    template <typename T> inline attrib_builder<O, i>& member() {
+        glVertexAttribPointer(index, sizeof(T)/4, GL_FLOAT, GL_FALSE, sizeof(O), (void*)stride);
+        glEnableVertexAttribArray(index++);
+        stride += sizeof(T);
+        return *this;
+    }
+};
 
-    void Mesh::flush() {
+namespace pk {
+    MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
+        const char* pre_vshader = "#version 330"
+            "\n layout(location = 0) in vec3 _pos;"
+            "\n layout(location = 1) in vec2 _uv;"
+            "\n layout(location = 2) in vec4 M0;"
+            "\n layout(location = 3) in vec4 M1;"
+            "\n layout(location = 4) in vec4 M2;"
+            "\n uniform mat4 VP;"
+            "\n mat4 model() {"
+            "\n     return mat4(vec4(M0.xyz, 0.0), vec4(M1.xyz, 0.0), vec4(M2.xyz, 0.0), vec4(M0.w, M1.w, M2.w, 1.0)); "
+            "\n }";
+        
+        const char* pre_fshader = "#version 330 \n out vec4 fragColor;";
+        program = load_program(pre_vshader, pre_fshader, vsrc, fsrc);
+    }
+
+    void MeshMaterial::use(const glm::mat4& VP) {
+        glUseProgram(program);
+        glUniformMatrix4fv(
+            glGetUniformLocation(program, "VP"),
+            1,
+            GL_FALSE,
+            (float*) &VP
+        );
+    }
+
+    void Mesh::refresh() {
+        if (!VAO) load();
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
 
@@ -53,22 +90,24 @@ namespace pk {
         glBindVertexArray(VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(MeshVertex), 0);
-        glEnableVertexAttribArray(0);
+        
+        attrib_builder<MeshVertex, 0>()
+            .member<glm::vec3>()
+            .member<glm::vec2>()
+        ;
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBindBuffer(GL_ARRAY_BUFFER, IBO);
 
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)0);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)16);
-        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat3x4), (void*)32);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glEnableVertexAttribArray(3);
+        attrib_builder<glm::mat3x4, 2>()
+            .member<glm::vec4>()
+            .member<glm::vec4>()
+            .member<glm::vec4>()
+        ;
 
-        glVertexAttribDivisor(1, 1);
         glVertexAttribDivisor(2, 1);
         glVertexAttribDivisor(3, 1);
+        glVertexAttribDivisor(4, 1);
 
         glBindVertexArray(0);
     }
@@ -82,15 +121,6 @@ namespace pk {
         VAO = 0, VBO = 0, EBO = 0, IBO = 0;
     }
 
-    void Mesh::dismiss() {
-        unload();
-        if (!renderer) return;
-        auto& meshes = renderer->meshes;
-        meshes[meshid] = meshes[--renderer->meshes_count];
-        meshes[meshid]->meshid = meshid;
-        renderer = nullptr;
-    }
-    
     ID_T Mesh::push_vertex(MeshVertex vert) {
         if (vertex_capacity == vertex_count) { resize_vertex(vertex_capacity << 1); }
         vertex[vertex_count] = vert;
@@ -126,49 +156,43 @@ namespace pk {
     Mesh::~Mesh() {
         for (int i = 0; i < users_count; i++) { users[i]->mesh = nullptr; }
         unload();
-        delete[] users; delete[] vertex; delete[] triangle;
+        delete[] users; 
+        delete[] vertex; 
+        delete[] triangle;
+        if (!renderer) return;
+        Mesh* back = renderer->meshes[--renderer->meshes_count];
+        renderer->meshes[meshid] = back;
+        back->meshid = meshid;
     }
 
     void MeshRenderer::draw() {
         int screenx, screeny;
         Perekop::Window::get_size(screenx, screeny);
-        auto VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
-        glUseProgram(default_shader);
-        glUniformMatrix4fv(
-            glGetUniformLocation(default_shader, "VP"),
-            1,
-            GL_FALSE,
-            (float*) &VP
-        );
-
-        int drawn_meshes = 0, drawn_models = 0;
-
+        const glm::mat4 VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
         ID_T& tcur = transforms_count, tsize = transforms_capacity;
         for (ID_T i = 0; i < meshes_count; i++) {
             Mesh& mesh = *(meshes[i]);
+            if (mesh.material.program == 0) continue;;
+            mesh.material.use(VP);
             glBindVertexArray(mesh.VAO);
             if (mesh.users_count > tsize) {
                 delete[] transforms;
                 tsize = mesh.users_count;
                 transforms = new mat3x4[tsize];
             }
-            drawn_meshes++;
-            drawn_models+=mesh.users_count;
             for (tcur = 0; tcur < mesh.users_count; tcur++) {
                 Model* model = mesh.users[tcur];
-                new (&transforms[tcur]) mat3x4{
-                    model->transform.scale(model->scl)
-                };
+                transforms[tcur] = model->transform.scale(model->scl);
             }
             glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
             glBufferData(GL_ARRAY_BUFFER, tcur * sizeof(glm::mat3x4), transforms, GL_DYNAMIC_DRAW);
             glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle_count * 3, GL_UNSIGNED_SHORT, 0, mesh.users_count);
-            glBindVertexArray(0);
         }
+        glBindVertexArray(0);
     }
 
-    Mesh* MeshRenderer::create_mesh() {
-        Mesh* mesh = new Mesh();
+    Mesh* MeshRenderer::create_mesh(MeshMaterial material) {
+        Mesh* mesh = new Mesh(material);
         if (meshes_count == meshes_capacity) { resize_meshes(meshes_capacity << 1); }
         meshes[meshes_count++] = mesh;
         return mesh;
@@ -179,37 +203,5 @@ namespace pk {
         for (ID_T i = 0; i < meshes_count; i++) {
             meshes[i]->renderer = nullptr;
         }
-    }
-
-    void MeshRenderer::init() {
-        default_shader = load_program(
-            // maybe writing shaders like this isnt the meta
-            "#version 330"
-            "\n in vec3 v;"
-            "\n in vec4 t0;"
-            "\n in vec4 t1;"
-            "\n in vec4 t2;"
-            "\n out float Z;"
-            "\n uniform mat4 VP;"
-            "\n void main() {"
-            "\n     mat4 model = mat4("
-            "\n         vec4(t0.xyz, 0.0),"
-            "\n         vec4(t1.xyz, 0.0),"
-            "\n         vec4(t2.xyz, 0.0),"
-            "\n         vec4(t0.w, t1.w, t2.w, 1.0)"
-            "\n     );"
-            "\n     vec4 clip = VP * model * vec4(v, 1.0);"
-            "\n     Z = clip.z / clip.w;"
-            "\n     Z = Z * 0.5 + 0.5;"
-            "\n     gl_Position = clip;"
-            "\n };",
-
-            "#version 330"
-            "\n in float Z;"
-            "\n out vec4 fragColor;"
-            "\n void main() {"
-            "\n     fragColor = vec4(1.0 / (1+Z), 0.0, 0.0, 1.0);"
-            "\n };"
-    );
     }
 }

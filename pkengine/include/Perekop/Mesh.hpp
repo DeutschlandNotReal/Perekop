@@ -10,15 +10,28 @@ namespace pk {
     class Model;
     class MeshRenderer;
     class Camera;
+    class Mesh;
 
     struct MeshVertex { 
         glm::vec3 pos; glm::vec2 uv;
         MeshVertex(): pos(0), uv(0) {}
         MeshVertex(float x, float y, float z): pos(x, y, z), uv(0) {};
         MeshVertex(float x, float y, float z, float u, float v): pos(x, y, z), uv(u, v) {}
-        MeshVertex(const glm::vec3& p): pos(p), uv(0) {}
+        MeshVertex(glm::vec3 p): pos(p), uv(0) {}
     };
+
     struct MeshTriangle { ID_T v0, v1, v2; };
+
+
+    class MeshMaterial {
+        friend Mesh;
+        friend MeshRenderer;
+        unsigned int program;
+        void use(const glm::mat4& VP);
+        public:
+            MeshMaterial(): program(0) {}
+            MeshMaterial(const char* vertex_source, const char* fragment_source);
+    };
 
     class Mesh {
         friend Model; friend MeshRenderer;
@@ -34,6 +47,8 @@ namespace pk {
 
             ~Mesh();
         public:
+            Mesh(MeshMaterial mat): material(mat) {}
+            MeshMaterial material;
             ID_T push_vertex(MeshVertex vertex);
             ID_T pop_vertex();
             void set_vertex(ID_T vid, MeshVertex new_vertex);
@@ -48,10 +63,8 @@ namespace pk {
             ID_T push_triangle(ID_T v0, ID_T v1, ID_T v2) { return push_triangle(MeshTriangle{v0, v1, v2}); } 
 
             void load();
-            void flush();
+            void refresh();
             void unload();
-
-            void dismiss();
     };
 
     class MeshRenderer {
@@ -60,8 +73,7 @@ namespace pk {
             PK_ARRAY(Mesh*, meshes)
             PK_ARRAY(glm::mat3x4, transforms)
         public:
-            static void init();
-            Mesh* create_mesh();
+            Mesh* create_mesh(MeshMaterial material);
             void draw();    
             ~MeshRenderer(); 
     };
