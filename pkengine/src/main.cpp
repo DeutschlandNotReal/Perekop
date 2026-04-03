@@ -8,9 +8,12 @@
 #include <Perekop/Engine.hpp>
 #include <Perekop/Time.hpp>
 
+#include <PKInternal/workers.hpp>
+
 using glm::vec3, glm::vec2; 
 using namespace pk;
 using namespace Perekop;
+using namespace PKInternal;
 
 #define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace Perekop {
@@ -104,6 +107,9 @@ namespace Perekop {
 
 int main() {
     std::cout << "begin?\n";
+    StackTimer<double, 5> timer;
+    Workers::init();
+    timer.push();
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -122,6 +128,8 @@ int main() {
     glDisable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
+
+    Workers::render.add_work([](){glfwMakeContextCurrent(Window::win);});
 
     glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
         if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
@@ -150,33 +158,31 @@ int main() {
         }
     });
 
-    try { Game::launch(); } catch (const std::exception &e) {
-        std::cout << "launch() thrown error: " << e.what() << "\n";
-        return -1;
-    }
+    Workers::game.add_work([](){ Game::launch(); });
 
-    StackTimer<double, 3> frame_timer;
-    double last_time = frame_timer.now();
+    timer.pop_log("Frame Init");
+    double last_time = timer.now();
     while (true) {
-        double dt = frame_timer.delta(last_time);
+        double dt = timer.delta(last_time);
         glm::vec2 size = Window::get_size();
+        timer.push();
+
+        if (size.x + size.y > 0) Workers::render.add_work([](){ 
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            Scene::Renderer.draw(); glfwSwapBuffers(Window::win);
+        });
+
         glfwPollEvents();
-        frame_timer.push();
         if (glfwWindowShouldClose(Window::win)) break;
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
-        if (size.x + size.y > 0) Scene::Renderer.draw();
-        Window::step_event.invoke(dt);
-        glfwSwapBuffers(Window::win);
-        double ftime = frame_timer.pop();
+        Workers::game.add_work([=](){ Window::step_event.invoke(dt); });
+        double ftime = timer.pop();
         
-        frame_timer.sleep((double)(1 / Window::FPS) - ftime);
+        timer.sleep((double)(1 / Window::FPS) - ftime);
+        
     }
-    try { Game::close(); } catch (const std::exception &e) {
-        std::cout << "close() thrown error: " << e.what() << "\n";
-    }
+    Workers::game.add_work([](){ Game::close(); });
 
     glfwTerminate();
 }

@@ -18,12 +18,13 @@ float camera_pitch = 0, camera_yaw = 0;
 int i = 0;
 bool on_step(double dt) {
     ++i;
+    std::cout << dt*1000 << " ms\n";
     glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt);
     if (Mouse::is_rmb_down()) {
         camera_pitch = glm::clamp(camera_pitch + delta.y, -2.f, 2.f);
         camera_yaw += delta.x;
-        Scene::camera.transform.setYXZ(camera_yaw, camera_pitch, 0);
-        Mouse::set_normalized_pos(glm::vec2(0.5));
+        Scene::camera.transform.setYXZ(camera_pitch, camera_yaw, 0);
+        Mouse::set_normalized_pos(Mouse::normalized_pos() - delta);
     }
     glm::vec3 disp(0);
 
@@ -41,6 +42,7 @@ bool on_step(double dt) {
 void Game::launch() {
     std::cout << "game's so back\n";
 
+    StackTimer<double, 10> timer;
     MeshMaterial chudmat(
         "void main() {gl_Position = VP * model() * vec4(_pos, 1.0); }",
         "void main() {fragColor = vec4(1.0, 1.0, 1.0, 1.0); }"
@@ -59,14 +61,17 @@ void Game::launch() {
     pyramidler->refresh();
     Scene::camera.transform.pos = glm::vec3(112, 112, -200);
 
-    for (int x = 0; x < 10; x++) {
-        for (int y = 0; y < 10; y++) {
-            for (int z = 0; z < 10; z++) {
+    timer.push();
+    for (int x = 0; x < 15; x++) {
+        for (int y = 0; y < 15; y++) {
+            for (int z = 0; z < 15; z++) {
                 Model* M = new Model(pyramidler);
                 M->transform = glm::vec3(x, y, z) * 25.f;
+                //M->scl = {10, 10, 10};
             }
         }
     }
+    timer.pop_log("mesh create: ");
 
     Window::step.listen(on_step);
 }
