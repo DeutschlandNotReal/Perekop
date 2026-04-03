@@ -32,9 +32,7 @@ namespace Perekop {
 
     namespace Mouse {
         [[nodiscard]] glm::vec2 pos();
-        [[nodiscard]] glm::vec2 normalized_pos();
         extern void set_pos(glm::vec2 pos);
-        extern void set_normalized_pos(glm::vec2 pos);
 
         Port<>& rmb_down;
         Port<>& rmb_up;

@@ -1,8 +1,8 @@
 #pragma once
-#include <thread>
-#include <atomic>
+#include <Perekop/Worker.hpp>
 
-#define YIELD_WHILE(t) while(t) std::this_thread::yield();
+#define RESIZING 1
+#define INVOKING 2
 
 namespace pk {
     template <typename... A> class EventPort;
@@ -12,19 +12,19 @@ namespace pk {
         private:
             callback* buf;
             short cur = 0, size = 2;
-            std::atomic<char> flags; // resizing: 1, invoking: 2, both: 3
+            std::atomic<char> flag{0};
 
             void _alloc() {
-                if (flags & 1) return;
-                YIELD_WHILE(flags & 2)
-                flags = 1;
+                if (flag.load() & RESIZING) return;
+                while (flag.load() & INVOKING) pk::yield();
+                flag.store(RESIZING);
                 callback* old_buf = buf;
                 buf = new callback[size];
                 for (short i = 0; i < cur; ++i) {
                     buf[i] = old_buf[i];
                 }
                 delete[] old_buf;
-                flags = 0;
+                flag.store(0);
             }
             void _append(const callback& cb) {
                 if (cur == size) { size <<= 1; _alloc(); }
@@ -34,12 +34,12 @@ namespace pk {
         public:
             EventPort<A...> port{this};
             void invoke(A... items) {
-                YIELD_WHILE(flags)
-                flags = 2;
+                while (flag.load()) pk::yield();
+                flag.store(INVOKING);
                 for (short i = 0; i < cur; ++i) {
                     if (!buf[i](items...)) { buf[i--] = buf[--cur]; }
                 }
-                flags = 0;
+                flag.store(0);
             }
 
             void(*connector)(callback) = nullptr;
@@ -66,4 +66,5 @@ namespace pk {
     };
 }
 
-#undef YIELD_WHILE
+#undef INVOKING
+#undef RESIZING

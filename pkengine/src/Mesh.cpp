@@ -65,7 +65,7 @@ struct attrib_builder {
 
 namespace pk {
     MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
-        Workers::render.add_work([=](){
+        Workers::render.task([=](){
             const char* pre_vshader = "#version 330"
                 "\n layout(location = 0) in vec3 _pos;"
                 "\n layout(location = 1) in vec2 _uv;"
@@ -94,7 +94,7 @@ namespace pk {
 
     void Mesh::refresh() {
         if (!VAO) load();
-        Workers::render.add_work([this](){
+        Workers::render.task([this](){
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
 
@@ -105,7 +105,7 @@ namespace pk {
 
     void Mesh::load() {
         if (VAO) return;
-        Workers::render.add_work([this](){
+        Workers::render.task([this](){
             glGenBuffers(1, &VBO);
             glGenBuffers(1, &EBO);
             glGenBuffers(1, &IBO);
@@ -131,7 +131,7 @@ namespace pk {
 
     void Mesh::unload() {
         if (!VAO) return;
-        Workers::render.add_work([this](){
+        Workers::render.task([this](){
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
             glDeleteBuffers(1, &IBO);

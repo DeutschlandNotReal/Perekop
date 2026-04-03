@@ -5,26 +5,26 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(LIB_DIR ${CMAKE_SOURCE_DIR}/pkengine/lib)
-set(GAME_DIR ${CMAKE_SOURCE_DIR}/game)
+set(engine ${CMAKE_SOURCE_DIR}/pkengine)
+set(game ${CMAKE_SOURCE_DIR}/game)
 
-add_subdirectory(${LIB_DIR}/glfw)
+add_subdirectory(${engine}/lib/glfw)
 
 include_directories(
-    ${LIB_DIR}/glfw/include
-    ${LIB_DIR}/glad/include
-    ${LIB_DIR}/glm
-    ${CMAKE_SOURCE_DIR}/pkengine/include
-    ${GAME_DIR}/include
+    ${engine}/lib/glfw/include
+    ${engine}/lib/glad/include
+    ${engine}/lib/glm
+    ${engine}/include
+    ${game}/include
 )
 
-file(GLOB_RECURSE ENGINE_SRC ${CMAKE_SOURCE_DIR}/pkengine/src/*.cpp)
-file(GLOB_RECURSE GAME_SRC ${GAME_DIR}/src/*.cpp)
+file(GLOB_RECURSE engine_src ${engine}/cli/*.cpp ${engine}/src/*.cpp)
+file(GLOB_RECURSE game_src ${game}/src/*.cpp)
 
 add_executable(perekop
-    ${ENGINE_SRC}
-    ${GAME_SRC}
-    ${LIB_DIR}/glad/src/glad.c
+    ${engine_src}
+    ${game_src}
+    ${engine}/lib/glad/src/glad.c
 )
 
 target_link_libraries(perekop

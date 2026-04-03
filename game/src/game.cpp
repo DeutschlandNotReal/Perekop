@@ -19,13 +19,6 @@ int i = 0;
 bool on_step(double dt) {
     ++i;
     std::cout << dt*1000 << " ms\n";
-    glm::vec2 delta = (Mouse::normalized_pos() - glm::vec2(0.5)) * float(dt);
-    if (Mouse::is_rmb_down()) {
-        camera_pitch = glm::clamp(camera_pitch + delta.y, -2.f, 2.f);
-        camera_yaw += delta.x;
-        Scene::camera.transform.setYXZ(camera_pitch, camera_yaw, 0);
-        Mouse::set_normalized_pos(Mouse::normalized_pos() - delta);
-    }
     glm::vec3 disp(0);
 
     if (Input::is_key_down(GLFW_KEY_W)) disp += glm::vec3(0, 0, 1);

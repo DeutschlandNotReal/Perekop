@@ -1,13 +1,8 @@
 #pragma once
 
-#include <Perekop/Thread.hpp>
+#include <Perekop/Worker.hpp>
 
 namespace PKInternal::Workers {
-   inline pk::WorkPool render;
-   inline pk::WorkPool game;
-
-   inline void init() {
-      render.start();
-      game.start();
-   }
+   extern pk::Worker render;
+   extern pk::Worker game;
 }
