@@ -35,17 +35,15 @@ namespace pk {
 
     class Mesh {
         friend Model; friend MeshRenderer;
-
-        private:
-            unsigned int VAO = 0, VBO = 0, EBO = 0, IBO = 0;
-            ID_T meshid = 0;
-            MeshRenderer* renderer;
+        unsigned int VAO = 0, VBO = 0, EBO = 0, IBO = 0;
+        ID_T meshid = 0;
+        MeshRenderer* renderer;
             
-            PK_ARRAY(MeshVertex, vertex)
-            PK_ARRAY(MeshTriangle, triangle)
-            PK_ARRAY(Model*, users)
+        PK_ARRAY(MeshVertex, vertex)
+        PK_ARRAY(MeshTriangle, triangle)
+        PK_ARRAY(Model*, users)
 
-            ~Mesh();
+        ~Mesh();
         public:
             Mesh(MeshMaterial mat): material(mat) {}
             MeshMaterial material;
@@ -69,9 +67,8 @@ namespace pk {
 
     class MeshRenderer {
         friend Mesh;
-        private:
-            PK_ARRAY(Mesh*, meshes)
-            PK_ARRAY(glm::mat3x4, transforms)
+        PK_ARRAY(Mesh*, meshes)
+        PK_ARRAY(glm::mat3x4, transforms)
         public:
             Mesh* create_mesh(MeshMaterial material);
             void draw();    

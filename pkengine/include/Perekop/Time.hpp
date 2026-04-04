@@ -4,10 +4,9 @@
 #include <iostream>
 
 namespace pk {
-    template <typename T, short L> struct StackTimer {
-        private:
-            short ptr = -1;
-            T records[L];
+    template <typename T, short L> class StackTimer {
+        short ptr = -1;
+        T records[L];
         public:
             static T now() noexcept { 
                 return std::chrono::duration<T>(std::chrono::steady_clock::now().time_since_epoch()).count();
@@ -27,7 +26,7 @@ namespace pk {
                 return (ptr > -1) ? now() - records[ptr--] : T(0);
             }
 
-            [[nodiscard]] T peek() const noexcept {
+            [[nodiscard]] T& peek() const noexcept {
                 return (ptr > -1) ? records[ptr] : T(0);
             }
 
@@ -37,15 +36,17 @@ namespace pk {
 
             T elapsed() { return now() - peek(); }
 
+            T delta() {
+                if (ptr < 0) return T(0);
+                T cur = now();
+                T dt = cur - records[ptr];
+                records[ptr] = cur;
+                return dt;
+            }
+
             void pop_log(const std::string& title, T multiple = T(1000), const std::string& suffix = "ms") {
                 T time = pop();
                 std::cout << title << ": " << (time * multiple) << suffix << "\n";
-            }
-
-            static T delta(T& prev) {
-                T dt = now() - prev;
-                prev += dt;
-                return dt;
             }
     };
 }

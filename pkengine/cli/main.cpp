@@ -14,11 +14,12 @@ using namespace Perekop;
 using namespace PKInternal;
 
 namespace PKInternal::Workers {
-    Worker render = Worker();
-    Worker game = Worker();
+    Worker _render = Worker();
+    Worker _game = Worker();
+    Worker _main = Worker();
 }
 
-#define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
+#define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(&Workers::_game); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace Perekop::Window {
     float FPS = 60;
     static GLFWwindow* win;
@@ -97,12 +98,31 @@ namespace Perekop::Scene {
 }
 #undef EVENT
 
+static pk::StackTimer<double, 5> timer;
+void main_loop() {
+    double dt = timer.delta();
+    glm::vec2 size = Window::get_size();
+    timer.push();
+
+    if (size.x + size.y > 0) Workers::_render.task([](){ 
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        Scene::Renderer.draw(); glfwSwapBuffers(Window::win);
+    });
+
+    glfwPollEvents();
+    if (glfwWindowShouldClose(Window::win)) return Worker::current->halt();
+
+    Workers::_game.task([=](){ Window::step_event.invoke(dt); });
+    double ftime = timer.pop();
+    
+    Workers::_main.defer((1 / Window::FPS) - ftime, main_loop);
+}
+
 int main() {
     std::cout << "begin?\n";
-    StackTimer<double, 5> timer;
-    Workers::game.start();
-    Workers::render.start();
-    timer.push();
+    Workers::_game.start();
+    Workers::_render.start();;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -122,11 +142,14 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
 
-    Workers::render.task([](){glfwMakeContextCurrent(Window::win);});
+    glfwMakeContextCurrent(NULL);
+    Workers::_render.task([](){
+        glfwMakeContextCurrent(Window::win);
+    });
 
     glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
         if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
-        glViewport(0, 0, x, y);
+        Workers::_render.task([=](){ glViewport(0, 0, x, y); });
         Window::resized_event.invoke(x, y);
     });
 
@@ -151,31 +174,16 @@ int main() {
         }
     });
 
-    Workers::game.task([](){ Game::launch(); });
+    Workers::_game.task([](){ Game::launch(); });
 
-    timer.pop_log("Frame Init");
-    double last_time = timer.now();
-    while (true) {
-        double dt = timer.delta(last_time);
-        glm::vec2 size = Window::get_size();
-        timer.push();
+    timer.push();
+    Workers::_main.task(main_loop);
+    Workers::_main.start_here();
 
-        if (size.x + size.y > 0) Workers::render.task([](){ 
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            Scene::Renderer.draw(); glfwSwapBuffers(Window::win);
-        });
+    Workers::_game.task([](){ Game::close(); });
 
-        glfwPollEvents();
-        if (glfwWindowShouldClose(Window::win)) break;
-
-        Workers::game.task([=](){ Window::step_event.invoke(dt); });
-        double ftime = timer.pop();
-        
-        timer.sleep((double)(1 / Window::FPS) - ftime);
-    }
-
-    Workers::game.task([](){ Game::close(); });
+    Workers::_game.finish();
+    Workers::_render.finish();
 
     glfwTerminate();
 }

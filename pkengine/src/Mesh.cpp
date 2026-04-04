@@ -14,6 +14,19 @@ using namespace glm;
 using namespace Perekop;
 using namespace PKInternal;
 
+const char* pre_vsrc = "#version 330"
+    "\n layout(location = 0) in vec3 _pos;"
+    "\n layout(location = 1) in vec2 _uv;"
+    "\n layout(location = 2) in vec4 M0;"
+    "\n layout(location = 3) in vec4 M1;"
+    "\n layout(location = 4) in vec4 M2;"
+    "\n uniform mat4 VP;"
+    "\n mat4 model() {"
+    "\n     return mat4(vec4(M0.xyz, 0.0), vec4(M1.xyz, 0.0), vec4(M2.xyz, 0.0), vec4(M0.w, M1.w, M2.w, 1.0)); "
+    "\n }";
+
+const char* pre_fsrc = "#version 330 \n out vec4 fragColor;";
+
 GLuint load_shader(const char** src, GLenum type) {
     // should probably make it detect sloppy shader code
     GLuint shader = glCreateShader(type);
@@ -22,7 +35,7 @@ GLuint load_shader(const char** src, GLenum type) {
     return shader;
 }
 
-GLuint load_program(const char* pre_vsrc, const char* pre_fsrc, const char* vsrc, const char* fsrc) {
+GLuint load_program(const char* vsrc, const char* fsrc) {
     const char* full_vsrc[] = {pre_vsrc, vsrc};
     const char* full_fsrc[] = {pre_fsrc, fsrc};
     GLuint vshader = load_shader(full_vsrc, GL_VERTEX_SHADER);
@@ -39,46 +52,33 @@ GLuint load_program(const char* pre_vsrc, const char* pre_fsrc, const char* vsrc
 }
 
 struct attrib_builder {
-    long long stride = 0;
-    int index = 0, offset = 0;
-    template <typename T> inline attrib_builder& object() {
-        offset = sizeof(T);
-        stride = 0;
+    size_t offset = 0, stride = 0;
+    GLuint index = 0, divisor = 0;
+
+    template <typename T> inline attrib_builder& object(int div = 0) {
+        stride = sizeof(T); offset = 0; divisor = div;
         return *this;
     }
-    template <typename T> inline attrib_builder& member(int divisor = 0) {
-        glVertexAttribPointer(index, sizeof(T)/4, GL_FLOAT, GL_FALSE, offset, (void*)stride);
+
+    template <typename T> inline attrib_builder& member() {
+        glVertexAttribPointer(index, sizeof(T)/sizeof(float), GL_FLOAT, GL_FALSE, stride, (void*)offset);
         glEnableVertexAttribArray(index);
-        stride += sizeof(T);
         glVertexAttribDivisor(index++, divisor);
+        offset += sizeof(T); ++index;
+        
         return *this;
     }
-    inline attrib_builder& bind_array(GLuint buffer) {
-        glBindBuffer(GL_ARRAY_BUFFER, buffer);
-        return *this;
-    }
-    inline attrib_builder& bind_element_array(GLuint buffer) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer);
-        return *this;
-    }
+
+    template <GLenum type> inline attrib_builder& bind(GLuint buffer) { glBindBuffer(type, buffer); return *this; }
+    
+
+    inline void end() { glBindVertexArray(0); }
 };
 
 namespace pk {
     MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
-        Workers::render.task([=](){
-            const char* pre_vshader = "#version 330"
-                "\n layout(location = 0) in vec3 _pos;"
-                "\n layout(location = 1) in vec2 _uv;"
-                "\n layout(location = 2) in vec4 M0;"
-                "\n layout(location = 3) in vec4 M1;"
-                "\n layout(location = 4) in vec4 M2;"
-                "\n uniform mat4 VP;"
-                "\n mat4 model() {"
-                "\n     return mat4(vec4(M0.xyz, 0.0), vec4(M1.xyz, 0.0), vec4(M2.xyz, 0.0), vec4(M0.w, M1.w, M2.w, 1.0)); "
-                "\n }";
-            
-            const char* pre_fshader = "#version 330 \n out vec4 fragColor;";
-            program = load_program(pre_vshader, pre_fshader, vsrc, fsrc);
+        Workers::_render.task([=](){
+            program = load_program(vsrc, fsrc);
         });
     }
 
@@ -94,7 +94,7 @@ namespace pk {
 
     void Mesh::refresh() {
         if (!VAO) load();
-        Workers::render.task([this](){
+        Workers::_render.task([this](){
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
 
@@ -105,7 +105,7 @@ namespace pk {
 
     void Mesh::load() {
         if (VAO) return;
-        Workers::render.task([this](){
+        Workers::_render.task([this](){
             glGenBuffers(1, &VBO);
             glGenBuffers(1, &EBO);
             glGenBuffers(1, &IBO);
@@ -113,25 +113,23 @@ namespace pk {
             glBindVertexArray(VAO);
 
             attrib_builder()
-                .bind_array(VBO)
+                .bind<GL_ARRAY_BUFFER>(VBO)
                 .object<MeshVertex>()
-                .member<glm::vec3>()
-                .member<glm::vec2>()
-                .bind_array(IBO)
-                .bind_element_array(EBO)
-                .object<glm::mat3x4>()
-                .member<glm::vec4>(1)
-                .member<glm::vec4>(1)
-                .member<glm::vec4>(1)
-            ;
-
-            glBindVertexArray(0);
+                    .member<glm::vec3>()
+                    .member<glm::vec2>()
+                .bind<GL_ARRAY_BUFFER>(IBO)
+                .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
+                .object<glm::mat3x4>(1)
+                    .member<glm::vec4>()
+                    .member<glm::vec4>()
+                    .member<glm::vec4>()
+            .end();
         });
     }
 
     void Mesh::unload() {
         if (!VAO) return;
-        Workers::render.task([this](){
+        Workers::_render.task([this](){
             glDeleteBuffers(1, &VBO);
             glDeleteBuffers(1, &EBO);
             glDeleteBuffers(1, &IBO);
@@ -141,7 +139,7 @@ namespace pk {
     }
 
     ID_T Mesh::push_vertex(MeshVertex vert) {
-        if (vertex_capacity == vertex_count) { resize_vertex(vertex_capacity << 1); }
+        if (vertex_capacity == vertex_count) resize_vertex(vertex_capacity << 1);
         vertex[vertex_count] = vert;
         return vertex_count++;
     }
@@ -157,7 +155,7 @@ namespace pk {
     }
 
     ID_T Mesh::push_triangle(MeshTriangle trig) {
-        if (triangle_capacity == triangle_count) { resize_triangle(triangle_capacity << 1); }
+        if (triangle_capacity == triangle_count) resize_triangle(triangle_capacity << 1);
         triangle[triangle_count] = trig;
         return triangle_count++;
     }
@@ -173,7 +171,7 @@ namespace pk {
     }
 
     Mesh::~Mesh() {
-        for (int i = 0; i < users_count; i++) { users[i]->mesh = nullptr; }
+        for (int i = 0; i < users_count; i++) users[i]->mesh = nullptr;
         unload();
         delete[] users; 
         delete[] vertex; 
@@ -189,25 +187,29 @@ namespace pk {
         int screenx, screeny;
         Perekop::Window::get_size(screenx, screeny);
         const glm::mat4 VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
-        ID_T& tcur = transforms_count, tsize = transforms_capacity;
+        ID_T &tcur = transforms_count, &tsize = transforms_capacity;
         for (ID_T i = 0; i < meshes_count; i++) {
             Mesh& mesh = *(meshes[i]);
-            if (mesh.material.program == 0) continue;;
+            if (!mesh.users_count || !mesh.material.program) continue;
             mesh.material.use(VP);
             glBindVertexArray(mesh.VAO);
+
             if (mesh.users_count > tsize) {
                 delete[] transforms;
                 tsize = mesh.users_count;
                 transforms = new mat3x4[tsize];
             }
+
             for (tcur = 0; tcur < mesh.users_count; tcur++) {
                 Model* model = mesh.users[tcur];
                 transforms[tcur] = model->transform.scale(model->scl);
             }
+
             glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
             glBufferData(GL_ARRAY_BUFFER, tcur * sizeof(glm::mat3x4), transforms, GL_DYNAMIC_DRAW);
             glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle_count * 3, GL_UNSIGNED_SHORT, 0, mesh.users_count);
         }
+
         glBindVertexArray(0);
     }
 

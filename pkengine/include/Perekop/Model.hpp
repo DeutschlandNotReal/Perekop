@@ -5,9 +5,8 @@
 namespace pk {
     class Model {
         friend Mesh;
-        private:
-            ID_T ref = 0; // where this model is in its mesh's user
-            Mesh* mesh = nullptr;
+        ID_T ref = 0; // where this model is in its mesh's user
+        Mesh* mesh = nullptr;
         public:
             pk::Transform transform;
             glm::vec3 scl = glm::vec3(1);
