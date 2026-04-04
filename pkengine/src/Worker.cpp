@@ -126,6 +126,6 @@ namespace pk {
     void Worker::finish() {
         flag.fetch_or(FROZEN);
         halt(); join();
-        while (size_ready) _call();
+        while (count_ready) _call();
     }
 }
