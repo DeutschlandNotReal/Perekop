@@ -8,11 +8,8 @@
 #include <Perekop/Mesh.hpp>
 #include <Perekop/Model.hpp>
 
-#include <PKInternal/workers.hpp>
-
 using namespace glm;
 using namespace Perekop;
-using namespace PKInternal;
 
 const char* pre_vsrc = "#version 330"
     "\n layout(location = 0) in vec3 _pos;"
@@ -77,9 +74,7 @@ struct attrib_builder {
 
 namespace pk {
     MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
-        Workers::_render.task([=](){
-            program = load_program(vsrc, fsrc);
-        });
+        program = load_program(vsrc, fsrc);
     }
 
     void MeshMaterial::use(const glm::mat4& VP) {
@@ -94,48 +89,42 @@ namespace pk {
 
     void Mesh::refresh() {
         if (!VAO) load();
-        Workers::_render.task([this](){
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
 
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle_count * sizeof(MeshTriangle), triangle, GL_STATIC_DRAW);
-        });
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle_count * sizeof(MeshTriangle), triangle, GL_STATIC_DRAW);
     }
 
     void Mesh::load() {
         if (VAO) return;
-        Workers::_render.task([this](){
-            glGenBuffers(1, &VBO);
-            glGenBuffers(1, &EBO);
-            glGenBuffers(1, &IBO);
-            glGenVertexArrays(1, &VAO);
-            glBindVertexArray(VAO);
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &EBO);
+        glGenBuffers(1, &IBO);
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
 
-            attrib_builder()
-                .bind<GL_ARRAY_BUFFER>(VBO)
-                .object<MeshVertex>()
-                    .member<glm::vec3>()
-                    .member<glm::vec2>()
-                .bind<GL_ARRAY_BUFFER>(IBO)
-                .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-                .object<glm::mat3x4>(1)
-                    .member<glm::vec4>()
-                    .member<glm::vec4>()
-                    .member<glm::vec4>()
+        attrib_builder()
+            .bind<GL_ARRAY_BUFFER>(VBO)
+            .object<MeshVertex>()
+                .member<glm::vec3>()
+                .member<glm::vec2>()
+            .bind<GL_ARRAY_BUFFER>(IBO)
+            .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
+            .object<glm::mat3x4>(1)
+                .member<glm::vec4>()
+                .member<glm::vec4>()
+                .member<glm::vec4>()
             .end();
-        });
     }
 
     void Mesh::unload() {
         if (!VAO) return;
-        Workers::_render.task([this](){
-            glDeleteBuffers(1, &VBO);
-            glDeleteBuffers(1, &EBO);
-            glDeleteBuffers(1, &IBO);
-            glDeleteVertexArrays(1, &VAO);
-            VAO = 0, VBO = 0, EBO = 0, IBO = 0;
-        });
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteBuffers(1, &IBO);
+        glDeleteVertexArrays(1, &VAO);
+        VAO = 0, VBO = 0, EBO = 0, IBO = 0;
     }
 
     ID_T Mesh::push_vertex(MeshVertex vert) {
@@ -183,7 +172,6 @@ namespace pk {
     }
 
     void MeshRenderer::draw() {
-        // user probably maybe wont call this (no need to check render owrker)
         int screenx, screeny;
         Perekop::Window::get_size(screenx, screeny);
         const glm::mat4 VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);

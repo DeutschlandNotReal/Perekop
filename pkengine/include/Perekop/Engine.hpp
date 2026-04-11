@@ -3,6 +3,8 @@
 #include <Perekop/Model.hpp>
 #include <Perekop/Mesh.hpp>
 
+#include <string>
+
 #define Port extern pk::EventPort
 
 namespace Perekop {

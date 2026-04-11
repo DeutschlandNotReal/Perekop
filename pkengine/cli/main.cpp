@@ -6,20 +6,12 @@
 #include <Perekop/Engine.hpp>
 #include <Perekop/Time.hpp>
 
-#include <PKInternal/workers.hpp>
-
 using glm::vec3, glm::vec2; 
 using namespace pk;
 using namespace Perekop;
-using namespace PKInternal;
 
-namespace PKInternal::Workers {
-    Worker _render = Worker();
-    Worker _game = Worker();
-    Worker _main = Worker();
-}
 
-#define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(&Workers::_game); EventPort<__VA_ARGS__>& N = N##_event.port;
+#define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace Perekop::Window {
     float FPS = 60;
     static GLFWwindow* win;
@@ -39,7 +31,7 @@ namespace Perekop::Window {
         glfwSetWindowSize(win, x, y);
     }
     void set_size(glm::vec2 d) {
-        set_size(d.x, d.y);
+        glfwSetWindowSize(win, d.x, d.y);
     }
     std::string get_title() {
         return std::string(glfwGetWindowTitle(win));
@@ -77,6 +69,7 @@ namespace Perekop::Mouse {
     bool is_rmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS; }
     bool is_lmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS; }
 }
+
 namespace Perekop::Input {
     EVENT(key_down, int)
     EVENT(key_up, int)
@@ -85,6 +78,7 @@ namespace Perekop::Input {
     void set_clipboard(const std::string& content) { glfwSetClipboardString(Window::win, content.c_str()); }
     bool is_key_down(int key) { return glfwGetKey(Window::win, key) == GLFW_PRESS; }
 }
+
 namespace Perekop::Scene {
     static MeshMaterial default_mat = MeshMaterial();
     static MeshRenderer Renderer = MeshRenderer();
@@ -96,33 +90,27 @@ namespace Perekop::Scene {
         return Renderer.create_mesh(default_mat); 
     }
 }
+
 #undef EVENT
 
 static pk::StackTimer<double, 5> timer;
-void main_loop() {
+
+double draw() {
     double dt = timer.delta();
     glm::vec2 size = Window::get_size();
     timer.push();
 
-    if (size.x + size.y > 0) Workers::_render.task([](){ 
+    if (size.x + size.y > 0) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         Scene::Renderer.draw(); glfwSwapBuffers(Window::win);
-    });
+    }
 
     glfwPollEvents();
-    if (glfwWindowShouldClose(Window::win)) return Worker::current->halt();
-
-    Workers::_game.task([=](){ Window::step_event.invoke(dt); });
-    double ftime = timer.pop();
-    
-    Workers::_main.defer((1 / Window::FPS) - ftime, main_loop);
+    return (1.0/Window::FPS) - timer.pop();
 }
 
 int main() {
-    std::cout << "begin?\n";
-    Workers::_game.start();
-    Workers::_render.start();;
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -142,14 +130,9 @@ int main() {
     glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
 
-    glfwMakeContextCurrent(NULL);
-    Workers::_render.task([](){
-        glfwMakeContextCurrent(Window::win);
-    });
-
     glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
         if (x+y == 0) return; // whole thing mysteriously crashes when its (0, 0)
-        Workers::_render.task([=](){ glViewport(0, 0, x, y); });
+        glViewport(0, 0, x, y);
         Window::resized_event.invoke(x, y);
     });
 
@@ -174,16 +157,17 @@ int main() {
         }
     });
 
-    Workers::_game.task([](){ Game::launch(); });
-
+    Game::launch();
     timer.push();
-    Workers::_main.task(main_loop);
-    Workers::_main.start_here();
 
-    Workers::_game.task([](){ Game::close(); });
+    while (!glfwWindowShouldClose(Window::win)) {
+        double frametime_left = draw();
 
-    Workers::_game.finish();
-    Workers::_render.finish();
+        if (frametime_left > 0) {
+            timer.sleep(frametime_left);
+        }
+    }
 
+    Game::close();
     glfwTerminate();
 }
