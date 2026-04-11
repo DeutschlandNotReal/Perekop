@@ -4,19 +4,18 @@
 namespace pk {
     void Model::set_mesh(Mesh* M) {
        if (M == mesh) return;
-       if (mesh) { // already has mesh (disconnect)
-            mesh->users[ref] = mesh->users[--mesh->users_count];
-       }
+       if (mesh) mesh->users.swappop(ref)->ref = ref;
+
        mesh = M;
        if (!mesh) return;
-       auto& count = mesh->users_count;
-       auto& cap = mesh->users_capacity;
-       ref = count;
-       if (count == cap) { mesh->resize_users(cap << 1); }
-       mesh->users[count++] = this;
+       
+       mesh->users.push(this);
+       ref = mesh->users.length() - 1;
     }
 
-    Model::~Model() { set_mesh(nullptr); }
+    Model::~Model() { 
+        if (mesh) mesh->users.swappop(ref)->ref = ref; 
+    }
 
     glm::mat4 Camera::get_viewproj(int screen_x, int screen_y) const {
         return glm::perspective(

@@ -7,6 +7,7 @@
 #include <Perekop/Engine.hpp>
 #include <Perekop/Mesh.hpp>
 #include <Perekop/Model.hpp>
+#include <iostream>
 
 using namespace glm;
 using namespace Perekop;
@@ -60,7 +61,7 @@ struct attrib_builder {
     template <typename T> inline attrib_builder& member() {
         glVertexAttribPointer(index, sizeof(T)/sizeof(float), GL_FLOAT, GL_FALSE, stride, (void*)offset);
         glEnableVertexAttribArray(index);
-        glVertexAttribDivisor(index++, divisor);
+        glVertexAttribDivisor(index, divisor);
         offset += sizeof(T); ++index;
         
         return *this;
@@ -77,7 +78,19 @@ namespace pk {
         program = load_program(vsrc, fsrc);
     }
 
-    void MeshMaterial::use(const glm::mat4& VP) {
+    MeshBounds Mesh::bounds() const noexcept {
+        if (vertex.empty()) return MeshBounds();
+        glm::vec3 min = vertex[1].pos, max = vertex[1].pos;
+
+        for (int i = 0; i < vertex.length(); i++) {
+            glm::vec3 pos = vertex[i].pos;
+            min = glm::min(min, pos);
+            max = glm::max(max, pos);
+        }
+        return {min, max};
+    }
+
+    void MeshMaterial::use(const mat4& VP) {
         glUseProgram(program);
         glUniformMatrix4fv(
             glGetUniformLocation(program, "VP"),
@@ -90,10 +103,10 @@ namespace pk {
     void Mesh::refresh() {
         if (!VAO) load();
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertex_count * sizeof(MeshVertex), vertex, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER,  vertex.size(), vertex.data(), GL_STATIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle_count * sizeof(MeshTriangle), triangle, GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle.size(), triangle.data(), GL_STATIC_DRAW);
     }
 
     void Mesh::load() {
@@ -107,15 +120,15 @@ namespace pk {
         attrib_builder()
             .bind<GL_ARRAY_BUFFER>(VBO)
             .object<MeshVertex>()
-                .member<glm::vec3>()
-                .member<glm::vec2>()
+                .member<vec3>()
+                .member<vec2>()
             .bind<GL_ARRAY_BUFFER>(IBO)
             .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-            .object<glm::mat3x4>(1)
-                .member<glm::vec4>()
-                .member<glm::vec4>()
-                .member<glm::vec4>()
-            .end();
+            .object<mat3x4>(1)
+                .member<vec4>()
+                .member<vec4>()
+                .member<vec4>()
+        .end();
     }
 
     void Mesh::unload() {
@@ -127,91 +140,45 @@ namespace pk {
         VAO = 0, VBO = 0, EBO = 0, IBO = 0;
     }
 
-    ID_T Mesh::push_vertex(MeshVertex vert) {
-        if (vertex_capacity == vertex_count) resize_vertex(vertex_capacity << 1);
-        vertex[vertex_count] = vert;
-        return vertex_count++;
-    }
-
-    ID_T Mesh::pop_vertex() {
-        if (!vertex_count) return 0;
-        return --vertex_count;
-    }
-
-    void Mesh::set_vertex(ID_T vid, MeshVertex vert) {
-        if (vid >= vertex_count) return;
-        vertex[vid] = vert;
-    }
-
-    ID_T Mesh::push_triangle(MeshTriangle trig) {
-        if (triangle_capacity == triangle_count) resize_triangle(triangle_capacity << 1);
-        triangle[triangle_count] = trig;
-        return triangle_count++;
-    }
-
-    ID_T Mesh::pop_triangle() {
-        if (!triangle_count) return 0;
-        return --triangle_count;
-    }
-
-    void Mesh::set_triangle(ID_T tid, MeshTriangle trig) {
-        if (tid >= triangle_count) return;
-        triangle[tid] = trig;
-    }
-
     Mesh::~Mesh() {
-        for (int i = 0; i < users_count; i++) users[i]->mesh = nullptr;
+        for (int i = 0; i < users.length(); i++) users[i]->mesh = nullptr;
         unload();
-        delete[] users; 
-        delete[] vertex; 
-        delete[] triangle;
         if (!renderer) return;
-        Mesh* back = renderer->meshes[--renderer->meshes_count];
-        renderer->meshes[meshid] = back;
-        back->meshid = meshid;
+        renderer->meshes.swappop(meshid)->meshid = meshid;
     }
 
     void MeshRenderer::draw() {
         int screenx, screeny;
         Perekop::Window::get_size(screenx, screeny);
-        const glm::mat4 VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
-        ID_T &tcur = transforms_count, &tsize = transforms_capacity;
-        for (ID_T i = 0; i < meshes_count; i++) {
+        const mat4 VP = Perekop::Scene::camera.get_viewproj(screenx, screeny);
+        for (ID_T i = 0; i < meshes.length(); i++) {
             Mesh& mesh = *(meshes[i]);
-            if (!mesh.users_count || !mesh.material.program) continue;
+            if (mesh.users.empty() || !mesh.material.program) continue;
+            transforms.clear();
             mesh.material.use(VP);
             glBindVertexArray(mesh.VAO);
 
-            if (mesh.users_count > tsize) {
-                delete[] transforms;
-                tsize = mesh.users_count;
-                transforms = new mat3x4[tsize];
-            }
-
-            for (tcur = 0; tcur < mesh.users_count; tcur++) {
-                Model* model = mesh.users[tcur];
-                transforms[tcur] = model->transform.scale(model->scl);
+            for (int j = 0; j < mesh.users.length(); j++) {
+                Model* model = mesh.users[j];
+                transforms.push(model->transform.scale(model->scl));
             }
 
             glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
-            glBufferData(GL_ARRAY_BUFFER, tcur * sizeof(glm::mat3x4), transforms, GL_DYNAMIC_DRAW);
-            glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle_count * 3, GL_UNSIGNED_SHORT, 0, mesh.users_count);
+            glBufferData(GL_ARRAY_BUFFER, mesh.users.length() * sizeof(mat3x4), transforms.data(), GL_DYNAMIC_DRAW);
+            glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle.length() * 3, GL_UNSIGNED_SHORT, 0, mesh.users.length());
         }
 
         glBindVertexArray(0);
     }
 
     Mesh* MeshRenderer::create_mesh(MeshMaterial material) {
-        Mesh* mesh = new Mesh(material);
-        if (meshes_count == meshes_capacity) { resize_meshes(meshes_capacity << 1); }
-        meshes[meshes_count++] = mesh;
-        return mesh;
+        meshes.push(new Mesh(material));
+        meshes.back()->meshid = meshes.length() - 1;
+        return meshes.back();
     }
 
     MeshRenderer::~MeshRenderer() { 
-        delete[] meshes; delete[] transforms; 
-        for (ID_T i = 0; i < meshes_count; i++) {
+        for (ID_T i = 0; i < meshes.length(); i++)
             meshes[i]->renderer = nullptr;
-        }
     }
 }

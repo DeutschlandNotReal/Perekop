@@ -5,6 +5,7 @@
 
 #include <Perekop/Engine.hpp>
 #include <Perekop/Time.hpp>
+#include <thread>
 
 using glm::vec3, glm::vec2; 
 using namespace pk;
@@ -107,6 +108,7 @@ double draw() {
     }
 
     glfwPollEvents();
+    Window::step_event.invoke(dt);
     return (1.0/Window::FPS) - timer.pop();
 }
 
@@ -116,7 +118,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    Window::win = glfwCreateWindow(400, 800, "Perekop", NULL, NULL);
+    Window::win = glfwCreateWindow(720, 400, "Perekop", NULL, NULL);
     glfwMakeContextCurrent(Window::win);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) { return -1; }
@@ -141,19 +143,17 @@ int main() {
     });
 
     glfwSetKeyCallback(Window::win, [](GLFWwindow*, int key, int act, int, int){
-        if (act == GLFW_PRESS) { Input::key_down_event.invoke(key); return; }
-        if (act == GLFW_RELEASE) { Input::key_up_event.invoke(key); return; }
+        if (act == GLFW_PRESS) return Input::key_down_event.invoke(key);
+        if (act == GLFW_RELEASE) return Input::key_up_event.invoke(key);
     });
 
     glfwSetMouseButtonCallback(Window::win, [](GLFWwindow*, int button, int act, int){
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            if (act == GLFW_PRESS) Mouse::lmb_down_event.invoke();
-            if (act == GLFW_RELEASE) Mouse::lmb_up_event.invoke();
-            return;
-        }
-        if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-            if (act == GLFW_PRESS) Mouse::rmb_down_event.invoke();
-            if (act == GLFW_RELEASE) Mouse::rmb_down_event.invoke();
+        using namespace Mouse;
+        switch (button | (act << 8)) {
+            case GLFW_MOUSE_BUTTON_LEFT | GLFW_PRESS << 8:  return lmb_down_event.invoke();
+            case GLFW_MOUSE_BUTTON_LEFT | GLFW_RELEASE << 8: return lmb_up_event.invoke();
+            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_PRESS << 8: return rmb_down_event.invoke();
+            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_RELEASE << 8: return rmb_up_event.invoke();
         }
     });
 
@@ -165,6 +165,8 @@ int main() {
 
         if (frametime_left > 0) {
             timer.sleep(frametime_left);
+        } else {
+            std::this_thread::yield();
         }
     }
 

@@ -1,35 +1,22 @@
 #pragma once
+
+#include <Perekop/Structure.hpp>
+
 namespace pk {
     template <typename... A> class EventPort;
     template <typename... A> class Event {
         using callback = bool(*)(A...);
         friend EventPort<A...>;
-        callback* buf = nullptr;
-
-        short cur = 0, size = 0;
-
-        void _alloc() {
-            callback* old_buf = buf;
-            buf = new callback[size];
-            for (short i = 0; i < cur; ++i) buf[i] = old_buf[i];
-            delete[] old_buf;
-        }
-        
-        void _append(const callback& cb) {
-            if (cur == size) { size = size * 2 + 1; _alloc(); }
-            buf[cur++] = cb;
-        }
+        pk::Array<callback> connections;
 
         public:
             EventPort<A...> port{this};
             void invoke(A... items) {
-                for (short i = 0; i < cur; ++i) 
-                    if (!buf[i](items...)) buf[i--] = buf[--cur];
+                for (short i = 0; i < connections.length(); ++i) 
+                    if (!connections[i](items...)) connections[i--] = connections.pop();
             }
 
             void(*connector)(callback) = nullptr;
-
-            ~Event() { delete[] buf; }
     };
 
     template <typename... A> class EventPort {
@@ -40,8 +27,8 @@ namespace pk {
         public:
             void listen(callback callback) { 
                 if (event->connector) return event->connector(callback);
-                
-                event->_append(callback);
+
+                event->connections.push(callback);
             }
 
             EventPort() = delete;

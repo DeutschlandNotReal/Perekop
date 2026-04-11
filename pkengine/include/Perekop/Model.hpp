@@ -14,6 +14,7 @@ namespace pk {
             Mesh* get_mesh() { return mesh; }
             Model() = default;
             Model(Mesh* M) { set_mesh(M); }
+            Model(Mesh* M, glm::vec3 p): transform(p) { set_mesh(M); }
             ~Model();
     };
 
