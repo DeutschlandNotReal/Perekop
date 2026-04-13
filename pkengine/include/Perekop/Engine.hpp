@@ -13,10 +13,8 @@ namespace Perekop {
         Port<int, int>& resized;
         Port<double>& step;
         
-        [[nodiscard]] extern glm::vec2 get_size();
-        extern void get_size(int& x, int& y);
+        [[nodiscard]] extern glm::vec2 size();
         extern void set_size(glm::vec2 d);
-        extern void set_size(int x, int y);
 
         [[nodiscard]] extern std::string get_title();
         extern void set_title(const std::string& title);
@@ -36,21 +34,21 @@ namespace Perekop {
         [[nodiscard]] glm::vec2 pos();
         extern void set_pos(glm::vec2 pos);
 
-        Port<>& rmb_down;
-        Port<>& rmb_up;
-        Port<>& lmb_down;
-        Port<>& lmb_up;
+        Port<>& left_pressed;
+        Port<>& left_released;
+        Port<>& right_pressed;
+        Port<>& right_released;
         Port<double, double>& move;
-        extern bool is_rmb_down();
-        extern bool is_lmb_down();
+        extern bool right_down();
+        extern bool left_down();
     }
 
     namespace Input {
-        Port<int>& key_down;
-        Port<int>& key_up;
+        Port<int>& key_pressed;
+        Port<int>& key_released;
         [[nodiscard]] std::string get_clipboard();
         extern void set_clipboard(const std::string& content);
-        extern bool is_key_down(int key);
+        extern bool key_down(int key);
     }
 
     namespace Game {

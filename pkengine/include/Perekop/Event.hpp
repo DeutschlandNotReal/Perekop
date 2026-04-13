@@ -12,7 +12,7 @@ namespace pk {
         public:
             EventPort<A...> port{this};
             void invoke(A... items) {
-                for (short i = 0; i < connections.length(); ++i) 
+                for (short i = 0; i < connections.size(); ++i) 
                     if (!connections[i](items...)) connections[i--] = connections.pop();
             }
 

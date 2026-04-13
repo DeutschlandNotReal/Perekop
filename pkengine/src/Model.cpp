@@ -10,17 +10,17 @@ namespace pk {
        if (!mesh) return;
        
        mesh->users.push(this);
-       ref = mesh->users.length() - 1;
+       ref = mesh->users.size() - 1;
     }
 
     Model::~Model() { 
         if (mesh) mesh->users.swappop(ref)->ref = ref; 
     }
 
-    glm::mat4 Camera::get_viewproj(int screen_x, int screen_y) const {
+    glm::mat4 Camera::get_viewproj(glm::vec2 screen_size) const {
         return glm::perspective(
             glm::radians(fov), 
-            (float)screen_x / (float)screen_y,
+            (float)screen_size.x / (float)screen_size.y,
             n, f
         ) * glm::inverse((glm::mat4)transform);
     }

@@ -23,6 +23,6 @@ namespace pk {
         float fov = 75;
         pk::Transform transform;
 
-        glm::mat4 get_viewproj(int screen_x, int screen_y) const;
+        glm::mat4 get_viewproj(glm::vec2 screen_size) const;
     };
 }

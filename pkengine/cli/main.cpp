@@ -20,21 +20,15 @@ namespace Perekop::Window {
     EVENT(step, double)
     EVENT(resized, int, int);
       
-    glm::vec2 get_size() { 
+    glm::vec2 size() { 
         int x, y;
         glfwGetWindowSize(win, &x, &y);
        return glm::vec2(x, y);
     }
-    void get_size(int& x, int& y) {
-        glfwGetWindowSize(win, &x, &y);
-    }
-    void set_size(int x, int y) {
-        glfwSetWindowSize(win, x, y);
-    }
     void set_size(glm::vec2 d) {
         glfwSetWindowSize(win, d.x, d.y);
     }
-    std::string get_title() {
+    std::string title() {
         return std::string(glfwGetWindowTitle(win));
     }
     void set_title(const std::string& title) {
@@ -62,22 +56,22 @@ namespace Perekop::Mouse {
         glfwSetCursorPos(Window::win, pos.x, pos.y);
     }
 
-    EVENT(rmb_down)
-    EVENT(rmb_up)
-    EVENT(lmb_down)
-    EVENT(lmb_up)
+    EVENT(right_pressed)
+    EVENT(right_released)
+    EVENT(left_pressed)
+    EVENT(left_released)
     EVENT(move, double, double)
-    bool is_rmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS; }
-    bool is_lmb_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS; }
+    bool right_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS; }
+    bool left_down() { return glfwGetMouseButton(Window::win, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS; }
 }
 
 namespace Perekop::Input {
-    EVENT(key_down, int)
-    EVENT(key_up, int)
+    EVENT(key_pressed, int)
+    EVENT(key_released, int)
 
     std::string get_clipboard() { return std::string(glfwGetClipboardString(Window::win)); }
     void set_clipboard(const std::string& content) { glfwSetClipboardString(Window::win, content.c_str()); }
-    bool is_key_down(int key) { return glfwGetKey(Window::win, key) == GLFW_PRESS; }
+    bool key_down(int key) { return glfwGetKey(Window::win, key) == GLFW_PRESS; }
 }
 
 namespace Perekop::Scene {
@@ -98,7 +92,7 @@ static pk::StackTimer<double, 5> timer;
 
 double draw() {
     double dt = timer.delta();
-    glm::vec2 size = Window::get_size();
+    glm::vec2 size = Window::size();
     timer.push();
 
     if (size.x + size.y > 0) {
@@ -143,17 +137,17 @@ int main() {
     });
 
     glfwSetKeyCallback(Window::win, [](GLFWwindow*, int key, int act, int, int){
-        if (act == GLFW_PRESS) return Input::key_down_event.invoke(key);
-        if (act == GLFW_RELEASE) return Input::key_up_event.invoke(key);
+        if (act == GLFW_PRESS) return Input::key_pressed_event.invoke(key);
+        if (act == GLFW_RELEASE) return Input::key_released_event.invoke(key);
     });
 
     glfwSetMouseButtonCallback(Window::win, [](GLFWwindow*, int button, int act, int){
         using namespace Mouse;
         switch (button | (act << 8)) {
-            case GLFW_MOUSE_BUTTON_LEFT | GLFW_PRESS << 8:  return lmb_down_event.invoke();
-            case GLFW_MOUSE_BUTTON_LEFT | GLFW_RELEASE << 8: return lmb_up_event.invoke();
-            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_PRESS << 8: return rmb_down_event.invoke();
-            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_RELEASE << 8: return rmb_up_event.invoke();
+            case GLFW_MOUSE_BUTTON_LEFT | GLFW_PRESS << 8:  return left_pressed_event.invoke();
+            case GLFW_MOUSE_BUTTON_LEFT | GLFW_RELEASE << 8: return left_released_event.invoke();
+            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_PRESS << 8: return right_pressed_event.invoke();
+            case GLFW_MOUSE_BUTTON_RIGHT | GLFW_RELEASE << 8: return right_released_event.invoke();
         }
     });
 

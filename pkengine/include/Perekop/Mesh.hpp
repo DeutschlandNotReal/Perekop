@@ -1,5 +1,4 @@
 #pragma once
-#include "glm/common.hpp"
 #include <glm/glm.hpp>
 
 #include <Perekop/Structure.hpp>
@@ -42,7 +41,7 @@ namespace pk {
         unsigned int VAO = 0, VBO = 0, EBO = 0, IBO = 0;
         ID_T meshid = 0;
         MeshRenderer* renderer;
-            
+
         pk::Array<Model*> users;
 
         ~Mesh();
@@ -53,10 +52,11 @@ namespace pk {
             MeshMaterial material;
 
             MeshBounds bounds() const noexcept;
+            bool is_loaded() const noexcept;
 
             void load();
-            void refresh();
             void unload();
+            void refresh();
     };
 
     class MeshRenderer {
@@ -67,7 +67,7 @@ namespace pk {
 
         public:
             Mesh* create_mesh(MeshMaterial material);
-            void draw();    
+            void draw();
             ~MeshRenderer(); 
     };
 }

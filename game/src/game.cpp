@@ -1,4 +1,3 @@
-#include "Perekop/Mesh.hpp"
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <Perekop/Engine.hpp>
@@ -32,14 +31,23 @@ KeyInfluence influences[6] = {
     {GLFW_KEY_Q,  0, -1,  0}
 };
 
+float cpitch = 0, cyaw = 0;
 bool on_step(double dt) {
     std::cout << (1.0 / dt) << " FPS\n";
     vec3 delta;
 
     for (const auto& infl : influences) {
-        if (Input::is_key_down(infl.key)) delta += infl.influence;
+        if (Input::key_down(infl.key)) delta += infl.influence;
     }
 
+    auto mdelt = (Mouse::pos() / Window::size()) - glm::vec2(.5);
+    cpitch += mdelt.x * dt * 0.5f;
+    cyaw += mdelt.y * dt * 0.5f;
+    
+    Mouse::set_pos(Mouse::pos() - (mdelt+glm::vec2(.5)) / Window::size());
+
+
+    Scene::camera.transform.setYXZ(cyaw, cpitch);
     Scene::camera.transform.displace_local(delta * float(dt) * 5.f);
     return true;
 }
@@ -71,12 +79,11 @@ void Game::launch() {
 
     auto bounds = pyramidler->bounds();
     glm::vec3 range = bounds.max - bounds.min;
-    for (int i = 0; i < vertex.length(); i++) {
+    for (int i = 0; i < vertex.size(); i++) {
         vertex[i].uv = (vertex[i].pos - bounds.min) / range;
     }
 
     pyramidler->refresh();
-    Scene::camera.transform.pos = glm::vec3(112, 112, -200);
 
     timer.push();
     for (int x = 0; x < 15; x++) {
