@@ -10,7 +10,7 @@ using namespace pk;
 
 using glm::vec3;
 
-inline vec3 cosxy(float theta) {
+inline vec3 angle(float theta) {
     vec3 pos(0);
     sincosf(glm::radians(theta), &pos.x, &pos.z);
     return pos;
@@ -32,20 +32,17 @@ KeyInfluence influences[6] = {
 };
 
 float cpitch = 0, cyaw = 0;
-bool on_step(double dt) {
+bool step(double dt) {
     std::cout << (1.0 / dt) << " FPS\n";
     vec3 delta;
 
-    for (const auto& infl : influences) {
+    for (const KeyInfluence& infl : influences) {
         if (Input::key_down(infl.key)) delta += infl.influence;
     }
 
     auto mdelt = (Mouse::pos() / Window::size()) - glm::vec2(.5);
-    cpitch += mdelt.x * dt * 0.5f;
-    cyaw += mdelt.y * dt * 0.5f;
-    
-    Mouse::set_pos(Mouse::pos() - (mdelt+glm::vec2(.5)) / Window::size());
-
+    cpitch += mdelt.x * dt;
+    cyaw += mdelt.y * dt;
 
     Scene::camera.transform.setYXZ(cyaw, cpitch);
     Scene::camera.transform.displace_local(delta * float(dt) * 5.f);
@@ -62,40 +59,41 @@ void Game::launch() {
         "in vec4 col; void main() {  fragColor = col; }"
     );
 
-    Mesh* pyramidler = Scene::new_mesh(chudmat); 
-    auto& vertex = pyramidler->vertex;
-    auto& triangle = pyramidler->triangle;
+    Mesh& pyramidler = Scene::new_mesh(chudmat); 
+    auto& vertex = pyramidler.vertex;
+    auto& triangle = pyramidler.triangle;
 
-    vertex.emplace(0, 1, 0);
+    vertex.push({
+        {0, 1, 0},
+        {angle(0)},
+        {angle(120)},
+        {angle(240)}
+    });
 
-    vertex.emplace(cosxy(0));
-    vertex.emplace(cosxy(120));
-    vertex.emplace(cosxy(240));
+    triangle.push({
+        {1, 2, 3},
+        {0, 2, 3},
+        {0, 3, 1},
+        {0, 1, 2}
+    });
 
-    triangle.emplace(1, 2, 3);
-    triangle.emplace(0, 2, 3);
-    triangle.emplace(0, 3, 1);
-    triangle.emplace(0, 1, 2);
+    auto bounds = pyramidler.bounds();
+    vec3 range = bounds.max - bounds.min;
 
-    auto bounds = pyramidler->bounds();
-    glm::vec3 range = bounds.max - bounds.min;
-    for (int i = 0; i < vertex.size(); i++) {
-        vertex[i].uv = (vertex[i].pos - bounds.min) / range;
-    }
-
-    pyramidler->refresh();
+    for (MeshVertex& v : vertex)
+        v.uv = (v.pos - bounds.min) / range;
+    
+    pyramidler.refresh();
 
     timer.push();
-    for (int x = 0; x < 15; x++) {
-        for (int y = 0; y < 15; y++) {
-            for (int z = 0; z < 15; z++) {
-                new Model(pyramidler, vec3(x, y, z) * 100.f);
-            }
-        }
-    }
+    for (int x = 0; x < 15; x++) 
+        for (int y = 0; y < 15; y++) 
+            for (int z = 0; z < 15; z++) 
+                new Model(&pyramidler, vec3(x, y, z) * 100.f);
+    
     timer.pop_log("mesh create");
 
-    Window::step.listen(on_step);
+    Window::step.listen(step);
 }
 
 void Game::close() {

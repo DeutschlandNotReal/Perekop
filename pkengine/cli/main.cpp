@@ -1,3 +1,4 @@
+#include "Perekop/Mesh.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>   
@@ -10,7 +11,6 @@
 using glm::vec3, glm::vec2; 
 using namespace pk;
 using namespace Perekop;
-
 
 #define EVENT(N, ...) static Event<__VA_ARGS__> N##_event = Event<__VA_ARGS__>(); EventPort<__VA_ARGS__>& N = N##_event.port;
 namespace Perekop::Window {
@@ -25,21 +25,27 @@ namespace Perekop::Window {
         glfwGetWindowSize(win, &x, &y);
        return glm::vec2(x, y);
     }
+
     void set_size(glm::vec2 d) {
         glfwSetWindowSize(win, d.x, d.y);
     }
+
     std::string title() {
         return std::string(glfwGetWindowTitle(win));
     }
+
     void set_title(const std::string& title) {
         glfwSetWindowTitle(win, title.c_str());
     }
+
     void maximize() {
         glfwMaximizeWindow(win);
     }
+
     void minimize() {
         glfwIconifyWindow(win);
     }
+
     void close() {
         glfwSetWindowShouldClose(win, GLFW_TRUE);
     }
@@ -50,7 +56,7 @@ namespace Perekop::Mouse {
         double x, y;
         glfwGetCursorPos(Window::win, &x, &y);
         return glm::vec2(x, y);
-    }
+    }  
 
     void set_pos(glm::vec2 pos) {
         glfwSetCursorPos(Window::win, pos.x, pos.y);
@@ -77,15 +83,16 @@ namespace Perekop::Input {
 namespace Perekop::Scene {
     static MeshMaterial default_mat = MeshMaterial();
     static MeshRenderer Renderer = MeshRenderer();
-    Camera camera = Camera();
-    Mesh* new_mesh(MeshMaterial material) {
-        return Renderer.create_mesh(material); 
+    pk::Mesh& new_mesh() {
+        return Renderer.create(default_mat);
     }
-    Mesh* new_mesh() {
-        return Renderer.create_mesh(default_mat); 
-    }
-}
 
+    pk::Mesh& new_mesh(pk::MeshMaterial mat) {
+        return Renderer.create(mat);
+    }
+
+    Camera camera = Camera();
+}
 #undef EVENT
 
 static pk::StackTimer<double, 5> timer;
@@ -123,7 +130,7 @@ int main() {
     ); 
 
     glDisable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
+    //glEnable(GL_DEPTH_TEST);
     glfwShowWindow(Window::win);
 
     glfwSetFramebufferSizeCallback(Window::win, [](GLFWwindow*, int x, int y){
@@ -157,11 +164,7 @@ int main() {
     while (!glfwWindowShouldClose(Window::win)) {
         double frametime_left = draw();
 
-        if (frametime_left > 0) {
-            timer.sleep(frametime_left);
-        } else {
-            std::this_thread::yield();
-        }
+        timer.sleep(frametime_left);
     }
 
     Game::close();

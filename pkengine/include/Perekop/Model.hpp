@@ -9,7 +9,7 @@ namespace pk {
         Mesh* mesh = nullptr;
         public:
             pk::Transform transform;
-            glm::vec3 scl = glm::vec3(1);
+            glm::vec3 scl{1};
             void set_mesh(Mesh* M);
             Mesh* get_mesh() { return mesh; }
             Model() = default;

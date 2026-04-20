@@ -1,23 +1,23 @@
 #pragma once
-#include "glm/fwd.hpp"
 #include <glm/glm.hpp>
-
-
 
 namespace pk {
     struct Transform {
-        glm::mat3 rot;
-        glm::vec3 pos;
-        Transform(): rot(glm::mat3(1)), pos(glm::vec3(0)) {}
-        Transform(glm::mat3 rotation): rot(rotation) {}
-        Transform(glm::vec3 position): pos(position) {}
-        Transform(glm::vec3 position, glm::mat3 rotation): pos(position), rot(rotation) {}
-        Transform(glm::mat3x4 mat): rot(glm::mat3{mat[0], mat[1], mat[2]}), pos(glm::vec3(mat[0].w, mat[1].w, mat[2].w)) {}
-        Transform(glm::mat4x4 mat): rot(glm::mat3{mat[0], mat[1], mat[2]}), pos(glm::vec3(mat[3])) {}
+        glm::vec3 pos{0};
+        glm::mat3 rot{1};
+        Transform() = default;
+        Transform(const glm::mat3& rotation): rot(rotation) {}
+        Transform(const glm::vec3& position): pos(position) {}
+        Transform(const glm::vec3& position, glm::mat3 rotation): pos(position), rot(rotation) {}
+        Transform(const glm::mat3x4& mat): 
+            rot(glm::mat3{mat[0], mat[1], mat[2]}),
+            pos(glm::vec3(mat[0].w, mat[1].w, mat[2].w)) {}
+        Transform(const glm::mat4& mat): 
+            rot(glm::mat3{mat[0], mat[1], mat[2]}), pos(glm::vec3(mat[3])) {}
 
-        Transform operator*(Transform& other) const noexcept { return {pos + rot * other.pos, rot * other.rot}; }
-        Transform operator+(Transform& other) const noexcept { return {pos + other.pos, rot}; }
-        Transform operator-(Transform& other) const noexcept { return {pos - other.pos, rot}; }
+        Transform operator*(const Transform& other) const noexcept { return {pos + rot * other.pos, rot * other.rot}; }
+        Transform operator+(const Transform& other) const noexcept { return {pos + other.pos, rot}; }
+        Transform operator-(const Transform& other) const noexcept { return {pos - other.pos, rot}; }
 
         operator glm::mat3() const { return rot; }
         operator glm::vec3() const { return pos; }
@@ -29,9 +29,15 @@ namespace pk {
             return {{rot[0], pos.x}, {rot[1], pos.y}, {rot[2], pos.z}};
         }
 
-        void displace(glm::vec3 delta) noexcept { pos += delta; }
+        void displace(const glm::vec3& delta) noexcept { pos += delta; }
 
-        void displace_local(glm::vec3 delta) noexcept { pos += rot * delta; }
+        void displace_local(const glm::vec3& delta) noexcept { pos += rot * delta; }
+
+        void normalize() noexcept {
+            rot[0] = glm::normalize(rot[0]);
+            rot[1] = glm::normalize(rot[1]);
+            rot[2] = glm::normalize(rot[2]);
+        }
 
         glm::mat3x4 scale(const glm::vec3& scale) const noexcept {
             return {{rot[0] * scale.x, pos.x}, {rot[1] * scale.y, pos.y}, {rot[2] * scale.z, pos.z}};

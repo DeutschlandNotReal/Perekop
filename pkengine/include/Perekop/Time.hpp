@@ -13,9 +13,10 @@ namespace pk {
             }
 
             static void sleep(T duration) {
-                if (duration > T(0)) {
+                if (duration > T(0))
                     std::this_thread::sleep_for(std::chrono::duration<T>(duration));
-                } else { std::this_thread::yield(); }
+                else 
+                    std::this_thread::yield();
             }
 
             void push() noexcept {

@@ -1,112 +1,132 @@
 #pragma once
 #include <algorithm>
-#include <cstdlib>
 #include <cstring>
+#include <initializer_list>
 #include <type_traits>
 #include <utility>
 
 namespace pk {
-    template <typename T> class Array {
-        T* _data = nullptr;
-        unsigned int _cur = 0, _cap = 1;
+    template <typename T, typename I = unsigned int> class Array {
+        T* _data{nullptr};
+        I _cur{0}, _cap{1};
 
-        T* _next() {
-            if (_cur == _cap) { 
-                _cap = _cap * 2 + 1;          
-                _data = (T*)realloc(_data, _cap * sizeof(T));
-            }
+        void _copy(const T* from, T* to, I l) const {
+            if constexpr (std::is_trivial_v<T>) 
+                std::memcpy(to, from, l * sizeof(T));
+            else for (I i = I(0); i < l; i++)
+                new (to + i) T(from[i]);
+        }
 
-            return _data + _cur++; 
+        void _move(const T* from, T* to, I l) const {
+            if constexpr (std::is_trivial_v<T>) 
+                std::memcpy(to, from, l * sizeof(T));
+            else for (I i = I(0); i < l; i++)
+                new (to + i) T(std::move(from[i]));
         }
 
         public:
-            ~Array() { 
-                if constexpr (std::is_destructible<T>()) 
-                    for (int i = 0; i < _cur; i++) _data[i].~T();
-
-                free(_data); 
+            void resize(I _newcap) {
+                _cap = _newcap;
+                T* _prev = _data;     
+                _data = (T*)::operator new(_cap * sizeof(T));
+                _copy(_prev, _data, _cur);
+                ::operator delete(_prev);
             }
 
-            Array(): _data((T*)malloc(sizeof(T))) {}
-            Array(unsigned int cap): _data((T*)malloc(sizeof(T) * cap)) {}
+            T* begin() const noexcept { return _data; }
+            T* end() const noexcept { return _data + _cur; }
+
+            ~Array() { 
+                if constexpr (!std::is_trivial_v<T>) 
+                    for (I i = I(0); i < _cur; i++) _data[i].~T();
+
+                ::operator delete(_data);
+            }
+
+            Array(): _data((T*)::operator new(sizeof(T))) {}
+
+            Array(I cap): _data((T*)::operator new(sizeof(T) * cap)) {}
 
             Array(Array&& ar): _data(ar._data), _cur(ar._cur), _cap(ar._cap) { 
                 ar._data = nullptr; ar._cur = 0; ar._cap = 0; 
             }
 
-            Array(const Array& ar): _data((T*)malloc(sizeof(T)*(ar._cap))), _cur(ar._cur), _cap(ar._cap) {
-                std::memcpy(_data, ar._data, _cur * sizeof(T));
+            Array(const Array& ar): _data((T*)::operator new(sizeof(T)*ar._cap)), _cur(ar._cur), _cap(ar._cap) {
+                _copy(ar._data, _data, _cur);
             }
 
             Array& operator=(const Array& ar) {
                 if (&ar != this) {
-                    free(_data);
+                    ::operator delete(_data);
                     new (this) Array(ar);
                 }
+
                 return *this;
             }
 
             Array& operator=(Array&& ar) noexcept {
-                free(_data);
+                ::operator delete(_data);
                 _data = ar._data; _cap = ar._cap; _cur = ar._cur;
                 ar._data = nullptr; ar._cap = 0; ar._cur = 0;
                 return *this;
             }
             
-            T& operator[](unsigned int i) const {
+            T& operator[](I i) const {
                 return _data[i];
             }
 
             T& push(T item) {
-                T* ptr = _next();
+                if (full()) resize(_cap * 2 + 1);
+                T* ptr = _data + _cur++;
                 new (ptr) T(item); 
                 return *ptr;
             }
+
+            void push(std::initializer_list<T> items) {
+                if (_cur + items.size() > _cap) 
+                    resize(std::max(_cap * 2 + 1, _cur + (I)items.size()));
+
+                _copy(items.begin(), _data + _cur, items.size());
+                _cur += items.size();
+            }
             
             template <typename... args> T& emplace(args&&... values) {
-                T* ptr = _next();
+                if (full()) resize(_cap * 2 + 1);
+                T* ptr = _data + _cur++;
                 new (ptr) T(std::forward<args>(values)...);
                 return *ptr;
             }
 
-            T pop() { 
-                return _data[--_cur];
+            T pop() noexcept {
+                return T(std::move(_data[--_cur])); 
             }
 
-            T& swappop(unsigned int i) {
+            [[nodiscard]] T& back() const noexcept {
+                return _data[_cur-1];
+            }
+
+            T& swappop(I i) noexcept {
                 _data[i] = _data[--_cur];
                 return _data[i];
             }
 
-            T& back() const {
-                return _data[_cur-1];
-            }
-
-            [[nodiscard]] unsigned int size() const noexcept { return _cur; }
-            [[nodiscard]] unsigned int capacity() const noexcept { return _cap; }
-            [[nodiscard]] unsigned int memsize() const noexcept { return _cur * sizeof(T); }
-            [[nodiscard]] T* data() const noexcept { return _data; }
+            [[nodiscard]] I size() const noexcept { return _cur; }
+            [[nodiscard]] I capacity() const noexcept { return _cap; }
+            [[nodiscard]] I bytes() const noexcept { return _cur * sizeof(T); }
+            [[nodiscard]] T* data() const noexcept { return _data; }            
             [[nodiscard]] bool empty() const noexcept { return _cur == 0; }
+            [[nodiscard]] bool full() const noexcept { return _cur == _cap; }
 
             void clear() noexcept { _cur = 0; }
-            void resize(unsigned int new_size) {
-                T* prev = _data;
-                _cap = new_size;
-                _cur = std::min(_cur, new_size);
-                _data = (T*)malloc(sizeof(T) * new_size);
-                for (int i = 0; i < _cur; i++) _data[i] = std::move(prev[i]);
-                free(prev);
-            }
 
-            Array clone(unsigned int from, unsigned int length) const {
-                if (from >= _cur) return Array();
-                Array ar;
-                unsigned int real_length = std::min(length, _cur - from);
-                ar._data = (T*)malloc(sizeof(T) * real_length);
-                ar._cap = real_length;
-                ar._cur = real_length;
-                std::memcpy(ar._data, _data + from, sizeof(T) * real_length);
-                return ar;
+            Array clone(I start, I length) const {
+                if (start >= _cur) return Array();
+                I l = std::min(length, _cur - start);
+                Array cloned(l);
+                cloned._cap = l; cloned._cur = l;
+                _copy(_data + start, cloned._data, l);
+
+                return cloned;
             }
     };
 
@@ -114,12 +134,13 @@ namespace pk {
         struct PoolBlock {
             T* _data = nullptr; unsigned char _cur = 0;
             T& operator[](unsigned int I) const { return _data[I]; }
-            PoolBlock(): _data((T*)malloc(sizeof(T) * 255)) {};
+            PoolBlock(): _data((T*)::operator new(sizeof(T) * 255)) {};
             ~PoolBlock() {
                 for (unsigned char i = 0; i < _cur; i++) _data[i].~T();
-                free(_data);
+                ::operator delete(_data);
             }
         };
+
         Array<PoolBlock> blocks;
 
         T* _next() {
@@ -134,7 +155,9 @@ namespace pk {
             unsigned int size() const noexcept {
                 return 256*(blocks.size()-1) + (unsigned int)blocks.back()._cur;
             }
-            unsigned int memsize() const noexcept { return size() * sizeof(T); }
+
+            unsigned int bytes() const noexcept { return size() * sizeof(T); }
+
             unsigned int capacity() const noexcept { return blocks.size() * 255; }
 
             T& operator[](unsigned int I) const {

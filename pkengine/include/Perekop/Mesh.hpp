@@ -25,12 +25,13 @@ namespace pk {
         MeshTriangle(ID_T A, ID_T B, ID_T C): v0(A), v1(B), v2(C) {}
     };
 
-
     class MeshMaterial {
         friend Mesh;
         friend MeshRenderer;
         unsigned int program;
-        void use(const glm::mat4& VP);
+
+        void enable(const glm::mat4& VP);
+
         public:
             MeshMaterial(): program(0) {}
             MeshMaterial(const char* vertex_source, const char* fragment_source);
@@ -43,8 +44,7 @@ namespace pk {
         MeshRenderer* renderer;
 
         pk::Array<Model*> users;
-
-        ~Mesh();
+        
         public:
             pk::Array<MeshVertex> vertex;
             pk::Array<MeshTriangle> triangle;
@@ -57,16 +57,18 @@ namespace pk {
             void load();
             void unload();
             void refresh();
+            ~Mesh();
     };
 
     class MeshRenderer {
         friend Mesh;
 
-        pk::Array<Mesh*> meshes;
+        pk::Array<Mesh> meshes;
+        pk::Array<short> available;
         pk::Array<glm::mat3x4> transforms;
 
         public:
-            Mesh* create_mesh(MeshMaterial material);
+            Mesh& create(MeshMaterial material);
             void draw();
             ~MeshRenderer(); 
     };
