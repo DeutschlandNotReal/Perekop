@@ -12,7 +12,8 @@ using glm::vec3;
 
 inline vec3 angle(float theta) {
     vec3 pos(0);
-    sincosf(glm::radians(theta), &pos.x, &pos.z);
+    pos.x = sinf(glm::radians(theta));
+    pos.z = cosf(glm::radians(theta));
     return pos;
 }
 
@@ -33,12 +34,10 @@ KeyInfluence influences[6] = {
 
 float cpitch = 0, cyaw = 0;
 bool step(double dt) {
-    std::cout << (1.0 / dt) << " FPS\n";
     vec3 delta;
 
-    for (const KeyInfluence& infl : influences) {
+    for (const KeyInfluence& infl : influences) 
         if (Input::key_down(infl.key)) delta += infl.influence;
-    }
 
     auto mdelt = (Mouse::pos() / Window::size()) - glm::vec2(.5);
     cpitch += mdelt.x * dt;
@@ -50,8 +49,11 @@ bool step(double dt) {
 }
 
 void Game::launch() {
-    std::cout << "game's so back?\n";
+    std::cout << "Game::launch() begin\n";
+
     StackTimer<double, 10> timer;
+
+    std::cout << "pre mat\n";
     MeshMaterial chudmat(
         "\n"
         "\n out vec4 col; "
@@ -59,10 +61,12 @@ void Game::launch() {
         "in vec4 col; void main() {  fragColor = col; }"
     );
 
+    std::cout << "pre new-mesh\n";
     Mesh& pyramidler = Scene::new_mesh(chudmat); 
     auto& vertex = pyramidler.vertex;
     auto& triangle = pyramidler.triangle;
 
+    std::cout << "vertex placing\n";
     vertex.push({
         {0, 1, 0},
         {angle(0)},
@@ -70,6 +74,7 @@ void Game::launch() {
         {angle(240)}
     });
 
+    std::cout << "triangle placing\n";
     triangle.push({
         {1, 2, 3},
         {0, 2, 3},
@@ -79,21 +84,26 @@ void Game::launch() {
 
     auto bounds = pyramidler.bounds();
     vec3 range = bounds.max - bounds.min;
+    std::cout << "after bounds\n";
 
     for (MeshVertex& v : vertex)
         v.uv = (v.pos - bounds.min) / range;
     
     pyramidler.refresh();
 
+    std::cout << "model placing\n";
     timer.push();
-    for (int x = 0; x < 15; x++) 
-        for (int y = 0; y < 15; y++) 
-            for (int z = 0; z < 15; z++) 
+    for (int x = 0; x < 5; x++) 
+        for (int y = 0; y < 5; y++) 
+            for (int z = 0; z < 5; z++) 
                 new Model(&pyramidler, vec3(x, y, z) * 100.f);
     
-    timer.pop_log("mesh create");
+    timer.pop_ms("mesh create");
 
+    std::cout << "pre-listen\n";
     Window::step.listen(step);
+
+    std::cout << "Game::launch() end\n";  
 }
 
 void Game::close() {

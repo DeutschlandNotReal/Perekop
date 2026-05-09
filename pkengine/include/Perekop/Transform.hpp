@@ -10,14 +10,14 @@ namespace pk {
         Transform(const glm::vec3& position): pos(position) {}
         Transform(const glm::vec3& position, glm::mat3 rotation): pos(position), rot(rotation) {}
         Transform(const glm::mat3x4& mat): 
-            rot(glm::mat3{mat[0], mat[1], mat[2]}),
-            pos(glm::vec3(mat[0].w, mat[1].w, mat[2].w)) {}
+            rot(mat[0], mat[1], mat[2]),
+            pos(mat[0].w, mat[1].w, mat[2].w) {}
         Transform(const glm::mat4& mat): 
-            rot(glm::mat3{mat[0], mat[1], mat[2]}), pos(glm::vec3(mat[3])) {}
+            rot(mat[0], mat[1], mat[2]), pos(mat[3]) {}
 
-        Transform operator*(const Transform& other) const noexcept { return {pos + rot * other.pos, rot * other.rot}; }
-        Transform operator+(const Transform& other) const noexcept { return {pos + other.pos, rot}; }
-        Transform operator-(const Transform& other) const noexcept { return {pos - other.pos, rot}; }
+        Transform operator*(const Transform& co) const noexcept { return {pos + rot * co.pos, rot * co.rot}; }
+        Transform operator+(const Transform& co) const noexcept { return {pos + co.pos, rot}; }
+        Transform operator-(const Transform& co) const noexcept { return {pos - co.pos, rot}; }
 
         operator glm::mat3() const { return rot; }
         operator glm::vec3() const { return pos; }
@@ -29,9 +29,9 @@ namespace pk {
             return {{rot[0], pos.x}, {rot[1], pos.y}, {rot[2], pos.z}};
         }
 
-        void displace(const glm::vec3& delta) noexcept { pos += delta; }
+        void displace(const glm::vec3& disp) noexcept { pos += disp; }
 
-        void displace_local(const glm::vec3& delta) noexcept { pos += rot * delta; }
+        void displace_local(const glm::vec3& disp) noexcept { pos += rot * disp; }
 
         void normalize() noexcept {
             rot[0] = glm::normalize(rot[0]);

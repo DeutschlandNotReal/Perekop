@@ -27,7 +27,7 @@ namespace pk {
                 return (ptr > -1) ? now() - records[ptr--] : T(0);
             }
 
-            [[nodiscard]] T& peek() const noexcept {
+            [[nodiscard]] T top() const noexcept {
                 return (ptr > -1) ? records[ptr] : T(0);
             }
 
@@ -35,7 +35,7 @@ namespace pk {
                 val = (ptr > -1) ? now() - records[ptr--]: T(0);
             }
 
-            T elapsed() { return now() - peek(); }
+            T elapsed() { return now() - top(); }
 
             T delta() {
                 if (ptr < 0) return T(0);
@@ -45,9 +45,11 @@ namespace pk {
                 return dt;
             }
 
-            void pop_log(const std::string& title, T multiple = T(1000), const std::string& suffix = "ms") {
-                T time = pop();
-                std::cout << title << ": " << (time * multiple) << suffix << "\n";
+            void pop_ms(const std::string& title) {
+                float time = pop();
+                int ms = time * 1e3;
+                int us = time * 1e6 - ms * 1e3;
+                std::cout << title << ": " << ms << '.' << us << "ms\n";
             }
     };
 }

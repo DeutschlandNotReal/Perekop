@@ -1,6 +1,5 @@
 #pragma once
-
-#include <Perekop/Structure.hpp>
+#include <Perekop/Array.hpp>
 
 namespace pk {
     template <typename... A> class EventPort;
@@ -11,9 +10,16 @@ namespace pk {
 
         public:
             EventPort<A...> port{this};
+
             void invoke(A... items) {
                 for (short i = 0; i < connections.size(); ++i) 
-                    if (!connections[i](items...)) connections[i--] = connections.pop();
+                    // return false: disconnect
+                    if (!connections[i](items...)) 
+                        connections[i--] = connections.pop();
+            }
+
+            void invoke_exitless(A... items) const {
+                for (callback& cb : connections) cb(items...);
             }
 
             void(*connector)(callback) = nullptr;
@@ -23,14 +29,14 @@ namespace pk {
         using callback = bool(*)(A...);
         friend Event<A...>;
         Event<A...>* event;
-        EventPort(Event<A...>* e): event(e) {};
+
         public:
-            void listen(callback callback) { 
+            EventPort(Event<A...>* e): event(e) {};
+
+            void listen(callback callback) const { 
                 if (event->connector) return event->connector(callback);
 
                 event->connections.push(callback);
             }
-
-            EventPort() = delete;
     };
 }

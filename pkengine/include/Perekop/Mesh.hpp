@@ -1,7 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
-#include <Perekop/Structure.hpp>
+#include <Perekop/Array.hpp>
+
 using ID_T = unsigned short;
 
 namespace pk {
@@ -39,8 +40,8 @@ namespace pk {
 
     class Mesh {
         friend Model; friend MeshRenderer;
-        unsigned int VAO = 0, VBO = 0, EBO = 0, IBO = 0;
-        ID_T meshid = 0;
+        unsigned int VAO{0}, VBO{0}, EBO{0}, IBO{0};
+        ID_T meshid{0};
         MeshRenderer* renderer;
 
         pk::Array<Model*> users;

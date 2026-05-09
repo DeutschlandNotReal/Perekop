@@ -2,22 +2,29 @@
 #include <Perekop/Model.hpp>
 
 namespace pk {
-    void Model::set_mesh(Mesh* M) {
-       if (M == mesh) return;
-       if (mesh) mesh->users.swappop(ref)->ref = ref;
+    void Model::apply_mesh(Mesh* new_mesh) {
+        if (new_mesh == _mesh) return;
 
-       mesh = M;
-       if (!mesh) return;
-       
-       mesh->users.push(this);
-       ref = mesh->users.size() - 1;
+        if (_mesh) {
+            // currently has mesh, has to update mesh's list
+            _mesh->users[ref] = _mesh->users.pop();
+            _mesh->users[ref]->ref = ref;
+        }
+        _mesh = new_mesh;
+        if (_mesh) {
+            _mesh->users.push(this);
+            ref = _mesh->users.size() - 1;
+        }
     }
 
     Model::~Model() { 
-        if (mesh) mesh->users.swappop(ref)->ref = ref; 
+        if (_mesh) {
+            _mesh->users[ref] = _mesh->users.pop();
+            _mesh->users[ref]->ref = ref;
+        }
     }
 
-    glm::mat4 Camera::get_viewproj(glm::vec2 screen_size) const {
+    glm::mat4 Camera::get_VP(glm::vec2 screen_size) const noexcept {
         return glm::perspective(
             glm::radians(fov), 
             (float)screen_size.x / (float)screen_size.y,
