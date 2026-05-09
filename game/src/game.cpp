@@ -43,15 +43,13 @@ void Perekop::on_launch() {
     std::cout << "Game begin\n";
     StackTimer<double, 10> timer;
 
-    std::cout << "pre mat\n";
     MeshMaterial chudmat(
         "\n"
         "\n out vec4 col; "
         "\n void main() { gl_Position = VP * model() * vec4(_pos, 1.0); col = vec4(_uv.x, _uv.y, 0.0, 1.0); }",
         "in vec4 col; void main() {  fragColor = col; }"
     );
-
-    std::cout << "pre new-mesh\n";
+    
     Mesh& pyramidler = Perekop::create_mesh(chudmat); 
     auto& vertex = pyramidler.vertex;
     auto& triangle = pyramidler.triangle;

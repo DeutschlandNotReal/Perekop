@@ -65,7 +65,7 @@ namespace pk {
             }
 
             Array():
-                _data((T*)::operator new(10)),
+                _data((T*)::operator new(10*sizeof(T))),
                 _cur(0),
                 _end(10)
             {}

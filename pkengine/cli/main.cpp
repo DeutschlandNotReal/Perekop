@@ -14,7 +14,7 @@ namespace Perekop {
     static MeshRenderer renderer = MeshRenderer();
     float target_fps = 60.f;
 
-    Window main_window("Perekop", 720, 480);
+    Window main_window;
     Mesh& create_mesh() { return renderer.create(defmat); }
     Mesh& create_mesh(MeshMaterial mat) { return renderer.create(mat); }
 
@@ -40,7 +40,10 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    Perekop::main_window = Window("Perekop", 720, 480);
     Perekop::main_window.make_context();
+
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     Perekop::defmat = MeshMaterial(
         "void main() { gl_Position = VP * model() * vec4(_pos, 1.0); }",

@@ -72,11 +72,12 @@ namespace pk {
         Event<int, int> resized, moved;
         Event<> minimized, maximized, closed;
         public:
+            Window() = default;
             Window(const char* title, int width, int height);
             operator GLFWwindow*() const noexcept { return win; }
 
-            Mouse mouse;
-            Keyboard keyboard;
+            Mouse mouse{this};
+            Keyboard keyboard{this};
 
             glm::vec2 pos() const;
             void set_pos(glm::vec2 p) const;
