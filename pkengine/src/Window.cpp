@@ -68,6 +68,10 @@ void Window::show() const { glfwShowWindow(win); }
 void Window::swap_buffers() const { glfwSwapBuffers(win); }
 bool Window::should_close() const { return glfwWindowShouldClose(win); }
 
+bool Keyboard::is_held(int key) const {
+    return glfwGetKey(*win, key) == GLFW_PRESS;
+}
+
 
 Window::Window(const char* title, int w, int h): mouse(this), keyboard{this} {
     win = glfwCreateWindow(w, h, title, NULL, NULL);

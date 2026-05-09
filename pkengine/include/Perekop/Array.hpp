@@ -60,7 +60,7 @@ namespace pk {
 
             void push(std::initializer_list<T> items) {
                 if (items.size() > remaining()) _resize(size() + items.size() - remaining());
-                std::memcpy(_cur, items.begin(), items.size() * sizeof(T));
+                std::memcpy(_data + _cur, items.begin(), items.size() * sizeof(T));
                 _cur += items.size();
             }
 

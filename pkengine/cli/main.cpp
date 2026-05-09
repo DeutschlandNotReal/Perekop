@@ -12,6 +12,7 @@ using namespace pk;
 namespace Perekop {
     static MeshMaterial defmat = MeshMaterial();
     static MeshRenderer renderer = MeshRenderer();
+    float target_fps = 60.f;
 
     Window main_window("Perekop", 720, 480);
     Mesh& create_mesh() { return renderer.create(defmat); }
@@ -20,12 +21,8 @@ namespace Perekop {
     Camera camera{};
 }
 
-static StackTimer<double, 5> timer;
-
-double draw() {
-    double dt = timer.delta();
+void draw() {
     glm::vec2 size = Perekop::main_window.size();
-    timer.push();
 
     if (size.x + size.y > 0) {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -35,9 +32,6 @@ double draw() {
     }
 
     glfwPollEvents();
-    Perekop::on_step();
-
-    return (1.0/Perekop::target_fps) - timer.pop();
 }
 
 int main() {
@@ -55,12 +49,15 @@ int main() {
 
     Perekop::main_window.show();
     Perekop::on_launch();
-    timer.push();
+    
+    StackTimer<float, 2> frame_timer;
 
+    frame_timer.begin(-1.f/Perekop::target_fps);
     while (!Perekop::main_window.should_close()) {
-        double frametime_left = draw();
-
-        timer.sleep(frametime_left);
+        draw();
+        float dt = frame_timer.delta();
+        Perekop::on_step(dt);
+        frame_timer.sleep(1/Perekop::target_fps - dt);
     }
 
     Perekop::on_close();
