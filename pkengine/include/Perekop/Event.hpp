@@ -18,10 +18,6 @@ namespace pk {
                         connections[i--] = connections.pop();
             }
 
-            void invoke_exitless(A... items) const {
-                for (callback& cb : connections) cb(items...);
-            }
-
             void(*connector)(callback) = nullptr;
     };
 

@@ -10,8 +10,8 @@ using glm::vec3;
 static Window& window = Perekop::main_window;
 
 inline vec3 angle_XZ(float angle) {
-    vec3 pos;
-    sincosf(angle, &pos.z, &pos.x);
+    vec3 pos{0, 0, 0};
+    sincosf(angle * (3.14159265f / 180.0f), &pos.z, &pos.x);
     return pos;
 }
 
@@ -31,12 +31,12 @@ KeyInfluence influences[6] = {
 };
 
 void Perekop::on_step(float dt) {
-    vec3 camdisp;
+    vec3 disp{0, 0, 0};
 
     for (const KeyInfluence& infl : influences) 
-        if (window.keyboard.is_held(infl.key)) camdisp += infl.influence;
+        if (window.keyboard.is_held(infl.key)) disp += infl.influence;
 
-    Perekop::camera.transform.displace_local(camdisp * float(dt) * 5.f);
+    Perekop::camera.transform.displace_local(disp * dt);
 }
 
 void Perekop::on_launch() {
@@ -49,7 +49,7 @@ void Perekop::on_launch() {
         "\n void main() { gl_Position = VP * model() * vec4(_pos, 1.0); col = vec4(_uv.x, _uv.y, 0.0, 1.0); }",
         "in vec4 col; void main() {  fragColor = col; }"
     );
-    
+
     Mesh& pyramidler = Perekop::create_mesh(chudmat); 
     auto& vertex = pyramidler.vertex;
     auto& triangle = pyramidler.triangle;
@@ -78,8 +78,8 @@ void Perekop::on_launch() {
 
     for (int x = 0; x < 5; x++) 
         for (int y = 0; y < 5; y++) 
-            for (int z = 0; z < 5; z++) 
-                new Model(&pyramidler, vec3(x, y, z) * 100.f);
+            for (int z = 0; z < 5; z++)
+                new Model(&pyramidler, vec3(x, y, -z) * 5.f);
 
 }
 

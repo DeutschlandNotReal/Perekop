@@ -27,14 +27,12 @@ namespace pk {
     };
 
     class MeshMaterial {
-        friend Mesh;
         friend MeshRenderer;
-        unsigned int program;
-
+        unsigned int program{0};
         void enable(const glm::mat4& VP);
 
         public:
-            MeshMaterial(): program(0) {}
+            MeshMaterial() = default;
             MeshMaterial(const char* vertex_source, const char* fragment_source);
     };
 
@@ -43,7 +41,6 @@ namespace pk {
         unsigned int VAO{0}, VBO{0}, EBO{0}, IBO{0};
         ID_T meshid{0};
         MeshRenderer* renderer;
-
         pk::Array<Model*> users;
         
         public:
@@ -53,7 +50,6 @@ namespace pk {
             MeshMaterial material;
 
             MeshBounds bounds() const noexcept;
-            bool is_loaded() const noexcept;
 
             void load();
             void unload();

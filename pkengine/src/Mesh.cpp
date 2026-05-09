@@ -47,16 +47,14 @@ GLuint load_program(const char* vsrc, const char* fsrc) {
     return program;
 }
 
-struct attrib_builder {
-    size_t offset = 0, stride = 0;
-    GLuint index = 0, divisor = -1;
-
-    template <typename T> inline attrib_builder& object() {
+struct glAttribute {
+    long long offset{0}, stride{0}, index{0}, divisor{-1};
+    glAttribute(GLuint array) { glBindVertexArray(array); }
+    template <typename T> inline glAttribute& object() {
         stride = sizeof(T); offset = 0;
         return *this;
     }
-
-    template <int K, GLenum T> inline attrib_builder& member() {
+    template <int K, GLenum T> inline glAttribute& member() {
         glVertexAttribPointer(index, K, T, GL_FALSE, stride, (void*)offset);
         glEnableVertexAttribArray(index);
         glVertexAttribDivisor(index, divisor);
@@ -64,13 +62,11 @@ struct attrib_builder {
         ++index;
         return *this;
     }
-
-    template <GLenum type> inline attrib_builder& bind(GLuint buffer) { 
-        ++divisor;
+    template <GLenum type> inline glAttribute& bind(GLuint buffer) { 
+        if constexpr (type == GL_ARRAY_BUFFER) ++divisor;
         glBindBuffer(type, buffer); 
         return *this; 
     }
-    
     inline void end() { glBindVertexArray(0); }
 };
 
@@ -104,20 +100,16 @@ namespace pk {
         if (!VAO) load();
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER,  vertex.bytesize(), vertex.data(), GL_STATIC_DRAW);
-
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle.bytesize(), triangle.data(), GL_STATIC_DRAW);
     }
 
     void Mesh::load() {
         if (VAO) return;
-        glGenBuffers(1, &VBO);
-        glGenBuffers(1, &EBO);
-        glGenBuffers(1, &IBO);
+        glGenBuffers(3, &VBO); // makes VBO, EBO, IBO
         glGenVertexArrays(1, &VAO);
-        glBindVertexArray(VAO);
 
-        attrib_builder()
+        glAttribute(VAO)
             .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
             .bind<GL_ARRAY_BUFFER>(VBO)
             .object<MeshVertex>()
@@ -138,7 +130,7 @@ namespace pk {
         glDeleteBuffers(1, &EBO);
         glDeleteBuffers(1, &IBO);
         glDeleteVertexArrays(1, &VAO);
-        VAO = 0, VBO = 0, EBO = 0, IBO = 0;
+        VAO = VBO = EBO = IBO = 0;
     }
 
     Mesh::~Mesh() {

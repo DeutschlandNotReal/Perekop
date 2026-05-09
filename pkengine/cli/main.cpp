@@ -55,12 +55,15 @@ int main() {
     
     StackTimer<float, 2> frame_timer;
 
+    glEnable(GL_DEPTH_TEST);
     frame_timer.begin(-1.f/Perekop::target_fps);
     while (!Perekop::main_window.should_close()) {
-        draw();
         float dt = frame_timer.delta();
+        frame_timer.begin();
+        draw();
         Perekop::on_step(dt);
-        frame_timer.sleep(1/Perekop::target_fps - dt);
+        float fdt = frame_timer.stop();
+        frame_timer.sleep(1.f/Perekop::target_fps - fdt);
     }
 
     Perekop::on_close();
