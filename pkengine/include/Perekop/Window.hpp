@@ -32,22 +32,22 @@ namespace pk {
                 void reset() const; // both unhides and unlocks
 
                 template <MouseKey key> EventPort<> on_press() {
-                    if constexpr(key==0) return l_down.port;
-                    if constexpr(key==1) return r_down.port;
-                    if constexpr(key==2) return m_down.port;
+                    if constexpr(key==0) return l_down;
+                    if constexpr(key==1) return r_down;
+                    if constexpr(key==2) return m_down;
                 }
 
                 template <MouseKey key> EventPort<> on_release() {
-                    if constexpr(key==0) return l_up.port;
-                    if constexpr(key==1) return r_up.port;
-                    if constexpr(key==2) return m_up.port;
+                    if constexpr(key==0) return l_up;
+                    if constexpr(key==1) return r_up;
+                    if constexpr(key==2) return m_up;
                 }
 
                 template <MouseKey key> bool is_held() {
                     return is_down(key);
                 }
 
-                EventPort<int, int> on_move{moved.port};
+                EventPort<int, int> on_move{moved};
     };
 
     class Keyboard {
@@ -58,8 +58,8 @@ namespace pk {
             Event<int> key_down, key_up;
             public:
                 EventPort<int> 
-                    key_pressed{key_down.port},
-                    key_released{key_up.port};
+                    key_pressed{key_down},
+                    key_released{key_up};
 
                 bool is_held(int key) const;
     };
@@ -87,12 +87,12 @@ namespace pk {
             void set_title(const char* t) const;
 
             EventPort<int, int> 
-                on_resize{resized.port},
-                on_move{moved.port};
+                on_resize{resized},
+                on_move{moved};
             EventPort<> 
-                on_minimize{minimized.port},
-                on_maximize{maximized.port},
-                on_close{closed.port};
+                on_minimize{minimized},
+                on_maximize{maximized},
+                on_close{closed};
 
             void maximize() const;
             void minimize() const;
@@ -105,5 +105,6 @@ namespace pk {
             void show() const;
 
             bool should_close() const;
+            bool visible() const;
     };
 }

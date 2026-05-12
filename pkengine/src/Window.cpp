@@ -67,12 +67,10 @@ void Window::make_context() const { glfwMakeContextCurrent(win); }
 void Window::show() const { glfwShowWindow(win); }
 void Window::swap_buffers() const { glfwSwapBuffers(win); }
 bool Window::should_close() const { return glfwWindowShouldClose(win); }
+bool Window::visible() const { return glfwGetWindowAttrib(win, GLFW_VISIBLE); }
 
-bool Keyboard::is_held(int key) const {
-    return glfwGetKey(*win, key) == GLFW_PRESS;
-}
-
-
+bool Keyboard::is_held(int key) const { return glfwGetKey(*win, key) == GLFW_PRESS; }
+   
 Window::Window(const char* title, int w, int h): mouse(this), keyboard{this} {
     win = glfwCreateWindow(w, h, title, NULL, NULL);
     glfwSetWindowUserPointer(win, this);

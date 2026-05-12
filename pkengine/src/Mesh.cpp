@@ -1,3 +1,4 @@
+#include "Perekop/Transform.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/geometric.hpp>
@@ -6,7 +7,6 @@
 
 #include <Perekop/Engine.hpp>
 #include <Perekop/Mesh.hpp>
-#include <Perekop/Model.hpp>
 
 using namespace glm;
 using namespace Perekop;
@@ -40,16 +40,24 @@ GLuint load_program(const char* vsrc, const char* fsrc) {
     GLuint program = glCreateProgram();
     glAttachShader(program, vshader);
     glAttachShader(program, fshader);
-        
+    glLinkProgram(program);
     glDeleteShader(vshader);
     glDeleteShader(fshader);
-    glLinkProgram(program);
     return program;
 }
 
 struct glAttribute {
     long long offset{0}, stride{0}, index{0}, divisor{-1};
+    GLenum last_buffer;
     glAttribute(GLuint array) { glBindVertexArray(array); }
+    glAttribute(GLuint* array) {
+        glGenVertexArrays(1, array);
+        glBindVertexArray(*array);
+    }
+    template <int Q> inline glAttribute& genbuf(GLuint* buffer) {
+        glGenBuffers(Q, buffer);
+        return *this;
+    }
     template <typename T> inline glAttribute& object() {
         stride = sizeof(T); offset = 0;
         return *this;
@@ -64,26 +72,47 @@ struct glAttribute {
     }
     template <GLenum type> inline glAttribute& bind(GLuint buffer) { 
         if constexpr (type == GL_ARRAY_BUFFER) ++divisor;
+        last_buffer = buffer;
         glBindBuffer(type, buffer); 
         return *this; 
     }
+    template <GLenum mode, typename T> inline glAttribute& data(const pk::Array<T>& content) {
+        glBufferData(last_buffer, content.bytesize(), content.data(), mode);
+        return *this;
+    }
+
+    template <GLenum type> inline glAttribute& draw(int n_trig, int n_users) {
+        glDrawElementsInstanced(GL_TRIANGLES, n_trig * 3, type, 0, n_users);
+        return *this;
+    }
+
     inline void end() { glBindVertexArray(0); }
 };
 
 namespace pk {
+    glm::mat4 Camera::VP(glm::vec2 screen_size) const noexcept {
+        return glm::perspective(
+            glm::radians(fov), 
+            screen_size.x / screen_size.y,
+            n, f
+        ) * glm::inverse((glm::mat4)transform);
+    }
+
     MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
         program = load_program(vsrc, fsrc);
     }
 
-    MeshBounds Mesh::bounds() const noexcept {
-        if (vertex.empty()) return MeshBounds();
-        glm::vec3 min = vertex[0].pos, max = vertex[0].pos;
-
-        for (const MeshVertex& v : vertex) {
-            min = glm::min(min, v.pos);
-            max = glm::max(max, v.pos);
+    void Mesh::bounds(glm::vec3& min, glm::vec3& max) const noexcept {
+        if (!vertex.empty()) {
+            min = vertex[0].pos, max = vertex[0].pos;
+            for (int i = 1; i < vertex.size(); i++) {
+                auto p = vertex[i].pos;
+                min = glm::min(min, p);
+                max = glm::max(max, p);
+            }
+        } else {
+            min = max = glm::vec3{0};
         }
-        return {min, max};
     }
 
     void MeshMaterial::enable(const mat4& VP) {
@@ -98,18 +127,19 @@ namespace pk {
 
     void Mesh::refresh() {
         if (!VAO) load();
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER,  vertex.bytesize(), vertex.data(), GL_STATIC_DRAW);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, triangle.bytesize(), triangle.data(), GL_STATIC_DRAW);
+
+        glAttribute(VAO)
+            .bind<GL_ARRAY_BUFFER>(VBO)
+                .data<GL_STATIC_DRAW>(vertex)
+            .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
+                .data<GL_STATIC_DRAW>(triangle)
+        .end();
     }
 
     void Mesh::load() {
         if (VAO) return;
-        glGenBuffers(3, &VBO); // makes VBO, EBO, IBO
-        glGenVertexArrays(1, &VAO);
-
-        glAttribute(VAO)
+        glAttribute(&VAO)
+            .genbuf<3>(&VBO)
             .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
             .bind<GL_ARRAY_BUFFER>(VBO)
             .object<MeshVertex>()
@@ -126,56 +156,33 @@ namespace pk {
 
     void Mesh::unload() {
         if (!VAO) return;
-        glDeleteBuffers(1, &VBO);
-        glDeleteBuffers(1, &EBO);
-        glDeleteBuffers(1, &IBO);
+        glDeleteBuffers(3, &VBO);
         glDeleteVertexArrays(1, &VAO);
         VAO = VBO = EBO = IBO = 0;
     }
 
-    Mesh::~Mesh() {
-        for (Model* model : users) 
-            model->_mesh = nullptr;
-        unload();
-        if (!renderer) return;
-        renderer->available.push(meshid);
-    }
+    Mesh::~Mesh() { unload(); }
 
-    void MeshRenderer::draw() {
-        const mat4 VP = camera.get_VP(main_window.size());
-        for (ID_T i = 0; i < meshes.size(); i++) {
-            Mesh& mesh = meshes[i];
-            if (mesh.users.empty() || !mesh.material.program) continue;
+    void Scene::draw(const Window& window) {
+        window.make_context();
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        const mat4 VP = camera.VP(window.size());
+
+        for (Mesh* mesh : meshes) {
             transforms.clear();
-            mesh.material.enable(VP);
-            glBindVertexArray(mesh.VAO);
+            transforms.reserve(mesh->users.size());
 
-            for (Model* model : mesh.users)
-                transforms.push(model->transform.scale(model->scl));
+            for (Model* user : mesh->users)
+                transforms.rawpush(user->transform.scale(user->scl));
 
-            glBindBuffer(GL_ARRAY_BUFFER, mesh.IBO);
-            glBufferData(GL_ARRAY_BUFFER, transforms.bytesize(), transforms.data(), GL_DYNAMIC_DRAW);
-            glDrawElementsInstanced(GL_TRIANGLES, mesh.triangle.size() * 3, GL_UNSIGNED_SHORT, 0, mesh.users.size());
+            glAttribute(mesh->VAO)
+                .bind<GL_ARRAY_BUFFER>(mesh->IBO)
+                .data<GL_DYNAMIC_DRAW>(transforms)
+                .draw<GL_UNSIGNED_SHORT>(mesh->triangle.size(), transforms.size())
+            .end();
         }
-
-        glBindVertexArray(0);
     }
 
-    MeshRenderer::~MeshRenderer() { 
-        for (ID_T i = 0; i < meshes.size(); i++)
-            meshes[i].renderer = nullptr;
-    }
-
-    Mesh& MeshRenderer::create(MeshMaterial material) {
-        if (!available.empty()) {
-            ID_T i = available.pop();
-            meshes[i] = Mesh(material);
-            meshes[i].meshid = i;
-            return meshes[i];
-        }
-        
-        Mesh& mesh = meshes.emplace(material);
-        mesh.meshid = meshes.size() - 1;
-        return mesh;
-    }
+    
 }

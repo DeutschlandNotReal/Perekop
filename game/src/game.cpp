@@ -9,12 +9,6 @@ using glm::vec3;
 
 static Window& window = Perekop::main_window;
 
-inline vec3 angle_XZ(float angle) {
-    vec3 pos{0, 0, 0};
-    sincosf(angle * (3.14159265f / 180.0f), &pos.z, &pos.x);
-    return pos;
-}
-
 struct KeyInfluence {
     GLenum key;
     vec3 influence;
@@ -47,42 +41,42 @@ void Perekop::on_launch() {
         "\n"
         "\n out vec4 col; "
         "\n void main() { gl_Position = VP * model() * vec4(_pos, 1.0); col = vec4(_uv.x, _uv.y, 0.0, 1.0); }",
-        "in vec4 col; void main() {  fragColor = col; }"
+        "in vec4 col; void main() { fragColor = col; }"
     );
 
-    Mesh& pyramidler = Perekop::create_mesh(chudmat); 
-    auto& vertex = pyramidler.vertex;
-    auto& triangle = pyramidler.triangle;
+    Mesh& cubeler = Perekop::create_mesh(chudmat); 
+    auto& vertex = cubeler.vertex;
+    auto& triangle = cubeler.triangle;
 
     vertex.push({
-        {0, 1, 0},
-        {angle_XZ(0)},
-        {angle_XZ(120)},
-        {angle_XZ(240)}
+        {{0, 0, 0}, {0, 0}},
+        {{1, 0, 0}, {1, 0}},
+        {{1, 1, 0}, {1, 1}},
+        {{0, 1, 0}, {0, 1}},
+        {{0, 0, 1}, {0, 0}},
+        {{1, 0, 1}, {1, 0}},
+        {{1, 1, 1}, {1, 1}},
+        {{0, 1, 1}, {0, 1}}
     });
 
     triangle.push({
-        {1, 2, 3},
-        {0, 2, 3},
-        {0, 3, 1},
-        {0, 1, 2}
+        {0, 1, 2}, {0, 2, 3},
+        {4, 6, 5}, {4, 7, 6},
+        {0, 4, 5}, {0, 5, 1},
+        {1, 5, 6}, {1, 6, 2},
+        {2, 6, 7}, {2, 7, 3},
+        {3, 7, 4}, {3, 4, 0}
     });
 
-    auto bounds = pyramidler.bounds();
-    vec3 range = bounds.max - bounds.min;
+    cubeler.refresh();
 
-    for (MeshVertex& v : vertex)
-        v.uv = (v.pos - bounds.min) / range;
-    
-    pyramidler.refresh();
-
-    for (int x = 0; x < 5; x++) 
-        for (int y = 0; y < 5; y++) 
-            for (int z = 0; z < 5; z++)
-                new Model(&pyramidler, vec3(x, y, -z) * 5.f);
+    for (int x = 0; x < 3; x++) 
+        for (int y = 0; y < 3; y++) 
+            for (int z = 0; z < 3; z++)
+                new Model(&cubeler, vec3(x, y, -z) * 5.f);
 
 }
 
 void Perekop::on_close() {
     std::cout << "game's gone\n";
-}  
+} 
