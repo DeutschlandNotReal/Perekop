@@ -17,6 +17,8 @@ namespace pk {
                 index.pop();
             }
 
+            void clear() noexcept { index.point_to_start(); }
+
             void(*connector)(callback) = nullptr;
     };
 
@@ -28,11 +30,13 @@ namespace pk {
         public:
             EventPort(Event<A...>& e): event(&e) {};
             void listen(callback callback) const { 
-                if (event->connector) return event->connector(callback);
+                if (event->connector) 
+                    return event->connector(callback);
 
                 event->connections.push(callback);
             }
 
+            // meant to only be called inside callback
             void disconnect() const {
                 if (!index.empty() && event) 
                     event->connections[index.back()--] = event->connections.popout();

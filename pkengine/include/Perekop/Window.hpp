@@ -6,85 +6,71 @@ struct GLFWwindow;
 
 namespace pk {
     class Window;
-
     class Mouse {
             friend Window;
-            Window* win;
-
-            Mouse(Window* w): win(w) {}
-            Event<> l_down, l_up, m_down, m_up, r_down, r_up;
+            GLFWwindow* _w;
+            Mouse(GLFWwindow* window): _w(window) {}
+            Event<> e_ldown, e_rdown, e_mdown, e_lup, e_rup, e_mup;
             Event<int, int> moved;
-
-            bool is_down(int k) const noexcept;
-
             public:
-                enum MouseKey {
-                    left = 0,
-                    right,
-                    middle
-                };
-                
-                glm::vec2 pos() const;
-                void set_pos(glm::vec2) const;
+                glm::vec2 pos() const noexcept;
+                void pos(glm::vec2) const noexcept;
 
-                void lock() const;
-                void hide() const;
-                void reset() const; // both unhides and unlocks
+                void lock() const noexcept;
+                void hide() const noexcept;
+                void reset() const noexcept; // both unhides and unlocks
 
-                template <MouseKey key> EventPort<> on_press() {
-                    if constexpr(key==0) return l_down;
-                    if constexpr(key==1) return r_down;
-                    if constexpr(key==2) return m_down;
-                }
+                EventPort<>
+                left_down{e_ldown},
+                left_up{e_lup},
+                right_down{e_rdown},
+                right_up{e_rup},
+                middle_down{e_mdown},
+                middle_up{e_mup};
 
-                template <MouseKey key> EventPort<> on_release() {
-                    if constexpr(key==0) return l_up;
-                    if constexpr(key==1) return r_up;
-                    if constexpr(key==2) return m_up;
-                }
+                EventPort<int, int> onMove{moved};
 
-                template <MouseKey key> bool is_held() {
-                    return is_down(key);
-                }
-
-                EventPort<int, int> on_move{moved};
+                bool left_held() const noexcept;
+                bool right_held() const noexcept;
+                bool middle_held() const noexcept;
     };
 
     class Keyboard {
             friend Window;
-            Window* win;
-
-            Keyboard(Window* w): win(w) {}
-            Event<int> key_down, key_up;
+            GLFWwindow* _w;
+            Keyboard(GLFWwindow* window): _w(window) {}
+            Event<int> e_down, e_up;
             public:
                 EventPort<int> 
-                    key_pressed{key_down},
-                    key_released{key_up};
+                    key_down{e_down},
+                    key_up{e_up};
 
-                bool is_held(int key) const;
+                bool key_held(int key) const noexcept;
     };
 
     class Window {
         friend Keyboard;
         friend Mouse;
-        GLFWwindow* win{nullptr};
+        GLFWwindow* _w;
 
         Event<int, int> resized, moved;
         Event<> minimized, maximized, closed;
         public:
-            Window() = default;
+            Window(): _w(nullptr) {}
             Window(const char* title, int width, int height);
-            operator GLFWwindow*() const noexcept { return win; }
+            operator GLFWwindow*() const noexcept { return _w; }
 
-            Mouse mouse{this};
-            Keyboard keyboard{this};
+            Mouse mouse{_w};
+            Keyboard keyboard{_w};
 
-            glm::vec2 pos() const;
-            void set_pos(glm::vec2 p) const;
-            glm::vec2 size() const;
-            void set_size(glm::vec2 s) const;
-            const char* title() const;
-            void set_title(const char* t) const;
+            glm::vec2 position() const noexcept;
+            void position(glm::vec2 p) const noexcept;
+
+            glm::vec2 size() const noexcept;
+            void size(glm::vec2 s) const noexcept;
+
+            const char* title() const noexcept;
+            void title(const char* t) const noexcept;
 
             EventPort<int, int> 
                 on_resize{resized},
@@ -94,17 +80,17 @@ namespace pk {
                 on_maximize{maximized},
                 on_close{closed};
 
-            void maximize() const;
-            void minimize() const;
-            void close() const;
+            void maximize() const noexcept;
+            void minimize() const noexcept;
+            void close() const noexcept;
 
-            void attention() const;
-            void focus() const;
-            void make_context() const;
-            void swap_buffers() const;
-            void show() const;
+            void attention() const noexcept;
+            void focus() const noexcept;
+            void set_context() const noexcept;
+            void swap() const noexcept;
+            void show() const noexcept;
 
-            bool should_close() const;
-            bool visible() const;
+            bool should_close() const noexcept;
+            bool visible() const noexcept;
     };
 }

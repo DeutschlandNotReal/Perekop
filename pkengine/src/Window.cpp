@@ -3,130 +3,120 @@
 #include <GLFW/glfw3.h>
 
 using namespace pk;
-
-bool Mouse::is_down(int key) const noexcept {
-    return glfwGetMouseButton(*win, key) == GLFW_PRESS;
-}
  
-glm::vec2 Mouse::pos() const {
+glm::vec2 Mouse::pos() const noexcept {
     double x, y;
-    glfwGetCursorPos(*win, &x, &y);
+    glfwGetCursorPos(_w, &x, &y);
     return {x, y};
 }
 
-void Mouse::set_pos(glm::vec2 pos) const {
-    glfwSetCursorPos(*win, pos.x, pos.y);
+void Mouse::pos(glm::vec2 pos) const noexcept {
+    glfwSetCursorPos(_w, pos.x, pos.y);
 }
 
-void Mouse::lock() const {
-    glfwSetInputMode(*win, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+void Mouse::lock() const noexcept {
+    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
 }
 
-void Mouse::hide() const {
-    glfwSetInputMode(*win, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+void Mouse::hide() const noexcept {
+    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 }
 
-void Mouse::reset() const {
-    glfwSetInputMode(*win, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+void Mouse::reset() const noexcept {
+    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
-glm::vec2 Window::pos() const {
+glm::vec2 Window::position() const noexcept {
     int x, y;
-    glfwGetWindowPos(win, &x, &y);
+    glfwGetWindowPos(_w, &x, &y);
     return {x, y};
 }
 
-void Window::set_pos(glm::vec2 p) const {
-    glfwSetWindowPos(win, p.x, p.y);
+void Window::position(glm::vec2 p) const noexcept {
+    glfwSetWindowPos(_w, p.x, p.y);
 }
 
-glm::vec2 Window::size() const {
+glm::vec2 Window::size() const noexcept {
     int x, y;
-    glfwGetWindowSize(win, &x, &y);
+    glfwGetWindowSize(_w, &x, &y);
     return {x, y};
 }
 
-void Window::set_size(glm::vec2 s) const {
-    glfwSetWindowSize(win, s.x, s.y);
+void Window::size(glm::vec2 s) const noexcept {
+    glfwSetWindowSize(_w, s.x, s.y);
 }
 
-const char* Window::title() const {
-    return glfwGetWindowTitle(win);
-}
+const char* Window::title() const noexcept { return glfwGetWindowTitle(_w); }
+void Window::title(const char* t) const noexcept { glfwSetWindowTitle(_w, t); }
 
-void Window::set_title(const char* t) const {
-    glfwSetWindowTitle(win, t);
-}
+void Window::maximize() const noexcept { glfwMaximizeWindow(_w); }
+void Window::minimize() const noexcept { glfwIconifyWindow(_w); }
+void Window::close() const noexcept{ glfwDestroyWindow(_w); }
+void Window::attention() const noexcept { glfwRequestWindowAttention(_w); }
+void Window::focus() const noexcept { glfwFocusWindow(_w); }
+void Window::set_context() const noexcept { glfwMakeContextCurrent(_w); }
+void Window::show() const noexcept { glfwShowWindow(_w); }
+void Window::swap() const noexcept { glfwSwapBuffers(_w); }
+bool Window::should_close() const noexcept { return glfwWindowShouldClose(_w); }
+bool Window::visible() const noexcept { return glfwGetWindowAttrib(_w, GLFW_VISIBLE); }
 
-void Window::maximize() const { glfwMaximizeWindow(win); }
-void Window::minimize() const { glfwIconifyWindow(win); }
-void Window::close() const { glfwDestroyWindow(win); }
-void Window::attention() const { glfwRequestWindowAttention(win); }
-void Window::focus() const { glfwFocusWindow(win); }
-void Window::make_context() const { glfwMakeContextCurrent(win); }
-void Window::show() const { glfwShowWindow(win); }
-void Window::swap_buffers() const { glfwSwapBuffers(win); }
-bool Window::should_close() const { return glfwWindowShouldClose(win); }
-bool Window::visible() const { return glfwGetWindowAttrib(win, GLFW_VISIBLE); }
-
-bool Keyboard::is_held(int key) const { return glfwGetKey(*win, key) == GLFW_PRESS; }
+bool Keyboard::key_held(int key) const noexcept { return glfwGetKey(_w, key) == GLFW_PRESS; }
    
-Window::Window(const char* title, int w, int h): mouse(this), keyboard{this} {
-    win = glfwCreateWindow(w, h, title, NULL, NULL);
-    glfwSetWindowUserPointer(win, this);
+Window::Window(const char* title, int w, int h):
+    _w(glfwCreateWindow(w, h, title, NULL, NULL))
+{
+    glfwSetWindowUserPointer(_w, this);
 
     // mouse move & press
-    glfwSetCursorPosCallback(win, [](GLFWwindow* glfw_win, double x, double y){
+    glfwSetCursorPosCallback(_w, [](GLFWwindow* glfw_win, double x, double y){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->mouse.moved.invoke(x, y);
     });
 
-    glfwSetMouseButtonCallback(win, [](GLFWwindow* glfw_win, int button, int action, int){
+    glfwSetMouseButtonCallback(_w, [](GLFWwindow* glfw_win, int button, int action, int){
         Mouse& mouse = static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->mouse;
 
         // button: [0: left, 1: right, 2: middle]
         // action: [0: released, 1: pressed]
 
         switch (button | (action << 4)) {
-            case (0x10): mouse.l_down.invoke(); break;
-            case (0x11): mouse.r_down.invoke(); break;
-            case (0x13): mouse.m_down.invoke(); break;
-
-            case (0x00): mouse.l_up.invoke(); break;
-            case (0x01): mouse.r_up.invoke(); break;
-            case (0x03): mouse.m_up.invoke(); break;
+            case (0x10): mouse.e_ldown.invoke(); break;
+            case (0x11): mouse.e_rdown.invoke(); break;
+            case (0x13): mouse.e_mdown.invoke(); break;
+            case (0x00): mouse.e_lup.invoke(); break;
+            case (0x01): mouse.e_rup.invoke(); break;
+            case (0x03): mouse.e_mup.invoke(); break;
         }
     });
 
     // keyboard input
-    glfwSetKeyCallback(win, [](GLFWwindow* glfw_win, int key, int, int action, int){
+    glfwSetKeyCallback(_w, [](GLFWwindow* glfw_win, int key, int, int action, int){
         Keyboard& keyboard = static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->keyboard;
-
         if (action == GLFW_PRESS)
-            return keyboard.key_down.invoke(key);
+            return keyboard.e_down.invoke(key);
         if (action == GLFW_RELEASE)
-            return keyboard.key_up.invoke(key);
+            return keyboard.e_up.invoke(key);
 
         // action can also be GLFW_REPEAT (ignored!!)
     });
 
     // window
-    glfwSetWindowSizeCallback(win, [](GLFWwindow* glfw_win, int x, int y){
+    glfwSetWindowSizeCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->resized.invoke(x, y);
     });
 
-    glfwSetWindowPosCallback(win, [](GLFWwindow* glfw_win, int x, int y){
+    glfwSetWindowPosCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->moved.invoke(x, y);
     });
 
-    glfwSetWindowIconifyCallback(win, [](GLFWwindow* glfw_win, int){
+    glfwSetWindowIconifyCallback(_w, [](GLFWwindow* glfw_win, int){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->minimized.invoke();
     });
 
-    glfwSetWindowMaximizeCallback(win, [](GLFWwindow* glfw_win, int){
+    glfwSetWindowMaximizeCallback(_w, [](GLFWwindow* glfw_win, int){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->maximized.invoke();
     });
 
-    glfwSetWindowCloseCallback(win, [](GLFWwindow* glfw_win){
+    glfwSetWindowCloseCallback(_w, [](GLFWwindow* glfw_win){
         static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->closed.invoke();
     });
 }

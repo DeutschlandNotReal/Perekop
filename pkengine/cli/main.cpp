@@ -11,21 +11,18 @@ using glm::vec3, glm::vec2;
 using namespace pk;
 
 namespace Perekop {
-    static MeshMaterial defmat = MeshMaterial();
-    static MeshRenderer renderer = MeshRenderer();
-    float target_fps = 120.f;
-
+    static MeshMaterial defmat;
+    Scene scene = Scene();
     Window main_window;
-    Mesh& create_mesh() { return renderer.create(defmat); }
-    Mesh& create_mesh(MeshMaterial mat) { return renderer.create(mat); }
-
-    Camera camera{};
+    Camera camera;
+    float target_fps = 120.f;
 }
 
 void draw() {
-    if (!Perekop::main_window.visible()) return;
-    Perekop::renderer.draw(); 
-    Perekop::main_window.swap_buffers();
+    if (Perekop::main_window.visible()) {
+        Perekop::scene.draw(Perekop::main_window); 
+        Perekop::main_window.swap();
+    }
 }
 
 int main() {
@@ -34,7 +31,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     Perekop::main_window = Window("Perekop", 720, 480);
-    Perekop::main_window.make_context();
+    Perekop::main_window.set_context();
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
 

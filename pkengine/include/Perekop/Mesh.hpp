@@ -2,8 +2,7 @@
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
-#include <Perekop/Array.hpp>
-#include <Perekop/StableArray.hpp>
+#include <Perekop/StablePool.hpp>
 #include <Perekop/Window.hpp>
 #include <Perekop/Transform.hpp>
 
@@ -14,10 +13,7 @@ namespace pk {
     struct Model {
         Transform transform;
         glm::vec3 scl{1};
-        Mesh* mesh;
-        short userid;
-        Model(Mesh* mesh);
-        ~Model();
+        Model(glm::vec3 p): transform(p) {}
     };
 
     struct Camera {
@@ -58,7 +54,7 @@ namespace pk {
         public:
             Array<MeshVertex> vertex;
             Array<MeshTriangle> triangle;
-            Array<Model*> users;
+            Array<short> models;
 
             void bounds(glm::vec3& min, glm::vec3& max) const noexcept;
             void load();
@@ -69,12 +65,23 @@ namespace pk {
     };
 
     class Scene {
-        StableArray<Mesh*, short> meshes;
+        StablePool<Mesh> meshes;
+        StablePool<Model> models;
         Array<glm::mat3x4> transforms{50};
 
         public:
-            template <typename... A> short create_mesh();
-            Mesh& get_mesh(short id) const noexcept { return *meshes[id]; } 
+            unsigned int register_mesh(Mesh& mesh) { 
+                return meshes.insert(std::move(mesh)); 
+            }
+            unsigned int register_model(Model& model) { 
+                return models.insert(std::move(model)); 
+            }
+            void link_model(unsigned int meshid, unsigned int modelid) {
+                meshes[meshid].models.push(modelid);
+            }
+            void remove_mesh(unsigned int i) { meshes.remove(i); };
+            void remove_model(unsigned int i) { models.remove(i); };
+
             void draw(const Window& win);
     };
 }

@@ -164,25 +164,25 @@ namespace pk {
     Mesh::~Mesh() { unload(); }
 
     void Scene::draw(const Window& window) {
-        window.make_context();
+        window.set_context();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         const mat4 VP = camera.VP(window.size());
 
-        for (Mesh* mesh : meshes) {
+        for (const Mesh& mesh : meshes) {
             transforms.clear();
-            transforms.reserve(mesh->users.size());
+            transforms.reserve(mesh.models.size());
 
-            for (Model* user : mesh->users)
-                transforms.rawpush(user->transform.scale(user->scl));
+            for (short modelid : mesh.models) {
+                Model& model = models[modelid];
+                transforms.push_nc(model.transform.scale3x4(model.scl));
+            }
 
-            glAttribute(mesh->VAO)
-                .bind<GL_ARRAY_BUFFER>(mesh->IBO)
+            glAttribute(mesh.VAO)
+                .bind<GL_ARRAY_BUFFER>(mesh.IBO)
                 .data<GL_DYNAMIC_DRAW>(transforms)
-                .draw<GL_UNSIGNED_SHORT>(mesh->triangle.size(), transforms.size())
+                .draw<GL_UNSIGNED_SHORT>(mesh.triangle.size(), transforms.size())
             .end();
         }
     }
-
-    
 }

@@ -28,9 +28,9 @@ void Perekop::on_step(float dt) {
     vec3 disp{0, 0, 0};
 
     for (const KeyInfluence& infl : influences) 
-        if (window.keyboard.is_held(infl.key)) disp += infl.influence;
+        if (window.keyboard.key_held(infl.key)) disp += infl.influence;
 
-    Perekop::camera.transform.displace_local(disp * dt);
+    Perekop::camera.transform.displace_l(disp * dt);
 }
 
 void Perekop::on_launch() {
@@ -44,11 +44,8 @@ void Perekop::on_launch() {
         "in vec4 col; void main() { fragColor = col; }"
     );
 
-    Mesh& cubeler = Perekop::create_mesh(chudmat); 
-    auto& vertex = cubeler.vertex;
-    auto& triangle = cubeler.triangle;
-
-    vertex.push({
+    Mesh cubeler{chudmat};
+    cubeler.vertex.push({
         {{0, 0, 0}, {0, 0}},
         {{1, 0, 0}, {1, 0}},
         {{1, 1, 0}, {1, 1}},
@@ -59,7 +56,7 @@ void Perekop::on_launch() {
         {{0, 1, 1}, {0, 1}}
     });
 
-    triangle.push({
+    cubeler.triangle.push({
         {0, 1, 2}, {0, 2, 3},
         {4, 6, 5}, {4, 7, 6},
         {0, 4, 5}, {0, 5, 1},
@@ -69,12 +66,15 @@ void Perekop::on_launch() {
     });
 
     cubeler.refresh();
+    auto cubeler_id = Perekop::scene.register_mesh(cubeler);
 
     for (int x = 0; x < 3; x++) 
         for (int y = 0; y < 3; y++) 
-            for (int z = 0; z < 3; z++)
-                new Model(&cubeler, vec3(x, y, -z) * 5.f);
-
+            for (int z = 0; z < 3; z++) {
+                Model model{{x, y, -z}};
+                auto model_id = Perekop::scene.register_model(model);
+                Perekop::scene.link_model(cubeler_id, model_id);
+            }
 }
 
 void Perekop::on_close() {
