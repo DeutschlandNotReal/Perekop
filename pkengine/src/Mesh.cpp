@@ -1,15 +1,14 @@
-#include "Perekop/Transform.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "pk/Time.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/geometric.hpp>
 #include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
-#include <Perekop/Engine.hpp>
-#include <Perekop/Mesh.hpp>
+#include <iostream>
+#include <pk/Engine.hpp>
+#include <pk/Mesh.hpp>
 
 using namespace glm;
-using namespace Perekop;
 
 const char* pre_vsrc = "#version 330"
     "\n layout(location = 0) in vec3 _pos;"
@@ -24,20 +23,20 @@ const char* pre_vsrc = "#version 330"
 
 const char* pre_fsrc = "#version 330 \n out vec4 fragColor;";
 
-GLuint load_shader(const char** src, GLenum type) {
-    GLuint shader = glCreateShader(type);
+template <GLenum T> GLuint load_shader(const char* pre, const char* post) {
+    const char* src[] = {pre, post};
+    GLuint shader = glCreateShader(T);
     glShaderSource(shader, 2, src, NULL);
     glCompileShader(shader);
     return shader;
 }
 
 GLuint load_program(const char* vsrc, const char* fsrc) {
-    const char* full_vsrc[] = {pre_vsrc, vsrc};
-    const char* full_fsrc[] = {pre_fsrc, fsrc};
-    GLuint vshader = load_shader(full_vsrc, GL_VERTEX_SHADER);
-    GLuint fshader = load_shader(full_fsrc, GL_FRAGMENT_SHADER);
+    GLuint 
+        vshader = load_shader<GL_VERTEX_SHADER>(pre_vsrc, vsrc),
+        fshader = load_shader<GL_FRAGMENT_SHADER>(pre_fsrc, fsrc),
+        program = glCreateProgram();
 
-    GLuint program = glCreateProgram();
     glAttachShader(program, vshader);
     glAttachShader(program, fshader);
     glLinkProgram(program);
@@ -47,46 +46,43 @@ GLuint load_program(const char* vsrc, const char* fsrc) {
 }
 
 struct glAttribute {
-    long long offset{0}, stride{0}, index{0}, divisor{-1};
-    GLenum last_buffer;
-    glAttribute(GLuint array) { glBindVertexArray(array); }
+    long long i{0}, d{-1}, s{0}, o{0};
+    GLuint b;
+    glAttribute(GLuint array) { 
+        glBindVertexArray(array); 
+    }
     glAttribute(GLuint* array) {
         glGenVertexArrays(1, array);
         glBindVertexArray(*array);
     }
-    template <int Q> inline glAttribute& genbuf(GLuint* buffer) {
-        glGenBuffers(Q, buffer);
-        return *this;
+    template <typename T> glAttribute& object() {
+        s = sizeof(T); o = 0; return *this;
     }
-    template <typename T> inline glAttribute& object() {
-        stride = sizeof(T); offset = 0;
-        return *this;
-    }
-    template <int K, GLenum T> inline glAttribute& member() {
-        glVertexAttribPointer(index, K, T, GL_FALSE, stride, (void*)offset);
-        glEnableVertexAttribArray(index);
-        glVertexAttribDivisor(index, divisor);
-        offset += K * sizeof(float); 
-        ++index;
+    template <typename T> glAttribute& fmember() {
+        char kfloats = sizeof(T) >> 2;
+        glVertexAttribPointer(i, kfloats, GL_FLOAT, GL_FALSE, s, (void*)o);
+        glEnableVertexAttribArray(i);
+        glVertexAttribDivisor(i, d);
+        o += sizeof(T); ++i;
         return *this;
     }
     template <GLenum type> inline glAttribute& bind(GLuint buffer) { 
-        if constexpr (type == GL_ARRAY_BUFFER) ++divisor;
-        last_buffer = buffer;
-        glBindBuffer(type, buffer); 
+        if constexpr (type == GL_ARRAY_BUFFER) ++d;
+        glBindBuffer(type, b = buffer); 
         return *this; 
     }
-    template <GLenum mode, typename T> inline glAttribute& data(const pk::Array<T>& content) {
-        glBufferData(last_buffer, content.bytesize(), content.data(), mode);
+    template <GLenum type> inline glAttribute& bind(GLuint* buffer) {
+        glGenBuffers(1, buffer);
+        return bind<type>(*buffer);
+    }
+    template <GLenum mode, typename T> inline glAttribute& data(const pkutil::Array<T>& content) {
+        glBufferData(b, content.size() * sizeof(T), content.begin(), mode);
         return *this;
     }
-
-    template <GLenum type> inline glAttribute& draw(int n_trig, int n_users) {
-        glDrawElementsInstanced(GL_TRIANGLES, n_trig * 3, type, 0, n_users);
+    template <GLenum type> inline glAttribute& draw(int n_ind, int n_users) {
+        glDrawElementsInstanced(GL_TRIANGLES, n_ind, type, 0, n_users);
         return *this;
     }
-
-    inline void end() { glBindVertexArray(0); }
 };
 
 namespace pk {
@@ -103,7 +99,7 @@ namespace pk {
     }
 
     void Mesh::bounds(glm::vec3& min, glm::vec3& max) const noexcept {
-        if (!vertex.empty()) {
+        if (vertex.size() > 0) {
             min = vertex[0].pos, max = vertex[0].pos;
             for (int i = 1; i < vertex.size(); i++) {
                 auto p = vertex[i].pos;
@@ -115,7 +111,15 @@ namespace pk {
         }
     }
 
-    void MeshMaterial::enable(const mat4& VP) {
+    void Mesh::rewind() noexcept {
+        for (int i = 0; i < indices.size(); i+=3) {
+            short first = indices[i];
+            indices[i] = indices[i+2];
+            indices[i+2] = first;
+        }
+    }
+
+    void MeshMaterial::enable(const mat4& VP) const {
         glUseProgram(program);
         glUniformMatrix4fv(
             glGetUniformLocation(program, "VP"),
@@ -132,26 +136,24 @@ namespace pk {
             .bind<GL_ARRAY_BUFFER>(VBO)
                 .data<GL_STATIC_DRAW>(vertex)
             .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-                .data<GL_STATIC_DRAW>(triangle)
-        .end();
+                .data<GL_STATIC_DRAW>(indices)
+        ;
     }
 
     void Mesh::load() {
         if (VAO) return;
         glAttribute(&VAO)
-            .genbuf<3>(&VBO)
-            .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-            .bind<GL_ARRAY_BUFFER>(VBO)
+            .bind<GL_ELEMENT_ARRAY_BUFFER>(&EBO)
+            .bind<GL_ARRAY_BUFFER>(&VBO)
             .object<MeshVertex>()
-                .member<3, GL_FLOAT>() // pos
-                .member<2, GL_FLOAT>() // uv
-
-            .bind<GL_ARRAY_BUFFER>(IBO)
-            .object<mat3x4>()
-                .member<4, GL_FLOAT>()
-                .member<4, GL_FLOAT>()
-                .member<4, GL_FLOAT>()
-        .end();
+                .fmember<glm::vec3>() // pos
+                .fmember<glm::vec2>() // uv
+            .bind<GL_ARRAY_BUFFER>(&IBO)
+            .object<glm::mat3x4>()
+                .fmember<glm::vec4>()
+                .fmember<glm::vec4>()
+                .fmember<glm::vec4>()
+        ;
     }
 
     void Mesh::unload() {
@@ -161,28 +163,35 @@ namespace pk {
         VAO = VBO = EBO = IBO = 0;
     }
 
-    Mesh::~Mesh() { unload(); }
-
     void Scene::draw(const Window& window) {
         window.set_context();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        const mat4 VP = camera.VP(window.size());
+        const mat4 VP = Perekop::camera.VP(window.size());
 
+        StackTimer<double, 1> drawtimer;
+        drawtimer.begin();
+        int kmesh{0}, kmodel{0};
         for (const Mesh& mesh : meshes) {
+            if (mesh.models.size() == 0) continue;
+            ++kmesh;
+            kmodel += mesh.models.size();
             transforms.clear();
-            transforms.reserve(mesh.models.size());
+            int required = mesh.models.size() - transforms.capacity();
+            if (required > 0) transforms.reserve(required);
 
-            for (short modelid : mesh.models) {
-                Model& model = models[modelid];
-                transforms.push_nc(model.transform.scale3x4(model.scl));
-            }
+            mesh.mat.enable(VP);
+
+            for (short modelid : mesh.models) 
+                transforms.push(models[modelid].get_scaled());
 
             glAttribute(mesh.VAO)
                 .bind<GL_ARRAY_BUFFER>(mesh.IBO)
                 .data<GL_DYNAMIC_DRAW>(transforms)
-                .draw<GL_UNSIGNED_SHORT>(mesh.triangle.size(), transforms.size())
-            .end();
+                .draw<GL_UNSIGNED_SHORT>(mesh.indices.size(), transforms.size())
+            ;
         }
+        double render_time = drawtimer.stop() * 1000;
+        std::cout << "drew " << kmesh << " mesh(es), " << kmodel << " model(s) in " << render_time << "ms\n";
     }
 }

@@ -1,4 +1,4 @@
-#include <Perekop/Window.hpp>
+#include <pk/Window.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

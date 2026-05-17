@@ -1,7 +1,7 @@
 #pragma once
-#include <Perekop/Event.hpp>
-#include <Perekop/Mesh.hpp>
-#include <Perekop/Window.hpp>
+#include <pkutil/Event.hpp>
+#include <pk/Mesh.hpp>
+#include <pk/Window.hpp>
 
 namespace Perekop {
     extern float target_fps;

@@ -1,9 +1,8 @@
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
-#include <Perekop/Engine.hpp>
-#include <Perekop/Time.hpp>
 #include <iostream>
 
+#include <pk/Engine.hpp>
 using namespace pk;
 using glm::vec3;
 
@@ -35,7 +34,6 @@ void Perekop::on_step(float dt) {
 
 void Perekop::on_launch() {
     std::cout << "Game begin\n";
-    StackTimer<double, 10> timer;
 
     MeshMaterial chudmat(
         "\n"
@@ -44,8 +42,9 @@ void Perekop::on_launch() {
         "in vec4 col; void main() { fragColor = col; }"
     );
 
-    Mesh cubeler{chudmat};
-    cubeler.vertex.push({
+    Mesh& cubeler = scene.create_mesh();
+    cubeler.mat = chudmat;
+    cubeler.vertex = {
         {{0, 0, 0}, {0, 0}},
         {{1, 0, 0}, {1, 0}},
         {{1, 1, 0}, {1, 1}},
@@ -54,26 +53,26 @@ void Perekop::on_launch() {
         {{1, 0, 1}, {1, 0}},
         {{1, 1, 1}, {1, 1}},
         {{0, 1, 1}, {0, 1}}
-    });
+    };
 
-    cubeler.triangle.push({
-        {0, 1, 2}, {0, 2, 3},
-        {4, 6, 5}, {4, 7, 6},
-        {0, 4, 5}, {0, 5, 1},
-        {1, 5, 6}, {1, 6, 2},
-        {2, 6, 7}, {2, 7, 3},
-        {3, 7, 4}, {3, 4, 0}
-    });
+    cubeler.indices = {
+        0,2,1, 0,3,2, // front
+        4,5,6, 4,6,7, // back
+        0,1,5, 0,5,4, // bottom
+        1,2,6, 1,6,5, // right
+        2,3,7, 2,7,6, // top
+        3,0,4, 3,4,7  // left
+    };
 
+    cubeler.rewind();
     cubeler.refresh();
-    auto cubeler_id = Perekop::scene.register_mesh(cubeler);
 
-    for (int x = 0; x < 3; x++) 
-        for (int y = 0; y < 3; y++) 
-            for (int z = 0; z < 3; z++) {
-                Model model{{x, y, -z}};
-                auto model_id = Perekop::scene.register_model(model);
-                Perekop::scene.link_model(cubeler_id, model_id);
+    for (int x = -3; x < 3; x++) 
+        for (int y = -3; y < 3; y++) 
+            for (int z = -3; z < 3; z++) {
+                Model& model = scene.create_model();
+                model.transform = vec3{x, y, z} * 10.f;
+                scene.link(cubeler.id, model.id);
             }
 }
 

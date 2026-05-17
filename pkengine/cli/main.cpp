@@ -1,18 +1,16 @@
-#include "Perekop/Mesh.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>   
 
-#include <Perekop/Engine.hpp>
-#include <Perekop/Time.hpp>
-#include <thread>
+#include <pk/Engine.hpp>
+#include <pk/Time.hpp>
 
 using glm::vec3, glm::vec2; 
 using namespace pk;
 
 namespace Perekop {
     static MeshMaterial defmat;
-    Scene scene = Scene();
+    Scene scene;
     Window main_window;
     Camera camera;
     float target_fps = 120.f;
@@ -53,11 +51,9 @@ int main() {
         glfwPollEvents();
         Perekop::on_step(dt);
         float fdt = frame_timer.elapsed();
-        //frame_timer.sleep(1.f / Perekop::target_fps - fdt);
-        std::this_thread::yield();
+        frame_timer.sleep(1.f / Perekop::target_fps - fdt);
     }
 
     Perekop::on_close();
-    main();
     glfwTerminate();
 }

@@ -14,12 +14,11 @@ namespace pk {
             static void sleep(T duration) {
                 std::this_thread::sleep_for(std::chrono::duration<T>(duration));
             }
-
-            void begin() noexcept { records[++ptr] = now(); }
-            void begin(T offset) noexcept { records[++ptr] = now() + offset; }
+            
+            void begin(T offset = 0) noexcept { records[++ptr] = now() + offset; }
             [[nodiscard]] T stop() noexcept { return now() - records[ptr--]; }
             [[nodiscard]] T elapsed() const noexcept { return now() - records[ptr]; }
-            [[nodiscard]] T delta() {
+            [[nodiscard]] T delta() noexcept {
                 T dt = elapsed();
                 records[ptr] += dt;
                 return dt;
