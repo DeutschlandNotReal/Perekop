@@ -3,7 +3,11 @@
 #include <GLFW/glfw3.h>
 
 using namespace pk;
- 
+
+Window& get_window(GLFWwindow* ptr) {
+    return *static_cast<Window*>(glfwGetWindowUserPointer(ptr));
+}
+
 glm::vec2 Mouse::pos() const noexcept {
     double x, y;
     glfwGetCursorPos(_w, &x, &y);
@@ -69,54 +73,54 @@ Window::Window(const char* title, int w, int h):
 
     // mouse move & press
     glfwSetCursorPosCallback(_w, [](GLFWwindow* glfw_win, double x, double y){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->mouse.moved.invoke(x, y);
+        get_window(glfw_win).mouse.on_move.fire(x, y);
     });
 
     glfwSetMouseButtonCallback(_w, [](GLFWwindow* glfw_win, int button, int action, int){
-        Mouse& mouse = static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->mouse;
+        Mouse& mouse = get_window(glfw_win).mouse;
 
         // button: [0: left, 1: right, 2: middle]
         // action: [0: released, 1: pressed]
 
         switch (button | (action << 4)) {
-            case (0x10): mouse.e_ldown.invoke(); break;
-            case (0x11): mouse.e_rdown.invoke(); break;
-            case (0x13): mouse.e_mdown.invoke(); break;
-            case (0x00): mouse.e_lup.invoke(); break;
-            case (0x01): mouse.e_rup.invoke(); break;
-            case (0x03): mouse.e_mup.invoke(); break;
+            case (0x10): return mouse.left_down.fire();
+            case (0x11): return mouse.right_down.fire();
+            case (0x13): return mouse.middle_down.fire();
+            case (0x00): return mouse.left_up.fire();
+            case (0x01): return mouse.right_up.fire();
+            case (0x03): return mouse.middle_up.fire();
         }
     });
 
     // keyboard input
     glfwSetKeyCallback(_w, [](GLFWwindow* glfw_win, int key, int, int action, int){
-        Keyboard& keyboard = static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->keyboard;
-        if (action == GLFW_PRESS)
-            return keyboard.e_down.invoke(key);
-        if (action == GLFW_RELEASE)
-            return keyboard.e_up.invoke(key);
-
-        // action can also be GLFW_REPEAT (ignored!!)
+        Keyboard& keyboard = get_window(glfw_win).keyboard;
+        
+        switch (action) {
+            case GLFW_PRESS: return keyboard.key_down.fire(key);
+            case GLFW_RELEASE: return keyboard.key_up.fire(key);
+            case GLFW_REPEAT: break; // IGNORED!
+        }
     });
 
     // window
     glfwSetWindowSizeCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->resized.invoke(x, y);
+        get_window(glfw_win).on_resize.fire(x, y);
     });
 
     glfwSetWindowPosCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->moved.invoke(x, y);
+        get_window(glfw_win).on_move.fire(x, y);
     });
 
     glfwSetWindowIconifyCallback(_w, [](GLFWwindow* glfw_win, int){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->minimized.invoke();
+        get_window(glfw_win).on_minimize.fire();
     });
 
     glfwSetWindowMaximizeCallback(_w, [](GLFWwindow* glfw_win, int){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->maximized.invoke();
+        get_window(glfw_win).on_maximize.fire();
     });
 
     glfwSetWindowCloseCallback(_w, [](GLFWwindow* glfw_win){
-        static_cast<Window*>(glfwGetWindowUserPointer(glfw_win))->closed.invoke();
+        get_window(glfw_win).on_close.fire();
     });
 }
