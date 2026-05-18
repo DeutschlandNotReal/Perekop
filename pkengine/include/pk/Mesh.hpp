@@ -4,12 +4,12 @@
 
 #include <pk/Window.hpp>
 #include <pk/Transform.hpp>
-#include <pkutil/Pool.hpp>
+#include <pkutil/SparseSet.hpp>
 
 namespace pk {
     class Mesh;
     struct Model {
-        uint id;
+        short id;
         glm::vec3 scale{1};
         Transform transform;
         glm::mat3x4 get_scaled() const noexcept {
@@ -46,7 +46,7 @@ namespace pk {
         friend Scene;
         uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
         public:
-            uint id{0};
+            short id{0};
             MeshMaterial mat;
             pkutil::Array<MeshVertex> vertex;
             pkutil::Array<short> indices;
@@ -60,29 +60,28 @@ namespace pk {
     };
 
     class Scene {
-        pkutil::StablePool<Mesh> meshes;
-        pkutil::StablePool<Model> models;
+        pkutil::SparseSet<Mesh> meshes;
+        pkutil::SparseSet<Model> models;
         pkutil::Array<glm::mat3x4> transforms{50};
 
         public:
             Mesh& create_mesh() { 
-                uint id = meshes.emplace();
-                meshes[id].id = id; 
-                return meshes[id];
+                return meshes.insert();
             }
+
             Model& create_model() { 
-                uint id = models.emplace();
-                models[id].id = id;
-                return models[id];
+                return models.insert();
             }
+
             void link(uint meshid, uint modelid) {
                 meshes[meshid].models.push(modelid);
             }
+
             void remove(Mesh& mesh) {
-                meshes.remove(mesh.id);
+                meshes.remove(mesh);
             }
             void remove(Model& model) {
-                models.remove(model.id);
+                models.remove(model);
             }
 
             void draw(const Window& win);

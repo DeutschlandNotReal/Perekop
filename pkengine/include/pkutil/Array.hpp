@@ -6,77 +6,128 @@ namespace pkutil {
     template <typename T> inline T* alloc(int n) {
        return (T*)::operator new(sizeof(T)*n);
     }
-    inline void dealloc(void* ptr) { ::operator delete(ptr); }
-    
+
+    template <typename T> inline void realloc(T*& ptr, int n, int new_n) {
+        T* prev = ptr;
+        ptr = copy(alloc<T>(new_n), ptr, n);
+        free(prev);
+    }
+
+    template <typename T> inline T* copy(T* dst, T* src, int n) {
+        std::memcpy(dst, src, n*sizeof(T));
+        return dst;
+    }
+
+    template <typename T> inline void free(T* ptr) { ::operator delete(ptr); }
 
     template <typename T> class Array {
-        T* _data{nullptr}; uint _cur{0}, _end{0};
-        T* _slot() {
-            if (_cur == _end) _resize(_end * 2 + 1);
-            return _data + _cur++;
+        T *data, *cur, *cap;
+
+        T* next() {
+            if (cur == cap) resize(size() * 2 + 1);
+            return cur++;
         }
-        void _resize(uint size) {
-            T* old = _data;
-            _data = alloc<T>(size);
-            std::memcpy(_data, old, _cur*sizeof(T));
-            dealloc(old);
-            _end = size;
+
+        void resize(uint new_capacity) {
+            uint L = size();
+            realloc(data, capacity(), new_capacity);
+            cap = data + new_capacity;
+            cur = data + L;
         }
+        
         public:
-            Array(uint len = 1): _end(len), _data(alloc<T>(len)) {}
-            Array(const T& first): _end(1), _cur(1), _data(new T(first)) {}
-            Array(std::initializer_list<T> first): _end(first.size()), _cur(first.size()), _data(alloc<T>(first.size())) {
-                std::memcpy(_data, first.begin(), first.size() * sizeof(T));
-            }
-            ~Array() { dealloc(_data); }
-            T& operator[](uint i) const noexcept { return _data[i]; }
-            T* begin() const noexcept { return _data; }
-            T* end() const noexcept { return _data + _cur; }
-            T& back() const noexcept { return _data[_cur-1]; }
+            Array(uint len = 1): 
+                data(alloc<T>(len)), cur(data), cap(data+len)
+            {}
 
-            uint size() const noexcept { return _cur; }
-            uint capacity() const noexcept { return _end; }
-            void clear() noexcept { _cur = 0; }
-            T& pop() noexcept { return _data[--_cur]; }
-            T& swap_pop(uint i) noexcept { return _data[i] = _data[--_cur]; }
+            Array(std::initializer_list<T> init): 
+                data(alloc<T>(init.size())) 
+            { copy(data, init.begin(), init.size()); }
 
-            void reserve(uint n) { _resize(capacity() + n); }
-
-            template <typename... A> void emplace(A&&... args) { 
-                new (_slot()) T(args...);
+            ~Array() { 
+                free(data); 
             }
 
-            void push(const T& item) {
-                new (_slot()) T(item);
+            T& operator[](uint i) const noexcept { 
+                return data[i]; 
             }
 
+            T* begin() const noexcept { 
+                return data; 
+            }
+
+            T* end() const noexcept { 
+                return cur;
+            }
+
+            T& back() const noexcept {
+                 return *(cur-1); 
+            }
+
+            uint size() const noexcept { 
+                return cur - data;
+            }
+
+            uint capacity() const noexcept { 
+                return cap - data;
+            }
+
+            void clear() noexcept { 
+                cur = data;
+            }
+
+            void pop() noexcept {
+                --cur;
+            }
+
+            T& popout() noexcept { 
+                return *--cur; 
+            }
+
+            T& swap_pop(uint i) noexcept { 
+                return data[i] = popout(); 
+            }
+
+            void reserve(uint new_size) {
+                if (new_size > capacity()) resize(new_size);
+            }
+
+            template <typename... A> void push(A&&... args) { 
+                new (next()) T(args...); 
+            }
+
+            void push(const T& item) { 
+                new (next()) T(item); 
+            }
             void push(std::initializer_list<T> items) {
-                int required = size() + items.size() - capacity();
-                if (required > 0) reserve(required);
-                std::memcpy(_data + _cur, items.begin(), items.size()*sizeof(T));
-                _cur += items.size();
+                reserve(size() + items.size());
+                copy(cur, items.begin(), items.size());
+                cur += items.size();
+            }
+            void rawpush(const T& item) {
+                copy(cur++, &item, 1);
             }
 
-            Array(const Array& b): _cur(b._cur), _end(b._end), _data(alloc<T>(b._end)) {
-                std::memcpy(_data, b._data, b._cur * sizeof(T));
+            Array(const Array& b): 
+                cur(b.cur), cap(b.cap), data(alloc<T>(b.size())) {
+                copy(data, b.data, b.size());
             }
 
             Array& operator=(const Array& b) {
-                _cur = b._cur; _end = b._end; 
-                dealloc(_data);
-                _data = alloc<T>(b._end);
-                std::memcpy(_data, b._data, _cur * sizeof(T));
+                free(data);
+                new (this) Array(b);
                 return *this;
             }
 
-            Array(Array&& b): _cur(b._cur), _end(b._end), _data(b._data) {
-                b._data = nullptr; b._end = 0; b._cur = 0;
+            Array(Array&& b): 
+                cur(b.cur), cap(cap), data(data) {
+                b.data = b.cap = b.cur = nullptr;
             }
 
             Array& operator=(Array&& b) {
-                if (_data) dealloc(_data);
-                _data = b._data, _cur = b._cur, _end = b._end;
-                b._end = 0; b._cur = 0; b._data = nullptr;
+                free<T>(data);
+                cur = b.cur; cap = b.cap; data = b.data;
+                b.data = b.cap = b.cur = nullptr;
                 return *this;
             }
     };

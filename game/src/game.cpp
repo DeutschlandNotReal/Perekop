@@ -29,7 +29,8 @@ void Perekop::on_step(float dt) {
     for (const KeyInfluence& infl : influences) 
         if (window.keyboard.key_held(infl.key)) disp += infl.influence;
 
-    Perekop::camera.transform.displace_l(disp * dt);
+    camera.transform.displace_l(disp * dt);
+    camera.transform.rotate_axis({0, 1, 0}, dt * 0.2);
 }
 
 void Perekop::on_launch() {
@@ -64,7 +65,7 @@ void Perekop::on_launch() {
         3,0,4, 3,4,7  // left
     };
 
-    cubeler.rewind();
+    //cubeler.rewind();
     cubeler.refresh();
 
     for (int x = -3; x < 3; x++) 

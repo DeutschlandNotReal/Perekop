@@ -1,10 +1,10 @@
 #pragma once
 #include <pkutil/Array.hpp>
 
-namespace pk {
+namespace pkutil {
     template <typename... T> using func = void(*)(T...);
     template <typename... T> class Event {
-        pkutil::Array<func<T...>> listeners;
+        Array<func<T...>> listeners;
         public:
             void invoke(T... items) const {
                 for (const func<T...>& f : listeners)

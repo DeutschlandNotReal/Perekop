@@ -2,7 +2,7 @@
 #include <chrono>
 #include <thread>
 
-namespace pk {
+namespace pkutil {
     template <typename T, short L> class StackTimer {
         short ptr = -1;
         T records[L];

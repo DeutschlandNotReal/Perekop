@@ -1,5 +1,4 @@
 #include "glm/ext/matrix_clip_space.hpp"
-#include "pk/Time.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -7,6 +6,7 @@
 #include <iostream>
 #include <pk/Engine.hpp>
 #include <pk/Mesh.hpp>
+#include <pkutil/Time.hpp>
 
 using namespace glm;
 
@@ -169,7 +169,7 @@ namespace pk {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         const mat4 VP = Perekop::camera.VP(window.size());
 
-        StackTimer<double, 1> drawtimer;
+        pkutil::StackTimer<double, 1> drawtimer;
         drawtimer.begin();
         int kmesh{0}, kmodel{0};
         for (const Mesh& mesh : meshes) {
