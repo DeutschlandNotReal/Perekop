@@ -19,7 +19,7 @@ namespace pk {
                 void hide() const noexcept;
                 void reset() const noexcept; // both unhides and unlocks
 
-                pkutil::Event<>
+                Event<>
                     left_down,
                     left_up,
                     right_down,
@@ -27,7 +27,7 @@ namespace pk {
                     middle_down,
                     middle_up;
 
-                pkutil::Event<int, int> on_move;
+                Event<int, int> on_move;
 
                 bool left_held() const noexcept;
                 bool right_held() const noexcept;
@@ -39,7 +39,7 @@ namespace pk {
             GLFWwindow* _w;
             Keyboard(GLFWwindow* window): _w(window) {}
             public:
-                pkutil::Event<int> 
+                Event<int> 
                     key_down,
                     key_up;
 
@@ -68,11 +68,11 @@ namespace pk {
             const char* title() const noexcept;
             void title(const char* t) const noexcept;
 
-            pkutil::Event<int, int> 
+            Event<int, int> 
                 on_resize,
                 on_move;
 
-            pkutil::Event<> 
+            Event<> 
                 on_minimize,
                 on_maximize,
                 on_close;

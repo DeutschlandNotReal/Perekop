@@ -14,7 +14,8 @@
         {
             "label": "the other build",
             "type": "shell",
-            "command": "rm -r build; cmake -B build"
+            "command": "rm -r build; cmake -B build",
+            "problemMatcher": []
         }
     ]
 }

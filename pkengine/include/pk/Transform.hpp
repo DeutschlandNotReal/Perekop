@@ -1,67 +1,80 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace pk {
     struct Transform {
         glm::vec3 pos{0};
-        glm::mat3 rot{1};
-        Transform() = default;
-        Transform(const glm::mat3& rotation): 
-            rot(rotation) 
-        {}
-        Transform(const glm::vec3& position): 
-            pos(position) 
-        {}
-        Transform(const glm::vec3& position, glm::mat3 rotation): 
-            pos(position), 
-            rot(rotation) 
-        {}
-        Transform(const glm::mat3x4& mat): 
-            rot(mat[0], mat[1], mat[2]),
-            pos(mat[0].w, mat[1].w, mat[2].w) 
-        {}
-        Transform(const glm::mat4& mat): 
-            rot(mat[0], mat[1], mat[2]), pos(mat[3]) 
-        {}
+        glm::quat rot{1, 0, 0, 0};
 
-        Transform operator*(const Transform& b) const noexcept { return {pos + rot * b.pos, rot * b.rot}; }
-        Transform operator+(const Transform& b) const noexcept { return {pos + b.pos, rot}; }
-        Transform operator-(const Transform& b) const noexcept { return {pos - b.pos, rot}; }
-        bool operator==(const Transform& b) const noexcept { return pos==b.pos && rot==b.rot; }
-        bool operator==(const glm::vec3& b) const noexcept { return pos== b; }
-        bool operator==(const glm::mat3& b) const noexcept { return rot== b; }
-        Transform& operator=(const glm::vec3 b) noexcept { pos = b; return *this; }
+        operator glm::vec3() const { return pos; }
 
-        operator glm::mat3() const noexcept { return rot; }
-        operator glm::vec3() const noexcept { return pos; }
-        operator glm::mat4() const noexcept {
-            return {{rot[0], 0}, {rot[1], 0}, {rot[2], 0}, {pos, 1}};
+        operator glm::mat4() const {
+            return glm::translate(glm::mat4_cast(rot), pos);
         }
 
-        operator glm::mat3x4() const noexcept {
-            return {{rot[0], pos.x}, {rot[1], pos.y}, {rot[2], pos.z}};
+        glm::mat3x4 to_mat3x4() const {
+            glm::mat3 r = glm::mat3_cast(rot);
+            return {
+                {r[0], pos.x},
+                {r[1], pos.y},
+                {r[2], pos.z}
+            };
         }
 
-        void displace(const glm::vec3& disp) noexcept { pos += disp; }
-        void displace_l(const glm::vec3& disp) noexcept { pos += rot * disp; }
+        Transform operator+(const glm::vec3& b) const { return {pos + b, rot}; }
+        Transform& operator+=(const glm::vec3& b) { pos += b; return *this; }
+        Transform operator-(const glm::vec3& b) const { return {pos - b, rot}; }
+        Transform& operator-=(const glm::vec3& b) { pos -= b; return *this; }
 
-        void orthogonize() noexcept {
-            rot[0] /= glm::length(rot[0]);
-            rot[1] = glm::normalize(glm::cross(rot[0], {0, 1, 0}));
-            rot[2] = glm::normalize(glm::cross(rot[0], rot[1]));
+        Transform operator*(const Transform& b) const {
+            return {pos + rot * b.pos, glm::normalize(rot * b.rot)};
         }
 
-        void rotate_axis(glm::vec3 axis, float angle) noexcept {
-            rot = glm::mat3{glm::rotate(glm::mat4{1}, angle, axis)} * rot;
+        Transform operator*(const glm::quat& q) const {
+            return {pos, glm::normalize(rot * q)};
+        }
+        Transform& operator*=(const glm::quat& q) {
+            rot = glm::normalize(rot * q); return *this;
         }
 
-        void rotate_YXZ(float dX = 0, float dY = 0, float dZ = 0) {
-            rot = glm::mat3{
-                glm::rotate(glm::mat4{1}, dY, {0, 1, 0}) *
-                glm::rotate(glm::mat4{1}, dX, rot[0]) *
-                glm::rotate(glm::mat4{1}, dZ, rot[2])
-            } * rot;
+        Transform& rotate(float angle_rad, glm::vec3 axis) {
+            return *this *= glm::angleAxis(angle_rad, glm::normalize(axis));
+        }
+
+        glm::vec3 vector_to_world(glm::vec3 v) const {
+            return rot * v;
+        }
+
+        glm::vec3 vector_to_local(glm::vec3 v) const {
+            return glm::inverse(rot) * v;
+        }
+
+        glm::vec3 point_to_world(glm::vec3 p) const {
+            return rot * p + pos;
+        }
+
+        glm::vec3 point_to_local(glm::vec3 p) const {
+            return glm::inverse(rot) * (p - pos);
+        }
+
+        glm::vec3 fvec() const { return rot * glm::vec3{0, 0,-1}; }
+        glm::vec3 rvec() const { return rot * glm::vec3{1, 0, 0}; }
+        glm::vec3 uvec() const { return rot * glm::vec3{0, 1, 0}; }
+
+        static Transform lerp(const Transform& a, const Transform& b, float t) {
+            return {
+                glm::mix(a.pos, b.pos, t),
+                glm::slerp(a.rot, b.rot, t)
+            };
+        }
+
+        glm::quat delta_rot(const Transform& other) const {
+            return glm::inverse(rot) * other.rot;
+        }
+
+        void normalise() {
+            rot = glm::normalize(rot);
         }
     };
 }

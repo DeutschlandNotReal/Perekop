@@ -1,6 +1,5 @@
 #pragma once
-#include <pkutil/Event.hpp>
-#include <pk/Mesh.hpp>
+#include <pk/Scene.hpp>
 #include <pk/Window.hpp>
 
 namespace Perekop {

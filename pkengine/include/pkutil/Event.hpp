@@ -1,7 +1,7 @@
 #pragma once
 #include <pkutil/Array.hpp>
 
-namespace pkutil {
+namespace pk {
     template <typename... T> class Event {
         using callback = void(*)(T...);
         Array<callback> listeners;

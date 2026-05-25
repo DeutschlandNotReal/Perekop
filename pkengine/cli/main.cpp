@@ -1,15 +1,21 @@
+#include "pk/Mesh.hpp"
+#include "pkutil/File.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>   
 
 #include <pk/Engine.hpp>
-#include <pk/Time.hpp>
+#include <pkutil/Time.hpp>
 
 using glm::vec3, glm::vec2; 
 using namespace pk;
 
+namespace pk {
+    const char* v_preamble;
+    const char* f_preamble;
+}
 namespace Perekop {
-    static MeshMaterial defmat;
+    static Mesh::Material defmat;
     Scene scene;
     Window main_window;
     Camera camera;
@@ -24,6 +30,8 @@ void draw() {
 }
 
 int main() {
+    v_preamble = File::read("pkengine/extra/pre_vsrc.glsl");
+    f_preamble = File::read("pkengine/extra/pre_fsrc.glsl");
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -33,7 +41,7 @@ int main() {
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
 
-    Perekop::defmat = MeshMaterial(
+    Perekop::defmat = Mesh::Material(
         "void main() { gl_Position = VP * model() * vec4(_pos, 1.0); }",
         "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );

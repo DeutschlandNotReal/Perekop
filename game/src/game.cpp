@@ -1,12 +1,13 @@
-#include <GL/gl.h>
-#include <GLFW/glfw3.h>
 #include <iostream>
 
 #include <pk/Engine.hpp>
+#include <pkutil/File.hpp>
+
 using namespace pk;
 using glm::vec3;
 
 static Window& window = Perekop::main_window;
+static float t = 0;
 
 struct KeyInfluence {
     GLenum key;
@@ -24,26 +25,27 @@ KeyInfluence influences[6] = {
 };
 
 void Perekop::on_step(float dt) {
-    vec3 disp{0, 0, 0};
+    vec3 delta;
+    t += dt;
 
     for (const KeyInfluence& infl : influences) 
-        if (window.keyboard.key_held(infl.key)) disp += infl.influence;
+        if (window.keyboard.key_held(infl.key)) 
+            delta += infl.influence;
 
-    camera.transform.displace_l(disp * dt);
-    camera.transform.rotate_axis({0, 1, 0}, dt * 0.2);
+    camera.transform += delta * dt;
 }
 
 void Perekop::on_launch() {
     std::cout << "Game begin\n";
+    Perekop::camera.transform.pos = {0, 0, 10.f};
 
-    MeshMaterial chudmat(
-        "\n"
-        "\n out vec4 col; "
-        "\n void main() { gl_Position = VP * model() * vec4(_pos, 1.0); col = vec4(_uv.x, _uv.y, 0.0, 1.0); }",
-        "in vec4 col; void main() { fragColor = col; }"
-    );
+    const char* vsrc = File::read("game/shaders/vert.glsl");
+    const char* fsrc = File::read("game/shaders/frag.glsl");
+    auto* chudmat = new Mesh::Material(vsrc, fsrc);
+    delete[] vsrc;
+    delete[] fsrc;
 
-    Mesh& cubeler = scene.create_mesh();
+    Mesh& cubeler = scene.meshes.insert();
     cubeler.mat = chudmat;
     cubeler.vertex = {
         {{0, 0, 0}, {0, 0}},
@@ -56,6 +58,8 @@ void Perekop::on_launch() {
         {{0, 1, 1}, {0, 1}}
     };
 
+    chudmat->add_uniform(Mesh::u_float, "t", &t);
+
     cubeler.indices = {
         0,2,1, 0,3,2, // front
         4,5,6, 4,6,7, // back
@@ -65,14 +69,13 @@ void Perekop::on_launch() {
         3,0,4, 3,4,7  // left
     };
 
-    //cubeler.rewind();
     cubeler.refresh();
 
     for (int x = -3; x < 3; x++) 
         for (int y = -3; y < 3; y++) 
             for (int z = -3; z < 3; z++) {
-                Model& model = scene.create_model();
-                model.transform = vec3{x, y, z} * 10.f;
+                Model& model = scene.models.insert();
+                model.transform.pos = vec3{x, y, z} * 10.f;
                 scene.link(cubeler.id, model.id);
             }
 }

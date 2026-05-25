@@ -1,49 +1,40 @@
 #pragma once
 #include <pkutil/Array.hpp>
 
-namespace pkutil {
+namespace pk {
     template <typename T> class SparseSet {
         using I = decltype(T::id);
         // type T got to have 'id' member (mesh & model)
-        T* data; I* indices;
-        uint cur{0}, cap{0};
-
-        void resize(int new_size) {
-            realloc(data, cap, new_size);
-            realloc(indices, cap, new_size);
-            cap = new_size;
-        }
+        Array<T> data;
+        Array<I> index;
 
        public:
-            T& operator[](I index) const noexcept {
-                return data[indices[index]];
+            SparseSet(uint L = 8): data(L), index(L) {};
+
+            T& operator[](I i) const noexcept {
+                return data[index[i]];
             }
 
-            T* begin() const noexcept { return data; }
-            T* end() const noexcept { return data + cur; }
+            T* begin() const noexcept { 
+                return data.begin();
+            }
+
+            T* end() const noexcept { 
+                return data.end();
+            }
             
             template <typename... A> T& insert(A&&... args) {
-                if (cur == cap) resize(cap * 2 + 1);
-                indices[cur] = cur;
-                new (data + cur) T(args...);
-                data[cur].id = cur;
-                return data[cur++];
+                I id = index.size();
+                index.push(id);
+                data.push(args...);
+                data.back().id = id;
+                return data.back();
             }
 
-            void remove(I index) {
-                T& back = data[--cur];
-                indices[back.id] = indices[index];
-                operator[](index) = back;
+            void remove(I i) {
+                T& back = data.popout();
+                index[back.id] = index[i];
+                data[index[i]] = back;
             }
-
-            void remove(const T& item) {
-                remove(item.id);
-            }
-        
-            ~SparseSet() {
-                free(data); free(indices);
-            }
-
-
     };
 }

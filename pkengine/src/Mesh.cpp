@@ -1,89 +1,27 @@
-#include "glm/ext/matrix_clip_space.hpp"
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
+#include <pk/glAttribute.hpp>
+#include <glm/glm.hpp>
 #include <glm/glm.hpp>
 
 #include <iostream>
+#include <pk/Scene.hpp>
 #include <pk/Engine.hpp>
-#include <pk/Mesh.hpp>
 #include <pkutil/Time.hpp>
-
+#include <pkutil/File.hpp>
 using namespace glm;
 
-const char* pre_vsrc = "#version 330"
-    "\n layout(location = 0) in vec3 _pos;"
-    "\n layout(location = 1) in vec2 _uv;"
-    "\n layout(location = 2) in vec4 M0;"
-    "\n layout(location = 3) in vec4 M1;"
-    "\n layout(location = 4) in vec4 M2;"
-    "\n uniform mat4 VP;"
-    "\n mat4 model() {"
-    "\n     return mat4(vec4(M0.xyz, 0.0), vec4(M1.xyz, 0.0), vec4(M2.xyz, 0.0), vec4(M0.w, M1.w, M2.w, 1.0)); "
-    "\n }";
-
-const char* pre_fsrc = "#version 330 \n out vec4 fragColor;";
-
-template <GLenum T> GLuint load_shader(const char* pre, const char* post) {
-    const char* src[] = {pre, post};
+GLuint load_shader(std::initializer_list<const char*> src, const char* title, GLenum T) {
     GLuint shader = glCreateShader(T);
-    glShaderSource(shader, 2, src, NULL);
+    glShaderSource(shader, src.size(), src.begin(), NULL);
     glCompileShader(shader);
+    int ok;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
+    if (!ok) {
+        char log[4096];
+        glGetShaderInfoLog(shader, 4096, nullptr, log);
+        std::cout << "\033[31mShader '" << title << "' failed to compile:\n" << log << "\n\033[0m";
+    }
     return shader;
 }
-
-GLuint load_program(const char* vsrc, const char* fsrc) {
-    GLuint 
-        vshader = load_shader<GL_VERTEX_SHADER>(pre_vsrc, vsrc),
-        fshader = load_shader<GL_FRAGMENT_SHADER>(pre_fsrc, fsrc),
-        program = glCreateProgram();
-
-    glAttachShader(program, vshader);
-    glAttachShader(program, fshader);
-    glLinkProgram(program);
-    glDeleteShader(vshader);
-    glDeleteShader(fshader);
-    return program;
-}
-
-struct glAttribute {
-    long long i{0}, d{-1}, s{0}, o{0};
-    GLuint b;
-    glAttribute(GLuint array) { 
-        glBindVertexArray(array); 
-    }
-    glAttribute(GLuint* array) {
-        glGenVertexArrays(1, array);
-        glBindVertexArray(*array);
-    }
-    template <typename T> glAttribute& object() {
-        s = sizeof(T); o = 0; return *this;
-    }
-    template <typename T> glAttribute& fmember() {
-        char kfloats = sizeof(T) >> 2;
-        glVertexAttribPointer(i, kfloats, GL_FLOAT, GL_FALSE, s, (void*)o);
-        glEnableVertexAttribArray(i);
-        glVertexAttribDivisor(i, d);
-        o += sizeof(T); ++i;
-        return *this;
-    }
-    template <GLenum type> inline glAttribute& bind(GLuint buffer) { 
-        if constexpr (type == GL_ARRAY_BUFFER) ++d;
-        glBindBuffer(type, b = buffer); 
-        return *this; 
-    }
-    template <GLenum type> inline glAttribute& bind(GLuint* buffer) {
-        glGenBuffers(1, buffer);
-        return bind<type>(*buffer);
-    }
-    template <GLenum mode, typename T> inline glAttribute& data(const pkutil::Array<T>& content) {
-        glBufferData(b, content.size() * sizeof(T), content.begin(), mode);
-        return *this;
-    }
-    template <GLenum type> inline glAttribute& draw(int n_ind, int n_users) {
-        glDrawElementsInstanced(GL_TRIANGLES, n_ind, type, 0, n_users);
-        return *this;
-    }
-};
 
 namespace pk {
     glm::mat4 Camera::VP(glm::vec2 screen_size) const noexcept {
@@ -94,66 +32,66 @@ namespace pk {
         ) * glm::inverse((glm::mat4)transform);
     }
 
-    MeshMaterial::MeshMaterial(const char* vsrc, const char* fsrc) {
-        program = load_program(vsrc, fsrc);
+     Mesh::Material::Material(const char* vsrc, const char* fsrc) {
+        GLuint v = load_shader({v_preamble, vsrc}, "vshader", GL_VERTEX_SHADER),
+               f = load_shader({f_preamble, fsrc}, "fshader", GL_FRAGMENT_SHADER);
+        program = glCreateProgram();
+        glAttachShader(program, v);
+        glAttachShader(program, f);
+        glLinkProgram(program);
+        glDeleteShader(v);
+        glDeleteShader(f);
+        VP_l = glGetUniformLocation(program, "VP");
     }
 
-    void Mesh::bounds(glm::vec3& min, glm::vec3& max) const noexcept {
-        if (vertex.size() > 0) {
-            min = vertex[0].pos, max = vertex[0].pos;
-            for (int i = 1; i < vertex.size(); i++) {
-                auto p = vertex[i].pos;
-                min = glm::min(min, p);
-                max = glm::max(max, p);
-            }
-        } else {
-            min = max = glm::vec3{0};
-        }
-    }
+    void Mesh::Material::add_uniform(Mesh::UniType T, const char* title, const void* data) {
+        uniforms.push({
+            glGetUniformLocation(program, title),
+            T,
+            data
+        });
+    };
 
-    void Mesh::rewind() noexcept {
-        for (int i = 0; i < indices.size(); i+=3) {
-            short first = indices[i];
-            indices[i] = indices[i+2];
-            indices[i+2] = first;
-        }
-    }
-
-    void MeshMaterial::enable(const mat4& VP) const {
+    void Mesh::Material::use(const glm::mat4& VP) const {
         glUseProgram(program);
-        glUniformMatrix4fv(
-            glGetUniformLocation(program, "VP"),
-            1,
-            GL_FALSE,
-            (float*) &VP
-        );
+        glUniformMatrix4fv(VP_l, 1,GL_FALSE, (float*) &VP);
+
+        for (const auto& u : uniforms) {
+            switch (u.type) {
+                case u_mat3:
+                    glUniformMatrix3fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
+                case u_mat4:
+                    glUniformMatrix4fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
+                case u_float:
+                    glUniform1fv(u.layout, 1, (float*)u.data); break;
+                case u_int:
+                    glUniform1iv(u.layout, 1, (int*)u.data); break;
+                case u_vec2:
+                    glUniform2fv(u.layout, 1, (float*)u.data); break;
+                case u_vec3:
+                    glUniform3fv(u.layout, 1, (float*)u.data); break;
+                case u_vec4:
+                    glUniform4fv(u.layout, 1, (float*)u.data); break;
+            }
+        }
     }
 
     void Mesh::refresh() {
         if (!VAO) load();
-
         glAttribute(VAO)
-            .bind<GL_ARRAY_BUFFER>(VBO)
-                .data<GL_STATIC_DRAW>(vertex)
-            .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-                .data<GL_STATIC_DRAW>(indices)
-        ;
+            .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex)
+            .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices);
     }
 
     void Mesh::load() {
         if (VAO) return;
         glAttribute(&VAO)
-            .bind<GL_ELEMENT_ARRAY_BUFFER>(&EBO)
-            .bind<GL_ARRAY_BUFFER>(&VBO)
-            .object<MeshVertex>()
-                .fmember<glm::vec3>() // pos
-                .fmember<glm::vec2>() // uv
-            .bind<GL_ARRAY_BUFFER>(&IBO)
-            .object<glm::mat3x4>()
-                .fmember<glm::vec4>()
-                .fmember<glm::vec4>()
-                .fmember<glm::vec4>()
-        ;
+            .make<3>(&VBO)
+            .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
+            .bind<GL_ARRAY_BUFFER>(VBO)
+            .object<0>(3, 2) // vertex (pos, uv)
+            .bind<GL_ARRAY_BUFFER>(IBO)
+            .object<1>(4, 4, 4); // model matrix
     }
 
     void Mesh::unload() {
@@ -165,33 +103,25 @@ namespace pk {
 
     void Scene::draw(const Window& window) {
         window.set_context();
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(.1, .1, .1, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         const mat4 VP = Perekop::camera.VP(window.size());
 
-        pkutil::StackTimer<double, 1> drawtimer;
-        drawtimer.begin();
-        int kmesh{0}, kmodel{0};
         for (const Mesh& mesh : meshes) {
-            if (mesh.models.size() == 0) continue;
-            ++kmesh;
-            kmodel += mesh.models.size();
+            if (mesh.models.size() == 0 || !mesh.mat || !mesh.mat->program) continue;
             transforms.clear();
-            int required = mesh.models.size() - transforms.capacity();
-            if (required > 0) transforms.reserve(required);
-
-            mesh.mat.enable(VP);
+            transforms.reserve(mesh.models.size());
+            mesh.mat->use(VP);
 
             for (short modelid : mesh.models) 
-                transforms.push(models[modelid].get_scaled());
+                transforms.rawpush(models[modelid].get_scaled());
 
             glAttribute(mesh.VAO)
-                .bind<GL_ARRAY_BUFFER>(mesh.IBO)
-                .data<GL_DYNAMIC_DRAW>(transforms)
-                .draw<GL_UNSIGNED_SHORT>(mesh.indices.size(), transforms.size())
-            ;
+                .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms)
+                .draw<GL_UNSIGNED_SHORT>(
+                    mesh.indices.size(), 
+                    transforms.size()
+                );
         }
-        double render_time = drawtimer.stop() * 1000;
-        std::cout << "drew " << kmesh << " mesh(es), " << kmodel << " model(s) in " << render_time << "ms\n";
     }
 }

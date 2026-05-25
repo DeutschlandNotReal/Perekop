@@ -2,23 +2,25 @@
 #include <cstring>
 #include <initializer_list>
 using uint = unsigned int;
-namespace pkutil {
+namespace pk {
     template <typename T> inline T* alloc(int n) {
        return (T*)::operator new(sizeof(T)*n);
+    }
+
+    inline void dealloc(void* ptr) { 
+        ::operator delete(ptr); 
+    }
+
+    template <typename T> inline T* copy(T* dst, const T* src, int n) {
+        std::memcpy(dst, src, n*sizeof(T));
+        return dst;
     }
 
     template <typename T> inline void realloc(T*& ptr, int n, int new_n) {
         T* prev = ptr;
         ptr = copy(alloc<T>(new_n), ptr, n);
-        free(prev);
+        dealloc(prev);
     }
-
-    template <typename T> inline T* copy(T* dst, T* src, int n) {
-        std::memcpy(dst, src, n*sizeof(T));
-        return dst;
-    }
-
-    template <typename T> inline void free(T* ptr) { ::operator delete(ptr); }
 
     template <typename T> class Array {
         T *data, *cur, *cap;
@@ -41,11 +43,11 @@ namespace pkutil {
             {}
 
             Array(std::initializer_list<T> init): 
-                data(alloc<T>(init.size())) 
+                data(alloc<T>(init.size())), cur(data+init.size()), cap(data+init.size())
             { copy(data, init.begin(), init.size()); }
 
             ~Array() { 
-                free(data); 
+                dealloc(data); 
             }
 
             T& operator[](uint i) const noexcept { 
@@ -61,7 +63,7 @@ namespace pkutil {
             }
 
             T& back() const noexcept {
-                 return *(cur-1); 
+                return *(cur-1); 
             }
 
             uint size() const noexcept { 
@@ -99,11 +101,13 @@ namespace pkutil {
             void push(const T& item) { 
                 new (next()) T(item); 
             }
+
             void push(std::initializer_list<T> items) {
                 reserve(size() + items.size());
                 copy(cur, items.begin(), items.size());
                 cur += items.size();
             }
+
             void rawpush(const T& item) {
                 copy(cur++, &item, 1);
             }
@@ -114,21 +118,22 @@ namespace pkutil {
             }
 
             Array& operator=(const Array& b) {
-                free(data);
+                dealloc(data);
                 new (this) Array(b);
                 return *this;
             }
 
             Array(Array&& b): 
-                cur(b.cur), cap(cap), data(data) {
+                cur(b.cur), cap(b.cap), data(b.data) {
                 b.data = b.cap = b.cur = nullptr;
             }
 
             Array& operator=(Array&& b) {
-                free<T>(data);
+                dealloc(data);
                 cur = b.cur; cap = b.cap; data = b.data;
                 b.data = b.cap = b.cur = nullptr;
                 return *this;
             }
     };
 }
+

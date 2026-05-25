@@ -4,86 +4,52 @@
 
 #include <pk/Window.hpp>
 #include <pk/Transform.hpp>
+#include <pk/Model.hpp>
 #include <pkutil/SparseSet.hpp>
 
 namespace pk {
-    class Mesh;
-    struct Model {
-        short id;
-        glm::vec3 scale{1};
-        Transform transform;
-        glm::mat3x4 get_scaled() const noexcept {
-            return {
-                {transform.rot[0] * scale.x, transform.pos.x},
-                {transform.rot[1] * scale.y, transform.pos.y},
-                {transform.rot[2] * scale.z, transform.pos.z},
-            };
-        }
-    };
-
-    struct Camera {
-        float f = 200.f, n = .1f, fov = 75.f;
-        Transform transform;
-        glm::mat4 VP(glm::vec2 screen_size) const noexcept;
-    };
-
-    struct MeshVertex { 
-        glm::vec3 pos; 
-        glm::vec2 uv;
-    };
-
+    extern const char* v_preamble;
+    extern const char* f_preamble;
     class Scene;
-    class MeshMaterial {
-        friend Scene;
-        unsigned int program{0};
-        void enable(const glm::mat4& VP) const;
-        public:
-            MeshMaterial() = default;
-            MeshMaterial(const char* vertex_source, const char* fragment_source);
-    };
-
     class Mesh {
         friend Scene;
         uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
+        
         public:
-            short id{0};
-            MeshMaterial mat;
-            pkutil::Array<MeshVertex> vertex;
-            pkutil::Array<short> indices;
-            pkutil::Array<short> models;
+            struct Vertex {  
+                glm::vec3 pos; glm::vec2 uv;
+            };
 
-            void bounds(glm::vec3& min, glm::vec3& max) const noexcept;
+            enum UniType {
+                u_int, u_float, u_vec2, u_vec3, u_vec4, u_mat3, u_mat4
+            };
+
+            struct Uniform {
+                int layout;
+                UniType type;
+                const void* data;
+            };
+            
+            class Material {
+                friend Scene;
+                uint program{0};
+                int VP_l;
+                Array<Uniform> uniforms;
+                void use(const glm::mat4& VP) const;
+                public:
+                    Material() = default;
+                    Material(const char* vsrc, const char* fsrc);
+
+                    void add_uniform(UniType T, const char* title, const void* data);
+            };
+            
+            short id{0};
+            Material* mat{nullptr};
+            Array<Vertex> vertex;
+            Array<short> indices, models;
+
             void load();
             void unload();
             void refresh();
-            void rewind() noexcept;
-    };
-
-    class Scene {
-        pkutil::SparseSet<Mesh> meshes;
-        pkutil::SparseSet<Model> models;
-        pkutil::Array<glm::mat3x4> transforms{50};
-
-        public:
-            Mesh& create_mesh() { 
-                return meshes.insert();
-            }
-
-            Model& create_model() { 
-                return models.insert();
-            }
-
-            void link(uint meshid, uint modelid) {
-                meshes[meshid].models.push(modelid);
-            }
-
-            void remove(Mesh& mesh) {
-                meshes.remove(mesh);
-            }
-            void remove(Model& model) {
-                models.remove(model);
-            }
-
-            void draw(const Window& win);
     };
 }
