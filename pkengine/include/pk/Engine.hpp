@@ -10,5 +10,5 @@ namespace Perekop {
 
     extern void on_launch();
     extern void on_close();
-    extern void on_step(float dt);
+    extern void on_step(double dt);
 }

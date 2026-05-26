@@ -3,28 +3,19 @@
 #include <pk/Engine.hpp>
 #include <pkutil/File.hpp>
 
+#include <game/freecam.hpp>
+
 using namespace pk;
-using glm::vec3;
+using namespace glm;
 
 static Window& window = Perekop::main_window;
 static float t = 0;
 
-struct KeyInfluence {
-    GLenum key;
-    vec3 influence;
-    KeyInfluence(GLenum K, float x, float y, float z): key(K), influence(x, y, z) {}
-};
+struct body { int modelid; vec3 vel, pos; };
 
-KeyInfluence influences[6] = {
-    {GLFW_KEY_W,  0,  0,  1},
-    {GLFW_KEY_S,  0,  0, -1},
-    {GLFW_KEY_D,  1,  0,  0},
-    {GLFW_KEY_A, -1,  0,  0},
-    {GLFW_KEY_E,  0,  1,  0},
-    {GLFW_KEY_Q,  0, -1,  0}
-};
+static pk::Array<body> bodies;
 
-static unsigned int fake_randomler = 0x41231;
+static unsigned int fake_randomler = 0;
 unsigned int random() {
     fake_randomler ^= 0x123123F;
     fake_randomler += 0x100041F;
@@ -37,33 +28,37 @@ float random(float min, float max) {
     return min + (max - min) * (random() / (float)0xFFFFFFFF);
 }
 
+vec3 random(vec3 min, vec3 max) {
+    return min + (max - min) * vec3(
+        random() / (float)0xFFFFFFFF,
+        random() / (float)0xFFFFFFFF,
+        random() / (float)0xFFFFFFFF
+    );
+}
+
 static int cubeler_id;
 
-void Perekop::on_step(float dt) {
-    vec3 delta;
-    t += dt;
+void Perekop::on_step(double dt) {
+    Game::freecam_step(dt);
 
-    for (const KeyInfluence& infl : influences) 
-        if (window.keyboard.key_held(infl.key)) 
-            delta += infl.influence;
-
-    float i = 0;
-    for (Mesh::Vertex& v : scene.meshes[cubeler_id].vertex)
-        v.pos = glm::normalize(v.pos) * random(6, 10);
-    for (Model& m : scene.models) {
-        m.transform = m.transform.rotate(
-            random(0, 1)*dt, {0, 1, 0}
-        ).rotate(
-            random(-1, 1)*dt, {0, 0, 1}
-        ).rotate(
-            random(-1, 1)*dt, {1, 0, 0}
-        );
+    for (int i = 0; i < bodies.size(); i++) {
+        body& islop = bodies[i];
+        for (int j = i; j < bodies.size()-1; j++) {
+            body& jslop = bodies[j];
+            vec3 disp = jslop.pos - islop.pos;
+            float r = disp.length();
+            if (r > 20 || r < 1.f) continue;
+            vec3 force = disp * (1.f - 5.f/r);
+            islop.vel += force;
+            jslop.vel -= force;
+        } 
+        islop.pos += islop.vel * (float)dt;
+        scene.models[islop.modelid].transform.pos = islop.pos;
     }
-    camera.transform += delta * dt;
-    std::cout << "I bid " << random(0, 10) << " sloppers\n";
 }
 
 void Perekop::on_launch() {
+    Game::freecam_init();
     std::cout << "Game begin\n";
     Perekop::camera.transform.pos = {0, 0, 10.f};
 
@@ -108,8 +103,8 @@ void Perekop::on_launch() {
         for (int y = -6; y < 6; y++) 
             for (int z = -3; z < 3; z++) {
                 Model& model = scene.models.insert();
-                model.transform.pos = vec3{x, y, z} * 10.f;
                 scene.link(cubeler.id, model.id);
+                bodies.push({model.id, random({-.5f, .5f, .5f}, {.5f, .5f, .5f}), vec3{x, y, z} * 10.f});
             }
 }
 

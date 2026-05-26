@@ -30,6 +30,18 @@ void Mouse::reset() const noexcept {
     glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
+bool Mouse::left_held() const noexcept {
+    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_LEFT);
+}
+
+bool Mouse::right_held() const noexcept {
+    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_RIGHT);
+}
+
+bool Mouse::middle_held() const noexcept {
+    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_MIDDLE);
+}
+
 glm::vec2 Window::position() const noexcept {
     int x, y;
     glfwGetWindowPos(_w, &x, &y);
@@ -69,11 +81,15 @@ bool Keyboard::key_held(int key) const noexcept { return glfwGetKey(_w, key) == 
 Window::Window(const char* title, int w, int h):
     _w(glfwCreateWindow(w, h, title, NULL, NULL))
 {
+    mouse._w = _w;
+    keyboard._w = _w;
     glfwSetWindowUserPointer(_w, this);
 
     // mouse move & press
     glfwSetCursorPosCallback(_w, [](GLFWwindow* glfw_win, double x, double y){
-        get_window(glfw_win).mouse.on_move.fire(x, y);
+        Mouse& m = get_window(glfw_win).mouse;
+        m.on_move.fire({x - m.lx, y - m.ly});
+        m.lx = x; m.ly = y;
     });
 
     glfwSetMouseButtonCallback(_w, [](GLFWwindow* glfw_win, int button, int action, int){
@@ -92,9 +108,8 @@ Window::Window(const char* title, int w, int h):
         }
     });
 
-    glfwSetScrollCallback(_w, [](GLFWwindow* glfw_win, double x, double){
-        Mouse& mouse = get_window(glfw_win).mouse;
-        if (x > 0) mouse.scroll_down.fire(); else mouse.scroll_up.fire();
+    glfwSetScrollCallback(_w, [](GLFWwindow* glfw_win, double, double d){
+        get_window(glfw_win).mouse.on_scroll.fire(d);
     });
 
     // keyboard input
@@ -129,4 +144,6 @@ Window::Window(const char* title, int w, int h):
     glfwSetWindowCloseCallback(_w, [](GLFWwindow* glfw_win){
         get_window(glfw_win).on_close.fire();
     });
+
+
 }

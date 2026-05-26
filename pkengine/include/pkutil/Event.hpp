@@ -24,5 +24,8 @@ namespace pk {
             template <typename t> t& value(){
                 return *(t*)listeners[i].data;
             }
+
+            Event() = default;
+            Event(Event&& e): listeners((Array<T...>&&)e.listeners) {}
     };
 }

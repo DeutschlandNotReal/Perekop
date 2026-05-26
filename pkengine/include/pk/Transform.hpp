@@ -46,6 +46,10 @@ namespace pk {
             return rot * v;
         }
 
+        void displace_local(glm::vec3 d) {
+            pos += rot * d;
+        }
+
         glm::vec3 vector_to_local(glm::vec3 v) const {
             return glm::inverse(rot) * v;
         }

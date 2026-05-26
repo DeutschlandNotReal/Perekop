@@ -36,7 +36,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    Perekop::main_window = Window("Perekop", 720, 480);
+    new (&Perekop::main_window) Window("Perekop", 720, 480);
     Perekop::main_window.set_context();
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
@@ -48,17 +48,17 @@ int main() {
 
     Perekop::main_window.show();
     Perekop::on_launch();
-    
-    StackTimer<float, 2> frame_timer;
 
     glEnable(GL_DEPTH_TEST);
+
+    StackTimer<double, 2> frame_timer;
     frame_timer.begin();
     while (!Perekop::main_window.should_close()) {
-        float dt = frame_timer.delta();
+        double dt = frame_timer.delta();
         draw();
         glfwPollEvents();
         Perekop::on_step(dt);
-        float fdt = frame_timer.elapsed();
+        double fdt = frame_timer.elapsed();
         frame_timer.sleep(1.f / Perekop::target_fps - fdt);
     }
 

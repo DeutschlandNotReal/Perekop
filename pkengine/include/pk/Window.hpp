@@ -8,9 +8,8 @@ namespace pk {
     class Window;
     class Mouse {
             friend Window;
-            GLFWwindow* _w;
-            Mouse(GLFWwindow* window): _w(window) {}
-
+            GLFWwindow* _w{nullptr};
+            double lx{0}, ly{0};
             public:
                 glm::vec2 pos() const noexcept;
                 void pos(glm::vec2) const noexcept;
@@ -25,11 +24,10 @@ namespace pk {
                     right_down,
                     right_up,
                     middle_down,
-                    middle_up,
-                    scroll_down,
-                    scroll_up;
-
-                Event<int, int> on_move;
+                    middle_up;
+                    
+                Event<double> on_scroll;
+                Event<glm::vec2> on_move;
 
                 bool left_held() const noexcept;
                 bool right_held() const noexcept;
@@ -38,8 +36,7 @@ namespace pk {
 
     class Keyboard {
             friend Window;
-            GLFWwindow* _w;
-            Keyboard(GLFWwindow* window): _w(window) {}
+            GLFWwindow* _w{nullptr};
             public:
                 Event<int> 
                     key_down,
@@ -58,8 +55,8 @@ namespace pk {
             Window(const char* title, int width, int height);
             operator GLFWwindow*() const noexcept { return _w; }
 
-            Mouse mouse{_w};
-            Keyboard keyboard{_w};
+            Mouse mouse;
+            Keyboard keyboard;
 
             glm::vec2 position() const noexcept;
             void position(glm::vec2 p) const noexcept;
