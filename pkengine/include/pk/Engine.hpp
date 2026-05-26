@@ -4,7 +4,7 @@
 
 namespace Perekop {
     extern float target_fps;
-    extern pk::Window main_window;
+    extern pk::Window window;
     extern pk::Scene scene; 
     extern pk::Camera camera;
 

@@ -14,18 +14,19 @@ namespace pk {
     const char* v_preamble;
     const char* f_preamble;
 }
+
 namespace Perekop {
     static Mesh::Material defmat;
     Scene scene;
-    Window main_window;
+    Window window;
     Camera camera;
     float target_fps = 120.f;
 }
 
 void draw() {
-    if (Perekop::main_window.visible()) {
-        Perekop::scene.draw(Perekop::main_window); 
-        Perekop::main_window.swap();
+    if (Perekop::window.visible()) {
+        Perekop::scene.draw(Perekop::window); 
+        Perekop::window.swap();
     }
 }
 
@@ -36,8 +37,8 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    new (&Perekop::main_window) Window("Perekop", 720, 480);
-    Perekop::main_window.set_context();
+    new (&Perekop::window) Window("Perekop", 720, 480);
+    Perekop::window.set_context();
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
 
@@ -46,14 +47,14 @@ int main() {
         "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );
 
-    Perekop::main_window.show();
+    Perekop::window.show();
     Perekop::on_launch();
 
     glEnable(GL_DEPTH_TEST);
 
     StackTimer<double, 2> frame_timer;
     frame_timer.begin();
-    while (!Perekop::main_window.should_close()) {
+    while (!Perekop::window.should_close()) {
         double dt = frame_timer.delta();
         draw();
         glfwPollEvents();

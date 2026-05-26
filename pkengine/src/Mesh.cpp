@@ -29,12 +29,12 @@ namespace pk {
         return glm::perspective(
             glm::radians(fov), 
             screen_size.x / screen_size.y,
-            n, f
+            min, max
         );
     }
 
     glm::mat4 Camera::view() const {
-        return glm::inverse((glm::mat4)transform);
+        return glm::inverse((glm::mat4)pose);
     }
 
     Mesh::Material::Material(const char* vsrc, const char* fsrc) {
@@ -122,7 +122,7 @@ namespace pk {
             mesh.mat->use(V, P);
 
             for (short modelid : mesh.models) 
-                transforms.rawpush(models[modelid].get_scaled());
+                transforms.rawpush((mat3x4)models[modelid].pose);
 
             glAttribute(mesh.VAO)
                 .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms)

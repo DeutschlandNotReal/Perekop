@@ -1,149 +1,131 @@
 #include <pk/Window.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 using namespace pk;
+using namespace glm;
 
-Window& get_window(GLFWwindow* ptr) {
+using Input = Window::Input;
+
+inline Window& fetch(GLFWwindow* ptr) {
     return *static_cast<Window*>(glfwGetWindowUserPointer(ptr));
 }
 
-glm::vec2 Mouse::pos() const noexcept {
-    double x, y;
-    glfwGetCursorPos(_w, &x, &y);
+vec2 Input::pos() const {
+    double x, y; glfwGetCursorPos(ptr, &x, &y);
     return {x, y};
 }
 
-void Mouse::pos(glm::vec2 pos) const noexcept {
-    glfwSetCursorPos(_w, pos.x, pos.y);
+void Input::pos(vec2 p) {
+    lpos = p;
+    glfwSetCursorPos(ptr, p.x, p.y);
 }
 
-void Mouse::lock() const noexcept {
-    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_CAPTURED);
+void Input::mouse_mode(Input::CursorMode mode) const {
+    glfwSetInputMode(ptr, GLFW_CURSOR, mode);
 }
 
-void Mouse::hide() const noexcept {
-    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+bool Input::is_held_k(int k) const {
+    return glfwGetKey(ptr, k) == GLFW_PRESS;
 }
 
-void Mouse::reset() const noexcept {
-    glfwSetInputMode(_w, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+bool Input::is_held_m(int b) const {
+    return glfwGetMouseButton(ptr, b) == GLFW_PRESS;
 }
 
-bool Mouse::left_held() const noexcept {
-    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_LEFT);
-}
-
-bool Mouse::right_held() const noexcept {
-    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_RIGHT);
-}
-
-bool Mouse::middle_held() const noexcept {
-    return glfwGetMouseButton(_w, GLFW_MOUSE_BUTTON_MIDDLE);
-}
-
-glm::vec2 Window::position() const noexcept {
+glm::vec2 Window::pos() const {
     int x, y;
-    glfwGetWindowPos(_w, &x, &y);
+    glfwGetWindowPos(ptr, &x, &y); return {x, y};
+}
+
+void Window::pos(glm::vec2 p) const {
+    glfwSetWindowPos(ptr, p.x, p.y);
+}
+
+glm::vec2 Window::size() const {
+    int x, y; glfwGetWindowSize(ptr, &x, &y);
     return {x, y};
 }
 
-void Window::position(glm::vec2 p) const noexcept {
-    glfwSetWindowPos(_w, p.x, p.y);
+void Window::size(glm::vec2 s) const {
+    glfwSetWindowSize(ptr, s.x, s.y);
 }
 
-glm::vec2 Window::size() const noexcept {
-    int x, y;
-    glfwGetWindowSize(_w, &x, &y);
-    return {x, y};
+const char* Window::title() const { 
+    return glfwGetWindowTitle((GLFWwindow*)ptr); 
 }
 
-void Window::size(glm::vec2 s) const noexcept {
-    glfwSetWindowSize(_w, s.x, s.y);
+void Window::title(const char* t) const { 
+    glfwSetWindowTitle((GLFWwindow*)ptr, t); 
 }
 
-const char* Window::title() const noexcept { return glfwGetWindowTitle(_w); }
-void Window::title(const char* t) const noexcept { glfwSetWindowTitle(_w, t); }
 
-void Window::maximize() const noexcept { glfwMaximizeWindow(_w); }
-void Window::minimize() const noexcept { glfwIconifyWindow(_w); }
-void Window::close() const noexcept{ glfwDestroyWindow(_w); }
-void Window::attention() const noexcept { glfwRequestWindowAttention(_w); }
-void Window::focus() const noexcept { glfwFocusWindow(_w); }
-void Window::set_context() const noexcept { glfwMakeContextCurrent(_w); }
-void Window::show() const noexcept { glfwShowWindow(_w); }
-void Window::swap() const noexcept { glfwSwapBuffers(_w); }
-bool Window::should_close() const noexcept { return glfwWindowShouldClose(_w); }
-bool Window::visible() const noexcept { return glfwGetWindowAttrib(_w, GLFW_VISIBLE); }
+void Window::maximize() const { glfwMaximizeWindow(ptr); }
+void Window::minimize() const { glfwIconifyWindow(ptr); }
+void Window::close() const{ glfwDestroyWindow(ptr); }
+void Window::attention() const { glfwRequestWindowAttention(ptr); }
+void Window::focus() const { glfwFocusWindow(ptr); }
+void Window::set_context() const { glfwMakeContextCurrent(ptr); }
+void Window::show() const { glfwShowWindow(ptr); }
+void Window::swap() const { glfwSwapBuffers(ptr); }
+bool Window::should_close() const { return glfwWindowShouldClose(ptr); }
+bool Window::visible() const { return glfwGetWindowAttrib(ptr, GLFW_VISIBLE); }
 
-bool Keyboard::key_held(int key) const noexcept { return glfwGetKey(_w, key) == GLFW_PRESS; }
-   
 Window::Window(const char* title, int w, int h):
-    _w(glfwCreateWindow(w, h, title, NULL, NULL))
-{
-    mouse._w = _w;
-    keyboard._w = _w;
-    glfwSetWindowUserPointer(_w, this);
+    ptr(glfwCreateWindow(w, h, title, NULL, NULL)) {
+    glfwSetWindowUserPointer(ptr, this);
 
-    // mouse move & press
-    glfwSetCursorPosCallback(_w, [](GLFWwindow* glfw_win, double x, double y){
-        Mouse& m = get_window(glfw_win).mouse;
-        m.on_move.fire({x - m.lx, y - m.ly});
-        m.lx = x; m.ly = y;
+    glfwSetCursorPosCallback(ptr, [](GLFWwindow* ptr, double x, double y){
+        Window& self = fetch(ptr);
+        self.input.on_move_m.fire(vec2{x, y} - self.input.lpos);
+        self.input.lpos = {x, y};  
     });
 
-    glfwSetMouseButtonCallback(_w, [](GLFWwindow* glfw_win, int button, int action, int){
-        Mouse& mouse = get_window(glfw_win).mouse;
-
-        // button: [0: left, 1: right, 2: middle]
-        // action: [0: released, 1: pressed]
-
-        switch (button | (action << 4)) {
-            case (0x10): return mouse.left_down.fire();
-            case (0x11): return mouse.right_down.fire();
-            case (0x13): return mouse.middle_down.fire();
-            case (0x00): return mouse.left_up.fire();
-            case (0x01): return mouse.right_up.fire();
-            case (0x03): return mouse.middle_up.fire();
-        }
-    });
-
-    glfwSetScrollCallback(_w, [](GLFWwindow* glfw_win, double, double d){
-        get_window(glfw_win).mouse.on_scroll.fire(d);
-    });
-
-    // keyboard input
-    glfwSetKeyCallback(_w, [](GLFWwindow* glfw_win, int key, int, int action, int){
-        Keyboard& keyboard = get_window(glfw_win).keyboard;
-        
+    glfwSetMouseButtonCallback(ptr, [](GLFWwindow* ptr, int button, int action, int){
+        Window& self = fetch(ptr);
         switch (action) {
-            case GLFW_PRESS: return keyboard.key_down.fire(key);
-            case GLFW_RELEASE: return keyboard.key_up.fire(key);
-            case GLFW_REPEAT: break; // IGNORED!
+            case GLFW_PRESS: 
+                return self.input.on_down_m.fire(button);
+            case GLFW_RELEASE: 
+                return self.input.on_up_m.fire(button);
+            case GLFW_REPEAT:
+                break; // IGNORED!!
+        };
+    });
+
+    glfwSetScrollCallback(ptr, [](GLFWwindow* ptr, double, double n){
+        fetch(ptr).input.on_scroll_m.fire(n);
+    });
+
+    glfwSetKeyCallback(ptr, [](GLFWwindow* ptr, int key, int, int action, int){
+        Window& self = fetch(ptr);
+        switch (action) {
+            case GLFW_PRESS:
+                return self.input.on_down_k.fire(key);
+            case GLFW_RELEASE:
+                return self.input.on_up_k.fire(key);
+            case GLFW_REPEAT:
+                break; // IGNORED!!
         }
     });
 
-    // window
-    glfwSetWindowSizeCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
+    glfwSetWindowSizeCallback(ptr, [](GLFWwindow* ptr, int x, int y){
         glViewport(0, 0, x, y);
-        get_window(glfw_win).on_resize.fire(x, y);
+        fetch(ptr).on_resize.fire(x, y);
     });
 
-    glfwSetWindowPosCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
-        get_window(glfw_win).on_move.fire(x, y);
+    glfwSetWindowPosCallback(ptr, [](GLFWwindow* ptr, int x, int y){
+        fetch(ptr).on_move.fire(x, y);
     });
 
-    glfwSetWindowIconifyCallback(_w, [](GLFWwindow* glfw_win, int){
-        get_window(glfw_win).on_minimize.fire();
+    glfwSetWindowIconifyCallback(ptr, [](GLFWwindow* ptr, int){
+        fetch(ptr).on_minimize.fire();
     });
 
-    glfwSetWindowMaximizeCallback(_w, [](GLFWwindow* glfw_win, int){
-        get_window(glfw_win).on_maximize.fire();
+    glfwSetWindowMaximizeCallback(ptr, [](GLFWwindow* ptr, int){
+        fetch(ptr).on_maximize.fire();
     });
 
-    glfwSetWindowCloseCallback(_w, [](GLFWwindow* glfw_win){
-        get_window(glfw_win).on_close.fire();
+    glfwSetWindowCloseCallback(ptr, [](GLFWwindow* ptr){
+        fetch(ptr).on_close.fire();
     });
-
-
 }

@@ -2,13 +2,10 @@
 
 #include <pk/Engine.hpp>
 #include <pkutil/File.hpp>
-
 #include <game/freecam.hpp>
 
 using namespace pk;
 using namespace glm;
-
-static Window& window = Perekop::main_window;
 static float t = 0;
 
 struct body { int modelid; vec3 vel, pos; };
@@ -36,8 +33,6 @@ vec3 random(vec3 min, vec3 max) {
     );
 }
 
-static int cubeler_id;
-
 void Perekop::on_step(double dt) {
     Game::freecam_step(dt);
 
@@ -46,21 +41,21 @@ void Perekop::on_step(double dt) {
         for (int j = i; j < bodies.size()-1; j++) {
             body& jslop = bodies[j];
             vec3 disp = jslop.pos - islop.pos;
-            float r = disp.length();
+            float r = length(disp);
             if (r > 20 || r < 1.f) continue;
-            vec3 force = disp * (1.f - 5.f/r);
+            vec3 force = (float)dt * disp * (1.f - 4.f/r);
             islop.vel += force;
             jslop.vel -= force;
         } 
         islop.pos += islop.vel * (float)dt;
-        scene.models[islop.modelid].transform.pos = islop.pos;
+        islop.vel *= 0.98f;
+        scene.models[islop.modelid].pose.pos = islop.pos;
     }
 }
 
 void Perekop::on_launch() {
     Game::freecam_init();
     std::cout << "Game begin\n";
-    Perekop::camera.transform.pos = {0, 0, 10.f};
 
     const char* vsrc = File::read("game/shaders/vert.glsl");
     const char* fsrc = File::read("game/shaders/frag.glsl");
@@ -69,7 +64,6 @@ void Perekop::on_launch() {
     delete[] fsrc;
 
     Mesh& cubeler = scene.meshes.insert();
-    cubeler_id = cubeler.id;
     cubeler.mat = chudmat;
     cubeler.vertex = {
         {{0, 0, 0}, {0, 0, 0}, {0, 0}},
@@ -98,7 +92,6 @@ void Perekop::on_launch() {
     };
 
     cubeler.refresh();
-
     for (int x = -6; x < 6; x++) 
         for (int y = -6; y < 6; y++) 
             for (int z = -3; z < 3; z++) {

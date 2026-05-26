@@ -3,7 +3,7 @@
 #include <glm/gtc/quaternion.hpp>
 
 namespace pk {
-    struct Transform {
+    struct Pose {
         glm::vec3 pos{0};
         glm::quat rot{1, 0, 0, 0};
 
@@ -22,23 +22,23 @@ namespace pk {
             };
         }
 
-        Transform operator+(const glm::vec3& b) const { return {pos + b, rot}; }
-        Transform& operator+=(const glm::vec3& b) { pos += b; return *this; }
-        Transform operator-(const glm::vec3& b) const { return {pos - b, rot}; }
-        Transform& operator-=(const glm::vec3& b) { pos -= b; return *this; }
+        Pose operator+(const glm::vec3& b) const { return {pos + b, rot}; }
+        Pose& operator+=(const glm::vec3& b) { pos += b; return *this; }
+        Pose operator-(const glm::vec3& b) const { return {pos - b, rot}; }
+        Pose& operator-=(const glm::vec3& b) { pos -= b; return *this; }
 
-        Transform operator*(const Transform& b) const {
+        Pose operator*(const Pose& b) const {
             return {pos + rot * b.pos, glm::normalize(rot * b.rot)};
         }
 
-        Transform operator*(const glm::quat& q) const {
+        Pose operator*(const glm::quat& q) const {
             return {pos, glm::normalize(rot * q)};
         }
-        Transform& operator*=(const glm::quat& q) {
+        Pose& operator*=(const glm::quat& q) {
             rot = glm::normalize(rot * q); return *this;
         }
 
-        Transform& rotate(float angle_rad, glm::vec3 axis) {
+        Pose& rotate(float angle_rad, glm::vec3 axis) {
             return *this *= glm::angleAxis(angle_rad, glm::normalize(axis));
         }
 
@@ -66,14 +66,14 @@ namespace pk {
         glm::vec3 rvec() const { return rot * glm::vec3{1, 0, 0}; }
         glm::vec3 uvec() const { return rot * glm::vec3{0, 1, 0}; }
 
-        static Transform lerp(const Transform& a, const Transform& b, float t) {
+        Pose lerp(const Pose& b, float t) {
             return {
-                glm::mix(a.pos, b.pos, t),
-                glm::slerp(a.rot, b.rot, t)
+                glm::mix(pos, b.pos, t),
+                glm::slerp(rot, b.rot, t)
             };
         }
 
-        glm::quat delta_rot(const Transform& other) const {
+        glm::quat delta_rot(const Pose& other) const {
             return glm::inverse(rot) * other.rot;
         }
 
