@@ -24,6 +24,21 @@ KeyInfluence influences[6] = {
     {GLFW_KEY_Q,  0, -1,  0}
 };
 
+static unsigned int fake_randomler = 0x41231;
+unsigned int random() {
+    fake_randomler ^= 0x123123F;
+    fake_randomler += 0x100041F;
+    fake_randomler *= 0x004112F;
+    fake_randomler ^= 0x231231F;
+    return fake_randomler;
+}
+
+float random(float min, float max) {
+    return min + (max - min) * (random() / (float)0xFFFFFFFF);
+}
+
+static int cubeler_id;
+
 void Perekop::on_step(float dt) {
     vec3 delta;
     t += dt;
@@ -32,7 +47,20 @@ void Perekop::on_step(float dt) {
         if (window.keyboard.key_held(infl.key)) 
             delta += infl.influence;
 
+    float i = 0;
+    for (Mesh::Vertex& v : scene.meshes[cubeler_id].vertex)
+        v.pos = glm::normalize(v.pos) * random(6, 10);
+    for (Model& m : scene.models) {
+        m.transform = m.transform.rotate(
+            random(0, 1)*dt, {0, 1, 0}
+        ).rotate(
+            random(-1, 1)*dt, {0, 0, 1}
+        ).rotate(
+            random(-1, 1)*dt, {1, 0, 0}
+        );
+    }
     camera.transform += delta * dt;
+    std::cout << "I bid " << random(0, 10) << " sloppers\n";
 }
 
 void Perekop::on_launch() {
@@ -46,17 +74,22 @@ void Perekop::on_launch() {
     delete[] fsrc;
 
     Mesh& cubeler = scene.meshes.insert();
+    cubeler_id = cubeler.id;
     cubeler.mat = chudmat;
     cubeler.vertex = {
-        {{0, 0, 0}, {0, 0}},
-        {{1, 0, 0}, {1, 0}},
-        {{1, 1, 0}, {1, 1}},
-        {{0, 1, 0}, {0, 1}},
-        {{0, 0, 1}, {0, 0}},
-        {{1, 0, 1}, {1, 0}},
-        {{1, 1, 1}, {1, 1}},
-        {{0, 1, 1}, {0, 1}}
+        {{0, 0, 0}, {0, 0, 0}, {0, 0}},
+        {{1, 0, 0}, {0, 0, 0}, {1, 0}},
+        {{1, 1, 0}, {0, 0, 0}, {1, 1}},
+        {{0, 1, 0}, {0, 0, 0}, {0, 1}},
+        {{0, 0, 1}, {0, 0, 0}, {0, 0}},
+        {{1, 0, 1}, {0, 0, 0}, {1, 0}},
+        {{1, 1, 1}, {0, 0, 0}, {1, 1}},
+        {{0, 1, 1}, {0, 0, 0}, {0, 1}}
     };
+
+    for (Mesh::Vertex& v : cubeler.vertex)
+        v.pos = glm::normalize(v.pos) * random(6, 10);
+    cubeler.radialize();
 
     chudmat->add_uniform(Mesh::u_float, "t", &t);
 
@@ -71,8 +104,8 @@ void Perekop::on_launch() {
 
     cubeler.refresh();
 
-    for (int x = -3; x < 3; x++) 
-        for (int y = -3; y < 3; y++) 
+    for (int x = -6; x < 6; x++) 
+        for (int y = -6; y < 6; y++) 
             for (int z = -3; z < 3; z++) {
                 Model& model = scene.models.insert();
                 model.transform.pos = vec3{x, y, z} * 10.f;

@@ -42,7 +42,7 @@ int main() {
     glfwSwapInterval(0);
 
     Perekop::defmat = Mesh::Material(
-        "void main() { gl_Position = VP * model() * vec4(_pos, 1.0); }",
+        "void main() { gl_Position = P * V * model() * vec4(_pos, 1.0); }",
         "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );
 

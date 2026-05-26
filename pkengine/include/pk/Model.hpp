@@ -8,7 +8,7 @@ namespace pk {
         short id;
         glm::vec3 scale{1};
         Transform transform;
-        glm::mat3x4 get_scaled() const noexcept {
+        glm::mat3x4 get_scaled() const {
             glm::mat3x4 mat = transform.to_mat3x4();
             *((glm::vec3*) &mat[0]) *= scale.x;
             *((glm::vec3*) &mat[1]) *= scale.y;
@@ -16,10 +16,11 @@ namespace pk {
             return mat;
         }
     };
-
+    
     struct Camera {
         float f{200}, n{.1}, fov{75};
         Transform transform;
-        glm::mat4 VP(glm::vec2 screen_size) const noexcept;
+        glm::mat4 projection(glm::vec2 screen_size) const;
+        glm::mat4 view() const;
     };
 }

@@ -4,21 +4,25 @@
 namespace pk {
     template <typename... T> class Event {
         using callback = void(*)(T...);
-        Array<callback> listeners;
+        struct Entry { callback cb; void* data; };
+        Array<Entry> listeners;
         short i{0};
         public:
             void fire(T... items) {
                 for (i = 0; i < listeners.size(); i++)
-                    listeners[i](items...);
+                    listeners[i].cb(items...);
             }
 
-            void listen(callback callback) {
-                listeners.push(callback);
+            void listen(callback callback, void* data = nullptr) {
+                listeners.push({callback, data});
             }
 
-            // only use in callback
             void exit() {
                 listeners[i--] = listeners.popout();
+            }
+        
+            template <typename t> t& value(){
+                return *(t*)listeners[i].data;
             }
     };
 }

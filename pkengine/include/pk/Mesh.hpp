@@ -1,4 +1,5 @@
 #pragma once
+#include "glm/geometric.hpp"
 #include <glm/fwd.hpp>
 #include <glm/glm.hpp>
 
@@ -16,8 +17,10 @@ namespace pk {
         uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
         
         public:
-            struct Vertex {  
-                glm::vec3 pos; glm::vec2 uv;
+            struct alignas(32) Vertex {  
+                glm::vec3 pos;
+                glm::vec3 normal;
+                glm::vec2 uv;
             };
 
             enum UniType {
@@ -33,9 +36,9 @@ namespace pk {
             class Material {
                 friend Scene;
                 uint program{0};
-                int VP_l;
+                int layout_P, layout_V;
                 Array<Uniform> uniforms;
-                void use(const glm::mat4& VP) const;
+                void use(const glm::mat4& V, const glm::mat4& P) const;
                 public:
                     Material() = default;
                     Material(const char* vsrc, const char* fsrc);
@@ -51,5 +54,9 @@ namespace pk {
             void load();
             void unload();
             void refresh();
+            void radialize() {
+                for (Vertex& v : vertex)
+                    v.normal = glm::normalize(v.pos);
+            }
     };
 }

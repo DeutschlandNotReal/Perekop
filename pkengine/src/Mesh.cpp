@@ -1,3 +1,4 @@
+#include "glm/matrix.hpp"
 #include <pk/glAttribute.hpp>
 #include <glm/glm.hpp>
 #include <glm/glm.hpp>
@@ -24,15 +25,19 @@ GLuint load_shader(std::initializer_list<const char*> src, const char* title, GL
 }
 
 namespace pk {
-    glm::mat4 Camera::VP(glm::vec2 screen_size) const noexcept {
+    glm::mat4 Camera::projection(glm::vec2 screen_size) const {
         return glm::perspective(
             glm::radians(fov), 
             screen_size.x / screen_size.y,
             n, f
-        ) * glm::inverse((glm::mat4)transform);
+        );
     }
 
-     Mesh::Material::Material(const char* vsrc, const char* fsrc) {
+    glm::mat4 Camera::view() const {
+        return glm::inverse((glm::mat4)transform);
+    }
+
+    Mesh::Material::Material(const char* vsrc, const char* fsrc) {
         GLuint v = load_shader({v_preamble, vsrc}, "vshader", GL_VERTEX_SHADER),
                f = load_shader({f_preamble, fsrc}, "fshader", GL_FRAGMENT_SHADER);
         program = glCreateProgram();
@@ -41,7 +46,8 @@ namespace pk {
         glLinkProgram(program);
         glDeleteShader(v);
         glDeleteShader(f);
-        VP_l = glGetUniformLocation(program, "VP");
+        layout_V = glGetUniformLocation(program, "V");
+        layout_P = glGetUniformLocation(program, "P");
     }
 
     void Mesh::Material::add_uniform(Mesh::UniType T, const char* title, const void* data) {
@@ -52,9 +58,10 @@ namespace pk {
         });
     };
 
-    void Mesh::Material::use(const glm::mat4& VP) const {
+    void Mesh::Material::use(const glm::mat4& V, const glm::mat4& P) const {
         glUseProgram(program);
-        glUniformMatrix4fv(VP_l, 1,GL_FALSE, (float*) &VP);
+        glUniformMatrix4fv(layout_V, 1,GL_FALSE, (float*)&V);
+        glUniformMatrix4fv(layout_P, 1, GL_FALSE, (float*)&P);
 
         for (const auto& u : uniforms) {
             switch (u.type) {
@@ -63,9 +70,9 @@ namespace pk {
                 case u_mat4:
                     glUniformMatrix4fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
                 case u_float:
-                    glUniform1fv(u.layout, 1, (float*)u.data); break;
+                    glUniform1f(u.layout, *(float*)u.data); break;
                 case u_int:
-                    glUniform1iv(u.layout, 1, (int*)u.data); break;
+                    glUniform1i(u.layout, *(int*)u.data); break;
                 case u_vec2:
                     glUniform2fv(u.layout, 1, (float*)u.data); break;
                 case u_vec3:
@@ -89,7 +96,7 @@ namespace pk {
             .make<3>(&VBO)
             .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
             .bind<GL_ARRAY_BUFFER>(VBO)
-            .object<0>(3, 2) // vertex (pos, uv)
+            .object<0>(3, 3, 2) // vertex (pos, normal, uv)
             .bind<GL_ARRAY_BUFFER>(IBO)
             .object<1>(4, 4, 4); // model matrix
     }
@@ -105,13 +112,14 @@ namespace pk {
         window.set_context();
         glClearColor(.1, .1, .1, 1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        const mat4 VP = Perekop::camera.VP(window.size());
+        const mat4 V = Perekop::camera.view();
+        const mat4 P = Perekop::camera.projection(window.size());
 
         for (const Mesh& mesh : meshes) {
             if (mesh.models.size() == 0 || !mesh.mat || !mesh.mat->program) continue;
             transforms.clear();
             transforms.reserve(mesh.models.size());
-            mesh.mat->use(VP);
+            mesh.mat->use(V, P);
 
             for (short modelid : mesh.models) 
                 transforms.rawpush(models[modelid].get_scaled());

@@ -25,7 +25,9 @@ namespace pk {
                     right_down,
                     right_up,
                     middle_down,
-                    middle_up;
+                    middle_up,
+                    scroll_down,
+                    scroll_up;
 
                 Event<int, int> on_move;
 

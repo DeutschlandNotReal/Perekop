@@ -92,6 +92,11 @@ Window::Window(const char* title, int w, int h):
         }
     });
 
+    glfwSetScrollCallback(_w, [](GLFWwindow* glfw_win, double x, double){
+        Mouse& mouse = get_window(glfw_win).mouse;
+        if (x > 0) mouse.scroll_down.fire(); else mouse.scroll_up.fire();
+    });
+
     // keyboard input
     glfwSetKeyCallback(_w, [](GLFWwindow* glfw_win, int key, int, int action, int){
         Keyboard& keyboard = get_window(glfw_win).keyboard;
@@ -105,6 +110,7 @@ Window::Window(const char* title, int w, int h):
 
     // window
     glfwSetWindowSizeCallback(_w, [](GLFWwindow* glfw_win, int x, int y){
+        glViewport(0, 0, x, y);
         get_window(glfw_win).on_resize.fire(x, y);
     });
 
