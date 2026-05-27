@@ -36,5 +36,7 @@ namespace pk {
                 index[back.id] = index[i];
                 data[index[i]] = back;
             }
+
+            uint size() { return data.size(); }
     };
 }

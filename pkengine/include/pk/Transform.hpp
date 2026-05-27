@@ -34,6 +34,7 @@ namespace pk {
         Pose operator*(const glm::quat& q) const {
             return {pos, glm::normalize(rot * q)};
         }
+        
         Pose& operator*=(const glm::quat& q) {
             rot = glm::normalize(rot * q); return *this;
         }

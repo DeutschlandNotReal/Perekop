@@ -1,19 +1,13 @@
 #pragma once
-#include "glm/geometric.hpp"
-#include <glm/fwd.hpp>
-#include <glm/glm.hpp>
-
-#include <pk/Window.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
 #include <pk/Transform.hpp>
-#include <pk/Model.hpp>
 #include <pkutil/SparseSet.hpp>
 
+namespace Perekop { void draw(); }
 namespace pk {
-    extern const char* v_preamble;
-    extern const char* f_preamble;
-    class Scene;
     class Mesh {
-        friend Scene;
+        friend void Perekop::draw();
         uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
         
         public:
@@ -34,7 +28,7 @@ namespace pk {
             };
             
             class Material {
-                friend Scene;
+                friend void Perekop::draw();
                 uint program{0};
                 int layout_P, layout_V;
                 Array<Uniform> uniforms;
@@ -43,7 +37,7 @@ namespace pk {
                     Material() = default;
                     Material(const char* vsrc, const char* fsrc);
 
-                    void add_uniform(UniType T, const char* title, const void* data);
+                    void uniform(UniType T, const char* title, const void* data);
             };
             
             short id{0};
@@ -52,11 +46,11 @@ namespace pk {
             Array<short> indices, models;
 
             void load();
+            void reload();
             void unload();
-            void refresh();
-            void radialize() {
-                for (Vertex& v : vertex)
-                    v.normal = glm::normalize(v.pos);
-            }
     };
+
+    struct Model { short id; Pose pose; };
+
+    struct Camera { float min{.1}, max{200}, fov{75}; Pose pose; };
 }
