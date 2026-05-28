@@ -21,12 +21,15 @@ include_directories(
 
 file(GLOB_RECURSE engine_src ${engine}/cli/*.cpp ${engine}/src/*.cpp)
 file(GLOB_RECURSE game_src ${game}/src/*.cpp)
+file(COPY ${engine}/extra DESTINATION ${CMAKE_BINARY_DIR}/pkengine)
+file(COPY ${game}/shaders DESTINATION ${CMAKE_BINARY_DIR}/game)
 
-add_executable(perekop
+add_executable(perekop WIN32
     ${engine_src}
     ${game_src}
     ${engine}/lib/glad/src/glad.c
 )
+
 
 target_link_libraries(perekop
     glfw

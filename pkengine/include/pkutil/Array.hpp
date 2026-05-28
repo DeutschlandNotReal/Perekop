@@ -46,49 +46,17 @@ namespace pk {
                 data(alloc<T>(init.size())), cur(data+init.size()), cap(data+init.size())
             { copy(data, init.begin(), init.size()); }
 
-            ~Array() { 
-                dealloc(data); 
-            }
-
-            T& operator[](uint i) const noexcept { 
-                return data[i]; 
-            }
-
-            T* begin() const noexcept { 
-                return data; 
-            }
-
-            T* end() const noexcept { 
-                return cur;
-            }
-
-            T& back() const noexcept {
-                return *(cur-1); 
-            }
-
-            uint size() const noexcept { 
-                return cur - data;
-            }
-
-            uint capacity() const noexcept { 
-                return cap - data;
-            }
-
-            void clear() noexcept { 
-                cur = data;
-            }
-
-            void pop() noexcept {
-                --cur;
-            }
-
-            T& popout() noexcept { 
-                return *--cur; 
-            }
-
-            T& swap_pop(uint i) noexcept { 
-                return data[i] = popout(); 
-            }
+            ~Array() { dealloc(data); }
+            T& operator[](uint i) const { return data[i]; }
+            T* begin() const { return data; }
+            T* end() const { return cur; }
+            T& back() const { return *(cur-1); }
+            uint size() const { return cur - data; }
+            uint capacity() const { return cap - data; }
+            void clear() { cur = data; }
+            void pop() { --cur; }
+            T& popout() { return *--cur; }
+            T& swap_pop(uint i) { return data[i] = popout(); }
 
             void reserve(uint new_size) {
                 if (new_size > capacity()) resize(new_size);

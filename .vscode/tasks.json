@@ -9,7 +9,8 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "./build/perekop.exe"
+            "command": "./build/perekop.exe",
+            "problemMatcher": []
         },
         {
             "label": "the other build",

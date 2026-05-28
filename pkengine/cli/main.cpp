@@ -14,14 +14,12 @@ static Mesh::Material default_material;
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
 int main() {
-    Perekop::preamble_v = File::read("pkengine/extra/pre_vsrc.glsl");
-    Perekop::preamble_f = File::read("pkengine/extra/pre_fsrc.glsl");
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", glfwGetPrimaryMonitor(),nullptr);
+    Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", NULL, NULL);
+    glfwMakeContextCurrent(Perekop::glfw_window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
     glfwShowWindow(Perekop::glfw_window);
@@ -31,6 +29,8 @@ int main() {
         "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );
 
+    Perekop::init::listeners();
+    Perekop::init::render();
     Perekop::on_launch();
 
     glEnable(GL_DEPTH_TEST);

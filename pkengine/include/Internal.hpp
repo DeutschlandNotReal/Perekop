@@ -7,5 +7,10 @@ namespace Perekop {
     inline GLFWwindow* glfw_window{nullptr};
     inline pk::Array<glm::mat3x4> transforms{50};
     void draw();
-    void init_input_listeners();
+    namespace init {
+        void listeners();
+        void render();
+    }
+
+    inline uint gui_VAO{0}, gui_VBO{0}, gui_IBO{0}, gui_PROG{0};
 }

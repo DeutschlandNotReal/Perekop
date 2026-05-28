@@ -77,7 +77,7 @@ namespace pk {
         glm::quat delta_rot(const Pose& other) const {
             return glm::inverse(rot) * other.rot;
         }
-
+  
         void normalise() {
             rot = glm::normalize(rot);
         }

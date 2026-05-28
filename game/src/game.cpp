@@ -10,9 +10,9 @@ static float t = 0;
 struct body { int modelid; vec3 vel, pos; };
 
 static Array<body> bodies;
-static unsigned int fake_randomler = 0;
+static uint fake_randomler = 0;
 
-unsigned int random() {
+uint random() {
     fake_randomler ^= 0x123123F;
     fake_randomler += 0x100041F;
     fake_randomler *= 0x004112F;
@@ -25,11 +25,11 @@ float random(float min, float max) {
 }
 
 vec3 random(vec3 min, vec3 max) {
-    return min + (max - min) * vec3(
-        random() / (float)0xFFFFFFFF,
-        random() / (float)0xFFFFFFFF,
-        random() / (float)0xFFFFFFFF
-    );
+    return {
+        random(min.x, max.x),
+        random(min.y, max.y),
+        random(min.z, max.z)
+    };
 }
 
 void Perekop::on_step(double dt) {

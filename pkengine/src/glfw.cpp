@@ -36,7 +36,6 @@ namespace Perekop::Input {
 }
 
 namespace Perekop::Window {
-    Array<GUIElement> gui{};
     void size(vec2 s) {
         glfwSetWindowSize(glfw_window, s.x, s.y);
     }
@@ -62,7 +61,7 @@ namespace Perekop::Window {
 }
 
 double lx{0}, ly{0};
-void Perekop::init_input_listeners() {
+void Perekop::init::listeners() {
     glfwGetCursorPos(glfw_window, &lx, &ly);
     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
         switch (act) {

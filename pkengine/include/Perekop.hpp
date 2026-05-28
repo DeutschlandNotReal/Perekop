@@ -4,7 +4,9 @@
 #include <pkutil/Event.hpp>
 
 namespace pk {
-    struct GUIElement { float Z; glm::vec2 pos{0}, size{0}; glm::vec3 col{0.5, 1, 1}; };
+    struct alignas(32) GUIElement { 
+        float Z; glm::vec2 pos{0}, size{0}; glm::vec3 col{0.5, 1, 1}; 
+    };
 }
 
 namespace Perekop {
@@ -30,7 +32,7 @@ namespace Perekop {
     }
 
     namespace Window {
-        extern pk::Array<pk::GUIElement> gui;
+        inline pk::Array<pk::GUIElement> gui;
         extern glm::vec2 size(); extern void size(glm::vec2 size);
         extern glm::vec2 position(); extern void position(glm::vec2 position);
         extern const char* title(); extern void title(const char* title);

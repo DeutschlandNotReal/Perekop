@@ -1,5 +1,5 @@
 #include <glad/glad.h>
-#include <GLFW//glfw3.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/matrix.hpp>
 
@@ -14,7 +14,7 @@ using namespace pk;
  
 class glAttribute {
     int index{0};
-    template <typename T> void member(int d, int s, long long o) {
+    template <typename T> void member(int d, int s, long long& o) {
         if constexpr(std::is_same_v<T, vec4> || std::is_same_v<T, vec3> || std::is_same_v<T, vec2> || std::is_same_v<T, float>) 
             glVertexAttribPointer(index, sizeof(T)/4, GL_FLOAT, GL_FALSE, s, (void*)o);
         else if constexpr(std::is_same_v<T, int>)
@@ -49,8 +49,8 @@ class glAttribute {
             return *this;
         }
 
-        template <GLenum type> glAttribute& draw(int n) {
-            glDrawArrays(GL_TRIANGLES, 0, n);
+        glAttribute& idraw_array(int n_vert, int n_users) {
+            glad_glDrawArraysInstanced(GL_TRIANGLES, 0, n_vert, n_users);
             return *this;
         }
 };
@@ -82,7 +82,7 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
 Mesh::Material::Material(const char* vsrc, const char* fsrc) {
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, "vertex", GL_VERTEX_SHADER), 
-         load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
+        load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
     });
     layout_V = glGetUniformLocation(program, "V");
     layout_P = glGetUniformLocation(program, "P");
@@ -171,5 +171,31 @@ void Perekop::draw() {
             .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms)
             .idraw<GL_UNSIGNED_SHORT>(mesh.indices.size(), transforms.size());
     }
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glUseProgram(gui_PROG);
+    glAttribute(gui_VAO)
+        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, Window::gui)
+        .idraw_array(6, Window::gui.size());
+
     glfwSwapBuffers(glfw_window);
+}
+
+void Perekop::init::render() {
+    preamble_v = File::read("pkengine/extra/pre_vsrc.glsl");
+    preamble_f = File::read("pkengine/extra/pre_fsrc.glsl");
+    glAttribute(&gui_VAO)
+        .make<1>(&gui_VBO)
+        .make<1>(&gui_IBO)
+        .bind<GL_ARRAY_BUFFER>(gui_VBO).item<0, vec2>()
+        .bind<GL_ARRAY_BUFFER>(gui_IBO).item<1, float, vec2, vec2, vec3>()
+        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(gui_VBO, Array<vec2>({
+            {0, 0}, {0, 1}, {1, 0}, {1, 0}, {0, 1}, {1, 1}
+        }));
+    const char* vsrc = File::read("pkengine/extra/gui_vert.glsl");
+    gui_PROG = load_program({
+        load_shader({vsrc}, "gui_vshader", GL_VERTEX_SHADER),
+        load_shader({"#version 330\n in vec3 col2; out vec4 fragColor; void main() { fragColor = vec4(col2, 1.0); }"}, "gui_fshader", GL_FRAGMENT_SHADER)
+    });
+    delete[] vsrc;
 }
