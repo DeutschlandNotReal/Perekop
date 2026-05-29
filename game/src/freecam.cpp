@@ -8,10 +8,19 @@ using namespace Perekop;
 using namespace glm;
 using World::camera;
 
+const vec3 x(1,0,0), y(0,1,0), z(0,0,1);
 vec2 cam_angle{0};
+
+mat3 mouse_matrix() {
+    vec3 f = Mouse::fvec();
+    vec3 r = normalize(cross(f, y));
+    vec3 u = normalize(cross(r, f));
+    return {r, u, f};
+};
+
 void Game::freecam_init() {
     Mouse::on_scroll.listen([](int d){
-        camera.pose.displace_local({0, 0, -d});
+        camera.pose.pos += vec3(0,0,-d) * mouse_matrix();
     });
 
     Mouse::on_move.listen([](vec2 d){
@@ -21,8 +30,8 @@ void Game::freecam_init() {
 
         cam_angle += d * vec2{camera.fov, yfov} / winsize;
         camera.pose.rot = 
-            angleAxis(radians(cam_angle.x), vec3{0,1,0}) *
-            angleAxis(radians(cam_angle.y), vec3{0,0,1});
+            angleAxis(radians(cam_angle.x), y) *
+            angleAxis(radians(cam_angle.y), z);
     });
 
     Input::on_down.listen([](int button){
@@ -37,10 +46,11 @@ void Game::freecam_init() {
 using Input::held;
 void Game::freecam_step(float dt) {
     vec3 delta{0};
-    if (held('S')) delta += vec3(0,0,1);
-    if (held('W')) delta -= vec3{0,0,1};
-    if (held('D')) delta += vec3(1,0,0);
-    if (held('A')) delta -= vec3(1,0,0);
-    
-    camera.pose.displace_local(delta * dt);
+
+    if (held('S')) delta += z;
+    if (held('W')) delta -= z;
+    if (held('D')) delta += x;
+    if (held('A')) delta -= x;
+
+    camera.pose.pos += delta * dt * mouse_matrix();
 };

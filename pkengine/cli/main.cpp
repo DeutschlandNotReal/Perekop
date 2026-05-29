@@ -18,19 +18,20 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", NULL, NULL);
+    Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", nullptr, nullptr);
     glfwMakeContextCurrent(Perekop::glfw_window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
     glfwSwapInterval(0);
     glfwShowWindow(Perekop::glfw_window);
+
+    Perekop::init::listeners();
+    Perekop::init::render();
 
     default_material = Mesh::Material(
         "void main() { gl_Position = P * V * model() * vec4(_pos, 1.0); }",
         "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );
 
-    Perekop::init::listeners();
-    Perekop::init::render();
     Perekop::on_launch();
 
     glEnable(GL_DEPTH_TEST);
@@ -42,7 +43,7 @@ int main() {
         Perekop::draw();
         glfwPollEvents();
         Perekop::on_step(dt);
-        double fdt = frame_timer.elapsed();
+        double fdt = frame_timer.elapsed();   
         frame_timer.sleep(1.0/Perekop::World::fps - fdt);
     }
 

@@ -1,4 +1,5 @@
 #include <Perekop.hpp>
+#include <cstdio>
 #include <pkutil/File.hpp>
 #include <game/freecam.hpp>
 
@@ -13,10 +14,10 @@ static Array<body> bodies;
 static uint fake_randomler = 0;
 
 uint random() {
-    fake_randomler ^= 0x123123F;
-    fake_randomler += 0x100041F;
-    fake_randomler *= 0x004112F;
-    fake_randomler ^= 0x231231F;
+    fake_randomler ^= 0xF123123FA;
+    fake_randomler += 0xF2100041F;
+    fake_randomler *= 0xA004112F;
+    fake_randomler ^= 0x0231231F;
     return fake_randomler;
 }
 
@@ -47,19 +48,18 @@ void Perekop::on_step(double dt) {
                 islop.vel += force;
                 jslop.vel -= force;
             } 
-        islop.pos += islop.vel * (float)dt;
+        islop.pos += islop.vel * (float)dt * 0.f;
         islop.vel *= 0.98f;
         World::models[islop.modelid].pose.pos = islop.pos;
     }
 }
 
 void Perekop::on_launch() {
-    World::camera.pose.pos = {50, 50, 150};
     Game::freecam_init();
-    std::cout << "Game begin\n";
+    printf("Game begin\n");
 
-    const char* vsrc = File::read("game/shaders/vert.glsl");
-    const char* fsrc = File::read("game/shaders/frag.glsl");
+    const char* vsrc = File::read("game/assets/shaders/vert.glsl");
+    const char* fsrc = File::read("game/assets/shaders/frag.glsl");
     auto* chudmat = new Mesh::Material(vsrc, fsrc);
     chudmat->uniform(Mesh::u_float, "t", &t);
     delete[] vsrc;
@@ -69,12 +69,12 @@ void Perekop::on_launch() {
     shapeler.mat = chudmat;
 
     shapeler.vertex = {
-        {{ 0,  1,  0}, {0, 1, 0}, {.5, 1}},
-        {{ 0, -1,  0}, {0,-1, 0}, {.5, 0}},
-        {{ 1,  0,  1}, {1, 0, 1}, {1, .5}},
-        {{-1,  0,  1}, {-1,0, 1}, {0, .5}},
-        {{-1,  0, -1}, {-1,0,-1}, {0, .5}},
-        {{ 1,  0, -1}, {1, 0,-1}, {1, .5}}
+        {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},
+        {{ 0,-1, 0}, {0,-1, 0}, {.5, 0}},
+        {{ 1, 0, 1}, {1, 0, 1}, {1, .5}},
+        {{-1, 0, 1}, {-1,0, 1}, {0, .5}},
+        {{-1, 0,-1}, {-1,0,-1}, {0, .5}},
+        {{ 1, 0,-1}, {1, 0,-1}, {1, .5}}
     };
 
     for (Mesh::Vertex& v : shapeler.vertex)
@@ -92,17 +92,19 @@ void Perekop::on_launch() {
     };
 
     shapeler.load();
+
+    Window::gui.push({-4, {.1, .1}, {.56, .57}, {.6, .7, .8}});
     for (int i = 0; i < 30; i++) {
         int id = World::models.insert().id;
         shapeler.models.push(id);
-        bodies.push({
-            id,
-            random({-1, -1, -1}, {1, 1, 1}),
-            random({0, 0, 0}, {100, 100, 100})
-        });
+        vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 
+             pos = random({0, 0, 0}, {10, 10, 10});
+        World::models[id].pose.pos = pos; 
+        bodies.push({id, vel, pos});
+        printf("V(%+.2f,%+.2f,%+.2f), P(%+.2f,%+.2f,%+.2f)\n", vel.x, vel.y, vel.z, pos.x, pos.y, pos.z);
     }
 }
 
 void Perekop::on_exit() {
-    std::cout << "game's gone\n";
+    printf("game's gone\n");
 } 

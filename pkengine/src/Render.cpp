@@ -1,22 +1,25 @@
+#include "Perekop.hpp"
+#include <cstdlib>
+#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/matrix.hpp>
-
-#include <iostream>
+#include <type_traits>
 
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
 #include <pkutil/File.hpp>
-#include <type_traits>
 using namespace glm;
 using namespace pk;
  
 class glAttribute {
     int index{0};
     template <typename T> void member(int d, int s, long long& o) {
-        if constexpr(std::is_same_v<T, vec4> || std::is_same_v<T, vec3> || std::is_same_v<T, vec2> || std::is_same_v<T, float>) 
-            glVertexAttribPointer(index, sizeof(T)/4, GL_FLOAT, GL_FALSE, s, (void*)o);
+        if constexpr(std::is_same_v<T, float>) {
+            glVertexAttribPointer(index, 1, GL_FLOAT, 0, s, (void*)o);
+        } else if constexpr(std::is_same_v<T, vec4> || std::is_same_v<T, vec3> || std::is_same_v<T, vec2>) 
+            glVertexAttribPointer(index, T::length(), GL_FLOAT, 0, s, (void*)o);
         else if constexpr(std::is_same_v<T, int>)
             glVertexAttribIPointer(index, 1, GL_INT, s, (void*)o);
         else if constexpr(std::is_same_v<T, uint>)
@@ -38,9 +41,9 @@ class glAttribute {
         template <GLenum type> glAttribute& bind(GLuint b) { glBindBuffer(type, b); return *this; }
         template <int L> glAttribute& make(GLuint* b) { glGenBuffers(L, b); return *this;}
         
-        template <GLenum type, GLenum mode, typename T> glAttribute& data(GLuint buffer, const Array<T>& content) {
+        template <GLenum type, GLenum mode, typename T> glAttribute& data(GLuint buffer, const T* data, int n) {
             glBindBuffer(type, buffer);
-            glBufferData(type, content.size() * sizeof(T), content.begin(), mode);
+            glBufferData(type, n*sizeof(T), data, mode);
             return *this;
         }
 
@@ -64,18 +67,16 @@ GLuint load_shader(std::initializer_list<const char*> src, const char* title, GL
     if (!ok) {
         char log[4096];
         glGetShaderInfoLog(shader, 4096, nullptr, log);
-        std::cout << "\033[31mShader '" << title << "' failed to compile:\n" << log << "\n\033[0m";
+        printf("\033[31mShader '%s' failed to compile:\n%s\n\033[0m", title, log);
     }
     return shader;
 }
 
 GLuint load_program(std::initializer_list<GLuint> shaders) {
     GLuint program(glCreateProgram());
-    for (GLuint s : shaders)
-        glAttachShader(program, s);
+    for (GLuint s : shaders) glAttachShader(program, s);
     glLinkProgram(program);
-    for (GLuint s : shaders)
-        glDeleteShader(s);
+    for (GLuint s : shaders) glDeleteShader(s);
     return program;
 }
 
@@ -128,13 +129,14 @@ void Mesh::load() {
         .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
         .bind<GL_ARRAY_BUFFER>(VBO).item<0, vec3, vec3, vec2>() // VERTEX
         .bind<GL_ARRAY_BUFFER>(IBO).item<1, vec4, vec4, vec4>(); // MODEL
+    reload();
 }
 
 void Mesh::reload() {
 if (!VAO) load();
     glAttribute(VAO)
-        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex)
-        .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices);
+        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex.begin(), vertex.size())
+        .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
 }
 
 void Mesh::unload() {
@@ -168,31 +170,29 @@ void Perekop::draw() {
             transforms.rawpush((mat3x4)World::models[modelid].pose);
 
         glAttribute(mesh.VAO)
-            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms)
+            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms.begin(), transforms.size())
             .idraw<GL_UNSIGNED_SHORT>(mesh.indices.size(), transforms.size());
     }
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(gui_PROG);
     glAttribute(gui_VAO)
-        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, Window::gui)
+        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, Window::gui.begin(), Window::gui.size())
         .idraw_array(6, Window::gui.size());
 
     glfwSwapBuffers(glfw_window);
 }
 
 void Perekop::init::render() {
-    preamble_v = File::read("pkengine/extra/pre_vsrc.glsl");
-    preamble_f = File::read("pkengine/extra/pre_fsrc.glsl");
+    preamble_v = File::read("pkengine/assets/shaders/pre_vsrc.glsl");
+    preamble_f = File::read("pkengine/assets/shaders/pre_fsrc.glsl");
+    vec2 gui_V[6] = {{0,0}, {0,1}, {1,0}, {1,0}, {0,1}, {1,1}};
     glAttribute(&gui_VAO)
         .make<1>(&gui_VBO)
         .make<1>(&gui_IBO)
-        .bind<GL_ARRAY_BUFFER>(gui_VBO).item<0, vec2>()
-        .bind<GL_ARRAY_BUFFER>(gui_IBO).item<1, float, vec2, vec2, vec3>()
-        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(gui_VBO, Array<vec2>({
-            {0, 0}, {0, 1}, {1, 0}, {1, 0}, {0, 1}, {1, 1}
-        }));
-    const char* vsrc = File::read("pkengine/extra/gui_vert.glsl");
+        .bind<GL_ARRAY_BUFFER>(gui_VBO).item<0, vec2>().data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(gui_VBO, gui_V, 6)
+        .bind<GL_ARRAY_BUFFER>(gui_IBO).item<1, float, vec2, vec2, vec3>();
+    const char* vsrc = File::read("pkengine/assets/shaders/gui_vert.glsl");
     gui_PROG = load_program({
         load_shader({vsrc}, "gui_vshader", GL_VERTEX_SHADER),
         load_shader({"#version 330\n in vec3 col2; out vec4 fragColor; void main() { fragColor = vec4(col2, 1.0); }"}, "gui_fshader", GL_FRAGMENT_SHADER)

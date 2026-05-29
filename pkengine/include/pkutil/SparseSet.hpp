@@ -11,23 +11,14 @@ namespace pk {
        public:
             SparseSet(uint L = 8): data(L), index(L) {};
 
-            T& operator[](I i) const noexcept {
-                return data[index[i]];
-            }
-
-            T* begin() const noexcept { 
-                return data.begin();
-            }
-
-            T* end() const noexcept { 
-                return data.end();
-            }
+            T& operator[](I i) const { return data[index[i]]; }
+            T* begin() const { return data.begin(); }
+            T* end() const { return data.end(); }
             
             template <typename... A> T& insert(A&&... args) {
-                I id = index.size();
-                index.push(id);
+                index.push(index.size());
                 data.push(args...);
-                data.back().id = id;
+                data.back().id = index.back();
                 return data.back();
             }
 

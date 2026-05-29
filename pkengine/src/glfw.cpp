@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <Internal.hpp>
+#include <iostream>
 using namespace pk;
 using namespace glm;
 
@@ -17,7 +18,10 @@ namespace Perekop::Mouse {
     }
 
     vec3 fvec() {
-        return {0, 0, 0}; //soon...
+        vec2 m = position(), s = Window::size();
+        vec2 ndc = {(2.f*m.x/s.x)-1.f, 1.f-(2.f*m.y/s.y)};
+        float ar = s.x/s.y, t = tan(radians(World::camera.fov)*0.5f);
+        return normalize(World::camera.pose.vector_to_world({ndc.x*ar*t, ndc.y*t, -1}));
     }
 
     bool held(int b) {
@@ -85,5 +89,9 @@ void Perekop::init::listeners() {
             case GLFW_PRESS: return Input::on_down.fire(k);
             case GLFW_RELEASE: return Input::on_up.fire(k); 
         }
+    });
+
+    glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
+       glViewport(0, 0, w, h); 
     });
 }

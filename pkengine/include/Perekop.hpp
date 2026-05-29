@@ -41,9 +41,10 @@ namespace Perekop {
         extern void minimize();
     }
 
-    namespace World {
+    namespace World {   
         inline pk::SparseSet<pk::Model> models;
         inline pk::SparseSet<pk::Mesh> meshes;
+
         inline double fps{60};
         inline pk::Camera camera;
     }
