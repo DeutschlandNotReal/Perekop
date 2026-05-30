@@ -11,6 +11,7 @@ namespace Perekop {
         extern void listeners();
         extern void render();
     }
+    inline bool resized = false;
 
     inline uint gui_VAO{0}, gui_VBO{0}, gui_IBO{0}, gui_PROG{0};
 }

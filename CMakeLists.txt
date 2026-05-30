@@ -1,28 +1,23 @@
-cmake_minimum_required(VERSION 3.10)
-project(Perekop)
+cmake_minimum_required(VERSION 3.25)
+project(Perekop LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
 
 set(engine ${CMAKE_SOURCE_DIR}/pkengine)
 set(game ${CMAKE_SOURCE_DIR}/game)
 
 add_subdirectory(${engine}/lib/glfw)
 
-include_directories(
-    ${engine}/lib/glfw/include
-    ${engine}/lib/glad/include
-    ${engine}/lib/glm
-    ${engine}/include
-    ${game}/include
+find_package(OpenGL REQUIRED)
+
+file(GLOB_RECURSE engine_src CONFIGURE_DEPENDS
+    ${engine}/cli/*.cpp
+    ${engine}/src/*.cpp
 )
 
-file(GLOB_RECURSE engine_src ${engine}/cli/*.cpp ${engine}/src/*.cpp)
-file(GLOB_RECURSE game_src ${game}/src/*.cpp)
-file(COPY ${engine}/assets DESTINATION ${CMAKE_BINARY_DIR}/pkengine)
-file(COPY ${game}/assets DESTINATION ${CMAKE_BINARY_DIR}/game)
+file(GLOB_RECURSE game_src CONFIGURE_DEPENDS
+    ${game}/src/*.cpp
+)
 
 add_executable(perekop
     ${engine_src}
@@ -30,8 +25,14 @@ add_executable(perekop
     ${engine}/lib/glad/src/glad.c
 )
 
+target_compile_features(perekop PRIVATE cxx_std_20)
 
-target_link_libraries(perekop
-    glfw
-    opengl32
+target_include_directories(perekop PRIVATE
+    ${engine}/lib/glfw/include
+    ${engine}/lib/glad/include
+    ${engine}/lib/glm
+    ${engine}/include
+    ${game}/include
 )
+
+target_link_libraries(perekop PRIVATE glfw OpenGL::GL)

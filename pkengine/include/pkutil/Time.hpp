@@ -3,7 +3,7 @@
 #include <thread>
 
 namespace pk {
-    template <typename T, short L> class StackTimer {
+    template <typename T, short L> class Timer {
         short ptr = -1;
         T records[L];
         public:

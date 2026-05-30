@@ -97,4 +97,8 @@ void Perekop::init::listeners() {
             case GLFW_RELEASE: return Input::on_up.fire(k); 
         }
     });
+
+    glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
+        Perekop::resized = true;
+    });
 }

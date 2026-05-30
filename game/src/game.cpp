@@ -45,12 +45,12 @@ void Perekop::on_step(double dt) {
                 float r2 = dot(disp, disp);
                 //if (r2 > 500 || r2 < .5) continue;
                 float r = sqrt(r2);
-                vec3 force = disp * -(( 10.f-r) * 0.1f * ibody.Z * jbody.Z * (float)dt / (r * r2));
+                vec3 force = disp * (( 10.f-r) * -1.0f * ibody.Z * jbody.Z * (float)dt / (r2));
                 ibody.vel += force;
                 jbody.vel -= force;
             } 
         ibody.pos += ibody.vel * (float)dt;
-        ibody.vel *= 0.999f;
+        ibody.vel *= 0.9f;
         World::models[ibody.modelid].pose.pos = ibody.pos;
     }
 }
@@ -58,7 +58,7 @@ void Perekop::on_step(double dt) {
 void Perekop::on_launch() {
     Game::freecam_init();
     printf("Game begin\n");
-    
+
     const char 
         *vsrc = File::read("game/assets/shaders/vert.glsl"),
         *fsrc = File::read("game/assets/shaders/frag.glsl");
