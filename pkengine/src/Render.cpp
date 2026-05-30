@@ -122,29 +122,33 @@ void Mesh::Material::use(const mat4& V, const mat4& P) const {
     }
 }
 
-void Mesh::load() {
+void Mesh::rload() {
     if (VAO) return;
     glAttribute(&VAO)
         .make<3>(&VBO)
         .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
         .bind<GL_ARRAY_BUFFER>(VBO).item<0, vec3, vec3, vec2>() // VERTEX
         .bind<GL_ARRAY_BUFFER>(IBO).item<1, vec4, vec4, vec4, vec4>(); // MODEL
-    reload();
+    rreload();
 }
 
-void Mesh::reload() {
-if (!VAO) load();
+void Mesh::rreload() {
+    if (!VAO) rload();
     glAttribute(VAO)
         .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex.begin(), vertex.size())
         .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
 }
 
-void Mesh::unload() {
+void Mesh::runload() {
     if (!VAO) return;
     glDeleteBuffers(3, &VBO);
     glDeleteVertexArrays(1, &VAO);
     VAO = VBO = EBO = IBO = 0;
 }
+
+void Mesh::load() { flags = 1; }
+void Mesh::reload() { flags = 2; }
+void Mesh::unload() { flags = 3; }
 
 void Perekop::draw() {
     vec2 screendim = Window::size();
@@ -160,7 +164,13 @@ void Perekop::draw() {
             World::camera.min, World::camera.max
         );
 
-    for (const Mesh& mesh : World::meshes) {
+    for (Mesh& mesh : World::meshes) {
+        switch (mesh.flags) {
+            case 1: mesh.rload(); break;
+            case 2: mesh.rreload(); break;
+            case 3: mesh.runload(); break;
+        }
+        mesh.flags = 0;
         if (mesh.models.size() == 0 || !mesh.mat || !mesh.mat->program) continue;
         transforms.clear();
         transforms.reserve(mesh.models.size());

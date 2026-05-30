@@ -9,6 +9,10 @@ namespace pk {
     class Mesh {
         friend void Perekop::draw();
         uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
+        short flags{0};
+        void rload();
+        void rreload();
+        void runload();
         
         public:
             struct alignas(32) Vertex {  

@@ -1,15 +1,19 @@
+#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <memoryapi.h>
+#include <thread>
 
 #include <Perekop.hpp>
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
 #include <pkutil/File.hpp>
-
 using namespace pk;
 using namespace glm;
 
 static Mesh::Material default_material;
+static int f_main{0}, f_render{0};
+static bool alive{true};
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
@@ -36,16 +40,36 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
 
-    StackTimer<double, 2> frame_timer;
-    frame_timer.begin();
+    StackTimer<double, 1> mtimer;
+
+    glfwMakeContextCurrent(nullptr);
+    std::thread render_thread([](){
+        glfwMakeContextCurrent(Perekop::glfw_window);
+        gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);  
+        while (alive) {
+            int w, h;
+            glfwGetWindowSize(Perekop::glfw_window, &w, &h);
+            glViewport(0, 0, w, h);
+            while (f_render < f_main) {
+                f_render++; 
+                Perekop::draw();
+            }
+            std::this_thread::yield();
+        }
+    });
+    
+    mtimer.begin();
     while (!glfwWindowShouldClose(Perekop::glfw_window)) {
-        double dt = frame_timer.delta();
-        Perekop::draw();
+        printf("draw(%i/%i)\n", f_render, f_main);
+        f_main++;
+        double dt = mtimer.delta();
         glfwPollEvents();
         Perekop::on_step(dt);
-        double fdt = frame_timer.elapsed();   
-        frame_timer.sleep(1.0/Perekop::World::fps - fdt);
+        double fdt = mtimer.elapsed();
+        mtimer.sleep(1.0/Perekop::World::fps - fdt);
     }
+    alive = false;
+    render_thread.join();
 
     Perekop::on_exit();
     glfwTerminate();
