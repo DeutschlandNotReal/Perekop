@@ -1,6 +1,6 @@
 #pragma once
 
-#include <pk/Mesh.hpp>
+#include <pk/Geometry.hpp>
 #include <pkutil/Event.hpp>
 
 namespace pk {
@@ -20,6 +20,7 @@ namespace Perekop {
 
         extern glm::vec2 position(); extern void position(glm::vec2 position);
         extern glm::vec3 fvec();
+        extern glm::mat3 matrix();
         inline pk::Event<glm::vec2> on_move;
         inline pk::Event<int> on_down, on_up, on_scroll;
         extern bool held(int button);

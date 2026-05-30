@@ -5,7 +5,7 @@ class GLFWwindow;
 namespace Perekop {
     inline const char *preamble_v{nullptr}, *preamble_f{nullptr};
     inline GLFWwindow* glfw_window{nullptr};
-    inline pk::Array<glm::mat3x4> transforms{50};
+    inline pk::Array<glm::mat4> transforms{50};
     void draw();
     namespace init {
         extern void listeners();

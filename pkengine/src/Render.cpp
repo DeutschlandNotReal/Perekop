@@ -128,7 +128,7 @@ void Mesh::load() {
         .make<3>(&VBO)
         .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
         .bind<GL_ARRAY_BUFFER>(VBO).item<0, vec3, vec3, vec2>() // VERTEX
-        .bind<GL_ARRAY_BUFFER>(IBO).item<1, vec4, vec4, vec4>(); // MODEL
+        .bind<GL_ARRAY_BUFFER>(IBO).item<1, vec4, vec4, vec4, vec4>(); // MODEL
     reload();
 }
 
@@ -166,8 +166,11 @@ void Perekop::draw() {
         transforms.reserve(mesh.models.size());
         mesh.mat->use(V, P);
 
-        for (short modelid : mesh.models) 
-            transforms.rawpush((mat3x4)World::models[modelid].pose);
+        for (short modelid : mesh.models) {
+            Model& m = World::models[modelid];
+            mat3x4 mat = m.pose;
+            transforms.push({mat[0], mat[1], mat[2], m.metadata});
+        }
 
         glAttribute(mesh.VAO)
             .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms.begin(), transforms.size())

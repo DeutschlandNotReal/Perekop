@@ -8,7 +8,7 @@ using namespace glm;
 using namespace Perekop;
 static float t = 0;
 
-struct body { int modelid; vec3 vel, pos; };
+struct body { int modelid; vec3 vel, pos; float Z; };
 
 static Array<body> bodies;
 static uint fake_randomler = 0;
@@ -35,22 +35,23 @@ vec3 random(vec3 min, vec3 max) {
 
 void Perekop::on_step(double dt) {
     Game::freecam_step(dt);
+    t += dt;
     for (int i = 0; i < bodies.size(); i++) {
-        body& islop = bodies[i];
+        body& ibody = bodies[i];
         if (i != bodies.size() - 1)
             for (int j = i + 1; j < bodies.size(); j++) {
-                body& jslop = bodies[j];
-                vec3 disp = jslop.pos - islop.pos;
+                body& jbody = bodies[j];
+                vec3 disp = jbody.pos - ibody.pos;
                 float r2 = dot(disp, disp);
-                if (r2 > 400 || r2 < 1) continue;
+                if (r2 > 500 || r2 < .5) continue;
                 float r = sqrt(r2);
-                vec3 force = disp * ((3.f-r) * (float)dt * .15f / r2);
-                islop.vel += force;
-                jslop.vel -= force;
+                vec3 force = disp * -(( 10.f-r) * 0.1f * ibody.Z * jbody.Z * (float)dt / (r * r2));
+                ibody.vel += force;
+                jbody.vel -= force;
             } 
-        islop.pos += islop.vel * (float)dt * 0.f;
-        islop.vel *= 0.98f;
-        World::models[islop.modelid].pose.pos = islop.pos;
+        ibody.pos += ibody.vel * (float)dt;
+        ibody.vel *= 0.999f;
+        World::models[ibody.modelid].pose.pos = ibody.pos;
     }
 }
 
@@ -58,8 +59,9 @@ void Perekop::on_launch() {
     Game::freecam_init();
     printf("Game begin\n");
 
-    const char* vsrc = File::read("game/assets/shaders/vert.glsl");
-    const char* fsrc = File::read("game/assets/shaders/frag.glsl");
+    const char 
+        *vsrc = File::read("game/assets/shaders/vert.glsl"),
+        *fsrc = File::read("game/assets/shaders/frag.glsl");
     auto* chudmat = new Mesh::Material(vsrc, fsrc);
     chudmat->uniform(Mesh::u_float, "t", &t);
     delete[] vsrc;
@@ -94,13 +96,15 @@ void Perekop::on_launch() {
     shapeler.load();
 
     Window::gui.push({-4, {.1, .1}, {.56, .57}, {.6, .7, .8}});
-    for (int i = 0; i < 30; i++) {
-        int id = World::models.insert().id;
-        shapeler.models.push(id);
+    for (int i = 0; i < 100; i++) {
+        Model& model = World::models.insert();
+        shapeler.models.push(model.id);
         vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 
              pos = random({0, 0, 0}, {10, 10, 10});
-        World::models[id].pose.pos = pos; 
-        bodies.push({id, vel, pos});
+        float Z = random(0, 1) > 0.5 ? -1 : 1;
+        model.pose.pos = pos; 
+        model.metadata = vec4(Z==-1?0:1,0,Z==1?0:1,0);
+        bodies.push({model.id, vel, pos, Z});
         printf("V(%+.2f,%+.2f,%+.2f), P(%+.2f,%+.2f,%+.2f)\n", vel.x, vel.y, vel.z, pos.x, pos.y, pos.z);
     }
 }

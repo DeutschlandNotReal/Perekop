@@ -3,8 +3,18 @@ out vec4 col;
 
 void main() { 
     mat4 MVP = P * V * model();
+    vec3 sunvec = normalize(vec3(
+        0,
+        cos(t),
+        sin(t)
+    ));
+
     gl_Position = MVP * vec4(_pos, 1.0); 
-    vec3 n = normalize((MVP * vec4(_norm, 0.0)).xyz);
-    float f = fract(dot(n, vec3(0.5, 0.5, 0.1)));
-    col = vec4(_uv.x * f, _uv.y * f, 0.5 + 0.5 * sin(t), 1.0); 
+    float a = dot(_norm, sunvec) * 0.5 + 0.5;
+    col = vec4(
+        meta.x * _uv.x * a, 
+        meta.y * _uv.y * a, 
+        meta.z * (_uv.x + _uv.y) * 0.5 * a,
+        1.0
+    );
 };

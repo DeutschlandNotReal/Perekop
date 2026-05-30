@@ -10,10 +10,10 @@ namespace pk {
         operator glm::vec3() const { return pos; }
 
         operator glm::mat4() const {
-            return glm::translate(glm::mat4_cast(rot), pos);
+            return glm::translate(glm::mat4(1), pos) * glm::mat4_cast(rot);
         }
 
-        glm::mat3x4 to_mat3x4() const {
+        operator glm::mat3x4() const {
             glm::mat3 r = glm::mat3_cast(rot);
             return {
                 {r[0], pos.x},
@@ -43,23 +43,19 @@ namespace pk {
             return *this *= glm::angleAxis(angle_rad, glm::normalize(axis));
         }
 
-        glm::vec3 vector_to_world(glm::vec3 v) const {
+        glm::vec3 wspace_vec(glm::vec3 v) const {
             return rot * v;
         }
 
-        void displace_local(glm::vec3 d) {
-            pos += rot * d;
-        }
-
-        glm::vec3 vector_to_local(glm::vec3 v) const {
+        glm::vec3 lspace_vec(glm::vec3 v) const {
             return glm::inverse(rot) * v;
         }
 
-        glm::vec3 point_to_world(glm::vec3 p) const {
+        glm::vec3 wspace_point(glm::vec3 p) const {
             return rot * p + pos;
         }
 
-        glm::vec3 point_to_local(glm::vec3 p) const {
+        glm::vec3 lspace_point(glm::vec3 p) const {
             return glm::inverse(rot) * (p - pos);
         }
 

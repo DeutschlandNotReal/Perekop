@@ -1,7 +1,7 @@
 #pragma once
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
-#include <pk/Transform.hpp>
+#include <pk/Pose.hpp>
 #include <pkutil/SparseSet.hpp>
 
 namespace Perekop { void draw(); }
@@ -50,7 +50,7 @@ namespace pk {
             void unload();
     };
 
-    struct Model { short id; Pose pose; };
+    struct Model { short id; Pose pose; glm::vec4 metadata; };
 
     struct Camera { float min{.1}, max{200}, fov{75}; Pose pose; };
 }

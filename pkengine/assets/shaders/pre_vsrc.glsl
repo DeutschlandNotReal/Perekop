@@ -5,6 +5,7 @@ layout(location = 2) in vec2 _uv;
 layout(location = 3) in vec4 M0;
 layout(location = 4) in vec4 M1;
 layout(location = 5) in vec4 M2;
+layout(location = 6) in vec4 meta;
 uniform mat4 V;
 uniform mat4 P;
 

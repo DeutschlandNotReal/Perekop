@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 
 #include <Internal.hpp>
-#include <iostream>
 using namespace pk;
 using namespace glm;
 
@@ -21,7 +20,15 @@ namespace Perekop::Mouse {
         vec2 m = position(), s = Window::size();
         vec2 ndc = {(2.f*m.x/s.x)-1.f, 1.f-(2.f*m.y/s.y)};
         float ar = s.x/s.y, t = tan(radians(World::camera.fov)*0.5f);
-        return normalize(World::camera.pose.vector_to_world({ndc.x*ar*t, ndc.y*t, -1}));
+        return normalize(World::camera.pose.wspace_vec({ndc.x*ar*t, ndc.y*t, -1}));
+    }
+
+    mat3 matrix() {
+        vec3 
+        f = fvec(),
+        r = normalize(cross(f, vec3{0,1,0})),
+        u = normalize(cross(r, f));
+        return {r, u, f};
     }
 
     bool held(int b) {
