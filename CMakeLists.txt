@@ -25,6 +25,7 @@ target_include_directories(perekop PRIVATE
     ${engine}/lib/glfw/include
     ${engine}/lib/glad/include
     ${engine}/lib/glm
+    ${engine}/lib
     ${engine}/include
     ${game}/include
 )

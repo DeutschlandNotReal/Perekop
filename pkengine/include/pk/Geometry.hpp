@@ -4,10 +4,10 @@
 #include <pk/Pose.hpp>
 #include <pkutil/SparseSet.hpp>
 
-namespace Perekop { void draw(); }
+namespace Perekop::step { void draw(); }
 namespace pk {
     class Mesh {
-        friend void Perekop::draw();
+        friend void Perekop::step::draw();
         uint VBO{0}, EBO{0}, IBO{0};
         short flags{0};
         void r_load(); void r_reload(); void r_unload();
@@ -23,27 +23,21 @@ namespace pk {
                 u_int, u_float, u_vec2, u_vec3, u_vec4, u_mat3, u_mat4
             };
 
-            struct Uniform {
-                int layout;
-                UniType type;
-                const void* data;
-            };
-            
-            class Material {
-                friend void Perekop::draw();
-                uint program{0};
-                int layout_P, layout_V;
+            class Appearance {
+                friend void Perekop::step::draw();
+                struct Uniform { int layout; UniType type; const void* data; };
+                uint program{0}, texture{0}, layoutP{0}, layoutV{0}, layoutT{0};
                 Array<Uniform> uniforms;
                 void use(const glm::mat4& V, const glm::mat4& P) const;
                 public:
-                    Material() = default;
-                    Material(const char* vsrc, const char* fsrc);
-
+                    Appearance() = default;
+                    Appearance(const char* vpath, const char* fpath, const char* tpath = nullptr);
+                    
                     void uniform(UniType T, const char* title, const void* data);
             };
             
             short id{0};
-            Material* mat{nullptr};
+            Appearance* appearance{nullptr};
             Array<Vertex> vertex;
             Array<short> indices, models;
 

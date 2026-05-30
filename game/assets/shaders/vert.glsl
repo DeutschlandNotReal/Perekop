@@ -12,5 +12,5 @@ void main() {
         meta.x * _uv.x * a, 
         meta.y * _uv.y * a, 
         meta.z * (_uv.x + _uv.y) * 0.5 * a
-    ), bgcol, clamp(1.0-exp(_view.z * 0.1), 0, 1));
+    ), bgcol, clamp(1.0-exp(_view.z * 0.1), 0, 1)) * texture(_texture, _uv).xyz;
 }

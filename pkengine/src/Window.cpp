@@ -6,20 +6,10 @@ using namespace pk;
 using namespace glm;
 
 namespace Perekop::Mouse {
-    vec2 position() {
-        double x, y;
-        glfwGetCursorPos(glfw_window, &x, &y);
-        return {x, y};
-    }
-
-    void position(vec2 p) {
-        glfwSetCursorPos(glfw_window, p.x, p.y);
-    }
-
     vec3 fvec() {
-        vec2 m = position(), s = Window::size();
-        vec2 ndc = {(2.f*m.x/s.x)-1.f, 1.f-(2.f*m.y/s.y)};
-        float ar = s.x/s.y, t = tan(radians(World::camera.fov)*0.5f);
+        vec2& size = Window::size;
+        vec2 ndc = {(2.f*pos.x/size.x)-1.f, 1.f-(2.f*pos.y/size.y)};
+        float ar = size.x/size.y, t = tan(radians(World::camera.fov)*.5f);
         return normalize(World::camera.pose.wspace_vec({ndc.x*ar*t, ndc.y*t, -1}));
     }
 
@@ -47,39 +37,33 @@ namespace Perekop::Input {
 }
 
 namespace Perekop::Window {
-    void size(vec2 s) {
-        glfwSetWindowSize(glfw_window, s.x, s.y);
-    }
-    vec2 size() { 
-        int x, y;
-        glfwGetWindowSize(glfw_window, &x, &y);
-        return {x, y};
-    }
-    void position(vec2 p) {
-        glfwSetWindowPos(glfw_window, p.x, p.y);
-    }
-    vec2 position() {
-        int x, y;
-        glfwGetWindowPos(glfw_window, &x, &y);
-        return {x, y};
-    }
-    void title(const char* t) {
-        glfwSetWindowTitle(glfw_window, t);
-    }
-    const char* title() { return glfwGetWindowTitle(glfw_window); }
     void minimize() { glfwIconifyWindow(glfw_window); }
     void maximize() { glfwMaximizeWindow(glfw_window); }
 }
 
-double lx{0}, ly{0};
-void Perekop::init::listeners() {
-    glfwGetCursorPos(glfw_window, &lx, &ly);
+void Perekop::init::window() {
+    {
+        double x, y;
+        glfwGetCursorPos(glfw_window, &x, &y);
+        Mouse::pos = Mouse::pos_v = {x, y};
+    }{
+        int w, h;
+        glfwGetWindowSize(glfw_window, &w, &h);
+        Window::size = Window::size_v = {w, h};
+    }{
+        int x, y;
+        glfwGetWindowPos(glfw_window, &x, &y);
+        Window::pos = Window::pos_v = {x, y};
+    }
+
     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
         switch (act) {
             case GLFW_PRESS: 
-                if (!Perekop::gui_test_down(k)) return Mouse::on_down.fire(k);
+                if (GUI::top) GUI::on_down.fire(GUI::top, k);
+                return Mouse::on_down.fire(k);
             case GLFW_RELEASE: 
-                if (!Perekop::gui_test_up(k)) return Mouse::on_up.fire(k);
+                if (GUI::top) GUI::on_up.fire(GUI::top, k);
+                return Mouse::on_up.fire(k);
         }
     }); 
 
@@ -89,9 +73,10 @@ void Perekop::init::listeners() {
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        vec2 delta = {x-lx, y-ly};
-        lx = x; ly = y;
-        if (Perekop::gui_test_move()) return;
+        Mouse::pos_v = {x, Window::size_v.y - y};
+        Perekop::get_gui_top();
+        vec2 delta = Mouse::pos_v - Mouse::pos; 
+        Mouse::pos = Mouse::pos_v;
         Mouse::on_move.fire(delta);
     });
 
@@ -103,6 +88,27 @@ void Perekop::init::listeners() {
     });
 
     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
-        Perekop::resized = true;
+        Window::size_v = Window::size = vec2{w, h};
+        Perekop::window_resized = true;
     });
+
+    glfwSetWindowPosCallback(glfw_window, [](GLFWwindow*, int x, int y){
+        Window::pos_v = Window::pos = vec2{x, y};
+    });
+}
+
+void Perekop::step::window() {
+    if (Window::size != Window::size_v) { 
+        Window::size_v = Window::size; 
+        glfwSetWindowSize(glfw_window, Window::size.x, Window::size.y); 
+    } if (Window::pos != Window::pos_v) { 
+        Window::pos_v = Window::pos;  
+        glfwSetWindowPos(glfw_window, Window::pos.x, Window::pos.y); 
+    } if (Mouse::pos != Mouse::pos_v) {
+        Mouse::pos_v = Mouse::pos;
+        glfwSetCursorPos(glfw_window, Mouse::pos.x, Window::size.y - Mouse::pos.y);
+    } if (Window::title != Window::title_v) {
+        Window::title_v = Window::title;
+        glfwSetWindowTitle(glfw_window, Window::title);
+    }
 }

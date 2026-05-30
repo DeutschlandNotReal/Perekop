@@ -12,7 +12,7 @@
 using namespace pk;
 using namespace glm;
 
-static Mesh::Material default_material;
+static Mesh::Appearance default_material;
 static int f_main{0};
 static bool alive{true};
 
@@ -30,12 +30,12 @@ int main() {
     glfwShowWindow(Perekop::glfw_window);
     glEnable(GL_DEPTH_TEST);
 
-    Perekop::init::render();
-    Perekop::init::listeners();
+    Perekop::init::draw();
+    Perekop::init::window();
 
-    default_material = Mesh::Material(
-        "void main() { gl_Position = P * V * model() * vec4(_pos, 1.0); }",
-        "#version 430\n out vec4 fragColor; void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
+    default_material = Mesh::Appearance(
+        "pkengine/assets/shaders/def_vsrc.glsl",
+        "pkengine/assets/shaders/def_fsrc.glsl"
     );
 
     Perekop::on_launch();
@@ -47,13 +47,13 @@ int main() {
         gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);  
         int f{0};
         while (alive) {
-            if (Perekop::resized) {
+            if (Perekop::window_resized) {
                 int w, h;
                 glfwGetWindowSize(Perekop::glfw_window, &w, &h);
                 glViewport(0, 0, w, h);
-                Perekop::resized = false;
+                Perekop::window_resized = false;
             }
-            if (f != f_main) { f = f_main; Perekop::draw(); }
+            if (f != f_main) { f = f_main; Perekop::step::draw(); }
 
             Timer<short,0>::sleep(0.9/Perekop::World::fps);
         }
@@ -64,6 +64,7 @@ int main() {
         f_main++;
         double dt = mtimer.delta();
         glfwPollEvents();
+        Perekop::step::window();
         Perekop::on_step(dt);
         double fdt = mtimer.elapsed();
         mtimer.sleep(1.0/Perekop::World::fps - fdt);

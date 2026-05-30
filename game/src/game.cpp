@@ -1,8 +1,8 @@
-#include "pk/GUI.hpp"
 #include <Perekop.hpp>
 #include <cstdio>
 #include <pkutil/File.hpp>
-#include <game/freecam.hpp>
+#include <game/cam.hpp>
+#include <game/gui.hpp>
 
 using namespace pk;
 using namespace glm;
@@ -35,7 +35,7 @@ vec3 random(vec3 min, vec3 max) {
 }
 
 void Perekop::on_step(double dt) {
-    Game::freecam_step(dt);
+    Game::cam_step(dt);
     t += dt;
     float r = sin(t*0.5)*.5+.5;
     float g = cos(t*0.25)*.5+.5;
@@ -61,22 +61,23 @@ void Perekop::on_step(double dt) {
 }
 
 void Perekop::on_launch() {
-    Game::freecam_init();
+    Game::cam_init();
+    Game::gui_init();
     printf("Game begin\n");
 
-    const char 
-        *vsrc = File::read("game/assets/shaders/vert.glsl"),
-        *fsrc = File::read("game/assets/shaders/frag.glsl");
-    auto* chudmat = new Mesh::Material(vsrc, fsrc);
+    auto* chudmat = new Mesh::Appearance(
+    "game/assets/shaders/vert.glsl",
+    "game/assets/shaders/frag.glsl",
+    "game/assets/images/ourbrainsareshrinking.jpg"
+    );
+
     chudmat->uniform(Mesh::u_float, "t", &t);
     chudmat->uniform(Mesh::u_vec3, "bgcol", &World::background_colour);
-    delete[] vsrc;
-    delete[] fsrc;
 
     Mesh& shapeler = World::meshes.insert();
     Mesh& pyramidler = World::meshes.insert();
-    shapeler.mat = chudmat;
-    pyramidler.mat = chudmat;
+    shapeler.appearance = chudmat;
+    pyramidler.appearance = chudmat;
 
     shapeler.vertex = {
         {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},
@@ -117,19 +118,6 @@ void Perekop::on_launch() {
 
     shapeler.load();
     pyramidler.load();
-
-    GUI::gui.push({GUIObject::frame, 0.4, {.1, .1}, {.5, .5}, {.9,.1,.4,.9}});
-    auto& slopgui = GUI::gui.back();
-
-    GUI::on_enter.listen([](GUIObject* obj){
-        printf("Slopper entered\n");
-        obj->size += vec2{0.1, 0.1};
-    });
-
-    GUI::on_exit.listen([](GUIObject* obj){
-        printf("Slopper exited\n");
-        obj->size -= vec2{0.1, 0.1};
-    });
 
     for (int i = 0; i < 100; i++) {
         Model& model = World::models.insert();

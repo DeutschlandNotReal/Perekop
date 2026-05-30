@@ -6,16 +6,21 @@ namespace pk {
     struct rawgui { float Z; glm::vec2 p, s; glm::vec4 RGBA; };
 };
 namespace Perekop {
-    inline const char *preamble_v{nullptr};
+    inline const char *preamble_v{nullptr}, *preamble_f{nullptr};
     inline GLFWwindow* glfw_window{nullptr};
     inline pk::Array<glm::mat4> transforms{50};
     inline pk::Array<pk::rawgui> guidata;
-    void draw();
+
+    inline bool window_resized{false};
     namespace init {
-        extern void listeners();
-        extern void render();
+        extern void draw();
+        extern void window();
     }
-    inline bool resized = false;
+
+    namespace step {
+        void draw();
+        void window();
+    }
 
     inline uint
         mesh_VAO{0},
@@ -24,10 +29,14 @@ namespace Perekop {
         gui_IBO{0}, 
         gui_PROG{0};
 
-    // tests if mouse is in gui when some mouse events happen
-    // blocks event firing if test pass...
-    extern bool gui_test_move();
-    extern bool gui_test_down(int k);
-    extern bool gui_test_up(int k);
-    // extern bool gui_test_scroll(int d);
+    extern void get_gui_top();
+
+    namespace Mouse { 
+        inline glm::vec2 pos_v{0}; 
+    }
+
+    namespace Window { 
+        inline glm::vec2 pos_v{0}, size_v{0}; 
+        inline const char* title_v{nullptr};
+    }
 }

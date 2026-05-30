@@ -1,7 +1,7 @@
 #include "glm/ext/quaternion_trigonometric.hpp"
 #include <Perekop.hpp>
 #include <cstdio>
-#include <game/freecam.hpp>
+#include <game/cam.hpp>
 #include <GLFW/glfw3.h>
 
 using namespace pk;
@@ -11,17 +11,16 @@ using World::camera;
 
 vec2 cam_angle{0};
 
-void Game::freecam_init() {
+void Game::cam_init() {
     Mouse::on_scroll.listen([](int d){
         camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
 
     Mouse::on_move.listen([](vec2 d){
-        if (!Mouse::held(0)) return;
-        vec2 winsize = Window::size();
-        float yfov = camera.fov * (winsize.y / winsize.x);
+        if (!Mouse::held(0) || GUI::top) return;
+        float yfov = camera.fov * (Window::size.y / Window::size.x);
 
-        cam_angle += d * vec2{camera.fov, yfov} / winsize;
+        cam_angle += d * vec2{camera.fov, yfov} / Window::size;
         camera.pose.rot = 
             angleAxis(radians(cam_angle.x), vec3{0,1,0}) *
             angleAxis(radians(cam_angle.y), vec3{1,0,0});
@@ -37,7 +36,7 @@ void Game::freecam_init() {
 }
 
 using Input::held;
-void Game::freecam_step(float dt) {
+void Game::cam_step(float dt) {
     vec3 delta{0};
 
     if (held('S')) delta += vec3{0,0,1};

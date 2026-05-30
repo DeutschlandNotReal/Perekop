@@ -12,8 +12,8 @@ namespace Perekop {
 
     namespace Mouse {
         enum State { captured = 0x00034004, hidden = 0x00034002, normal = 0x00034001 };
-
-        extern glm::vec2 position(); extern void position(glm::vec2 position);
+        inline glm::vec2 pos{0,0};
+        
         extern glm::vec3 fvec();
         extern glm::mat3 matrix();
         inline pk::Event<glm::vec2> on_move;
@@ -28,15 +28,15 @@ namespace Perekop {
     }
 
     namespace Window {
-        extern glm::vec2 size(); extern void size(glm::vec2 size);
-        extern glm::vec2 position(); extern void position(glm::vec2 position);
-        extern const char* title(); extern void title(const char* title);
-
+        inline glm::vec2 size{0,0}, pos{0, 0};
+        inline const char* title;
+        
         extern void maximize();
         extern void minimize();
     }
 
     namespace GUI {
+        inline pk::GUIObject* top{nullptr};
         inline pk::Array<pk::GUIObject> gui;
         inline pk::Event<pk::GUIObject*> on_enter, on_exit;
         inline pk::Event<pk::GUIObject*, int> on_down, on_up;

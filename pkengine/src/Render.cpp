@@ -1,12 +1,10 @@
-#include "Perekop.hpp"
-#include "pk/GUI.hpp"
-#include <cstdlib>
-#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/matrix.hpp>
 #include <type_traits>
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
@@ -94,16 +92,37 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
     return program;
 }
 
-Mesh::Material::Material(const char* vsrc, const char* fsrc) {
-    program = load_program({
-        load_shader({Perekop::preamble_v, vsrc}, "vertex", GL_VERTEX_SHADER), 
-        load_shader({fsrc}, "fragment", GL_FRAGMENT_SHADER)
-    });
-    layout_V = glGetUniformLocation(program, "V");
-    layout_P = glGetUniformLocation(program, "P");
+void load_texture(GLuint* texture, const char* path) {
+    int width, height, channels;
+    unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
+    if (!data) {
+        printf("\033[31mTexture at path '%s' not found.\n\033[0m", path); return;
+    }
+    int format = (channels==1)?GL_RED:(channels=2)?GL_RGB:GL_RGBA;
+    glGenTextures(1, texture);
+    glBindTexture(GL_TEXTURE_2D, *texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(data);
 }
 
-void Mesh::Material::uniform(Mesh::UniType T, const char* title, const void* data) {
+Mesh::Appearance::Appearance(const char* vpath, const char* fpath, const char* tpath) {
+    const char *vsrc = File::read(vpath), *fsrc = File::read(fpath);
+    program = load_program({
+        load_shader({Perekop::preamble_v, vsrc}, "vertex", GL_VERTEX_SHADER), 
+        load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
+    });
+    delete[] vsrc; delete[] fsrc;  
+    layoutP = glGetUniformLocation(program, "V");
+    layoutV = glGetUniformLocation(program, "P");
+    if (!tpath) return;
+    layoutT = glGetUniformLocation(program, "_texture");
+    glGenTextures(1, &texture);
+
+    load_texture(&texture, tpath);
+}
+
+void Mesh::Appearance::uniform(Mesh::UniType T, const char* title, const void* data) {
     uniforms.push({
         glGetUniformLocation(program, title),
         T,
@@ -111,12 +130,17 @@ void Mesh::Material::uniform(Mesh::UniType T, const char* title, const void* dat
     });
 };
 
-void Mesh::Material::use(const mat4& V, const mat4& P) const {
+void Mesh::Appearance::use(const mat4& V, const mat4& P) const {
     glUseProgram(program);
-    glUniformMatrix4fv(layout_V, 1,GL_FALSE, (float*)&V);
-    glUniformMatrix4fv(layout_P, 1, GL_FALSE, (float*)&P);
+    glUniformMatrix4fv(layoutV, 1,GL_FALSE, (float*)&V);
+    glUniformMatrix4fv(layoutP, 1, GL_FALSE, (float*)&P);
 
-    for (const auto& u : uniforms) {
+    if (texture && layoutT) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture); 
+        glUniform1i(layoutT, 0);
+    }
+    for (const Uniform& u : uniforms) {
         switch (u.type) {
             case u_mat3:
                 glUniformMatrix3fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
@@ -159,9 +183,8 @@ void Mesh::load() { flags = 1; }
 void Mesh::reload() { flags = 2; }
 void Mesh::unload() { flags = 3; }
 
-void Perekop::draw() {
-    vec2 screendim = Window::size();
-    if (screendim.y == 0) return;
+void Perekop::step::draw() {
+    if (Window::size.y == 0) return;
 
     const vec3 bg = World::background_colour;
     glClearColor(bg.x, bg.y, bg.z, 1.0);
@@ -170,7 +193,7 @@ void Perekop::draw() {
         V = inverse((glm::mat4)World::camera.pose),
         P = perspective(
             radians(World::camera.fov), 
-            screendim.x / screendim.y,
+            Window::size.x / Window::size.y,
             World::camera.min, World::camera.max
         );
 
@@ -182,10 +205,10 @@ void Perekop::draw() {
             case 3: mesh.r_unload(); break;
         }
         mesh.flags = 0;
-        if (mesh.models.size() == 0 || !mesh.mat || !mesh.mat->program) continue;
+        if (mesh.models.size() == 0 || !mesh.appearance || !mesh.appearance->program) continue;
         transforms.clear();
         transforms.reserve(mesh.models.size());
-        mesh.mat->use(V, P);
+        mesh.appearance->use(V, P);
 
         for (short modelid : mesh.models) {
             Model& m = World::models[modelid];
@@ -207,15 +230,18 @@ void Perekop::draw() {
     if (GUI::gui.size() > 0) {
         if (GUI::gui.size() > guidata.capacity()) guidata.reserve(GUI::gui.size());
         guidata.clear();
-        float minz{GUI::gui[0].Z}, maxz{minz};
-        for (int i = 1; i < guidata.size(); i++) {
-            float Z = GUI::gui[i].Z;
-            maxz = max(maxz, Z); minz = min(minz, Z);
-        }
-        if (GUI::gui.size() == 1) minz = 0;
+        float minz{0}, maxz{1};
+
         for (const GUIObject& gui : GUI::gui) {
-            float Z = (gui.Z - minz) / (maxz - minz) - .5f;
-            guidata.rawpush({Z, gui.position, gui.size, gui.colour});
+            maxz = max(maxz, gui.Z); minz = min(minz, gui.Z);
+        }
+        float iZR = 1.f / (maxz - minz);
+
+        for (const GUIObject& gui : GUI::gui) {
+            float Z = (gui.Z - minz) * iZR;
+
+            vec4 col = vec4{gui.colour & 255, (gui.colour << 8) & 255, (gui.colour << 16) & 255, (gui.colour << 24) & 255} / 255.f;
+            guidata.rawpush({Z, gui.pos, gui.size, col});
         }
 
         glAttribute(gui_VAO)
@@ -238,8 +264,9 @@ void Perekop::draw() {
     glfwSwapBuffers(glfw_window);
 }
 
-void Perekop::init::render() {
+void Perekop::init::draw() {
     preamble_v = File::read("pkengine/assets/shaders/pre_vsrc.glsl");
+    preamble_f = File::read("pkengine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)
         .item<vec3, vec3, vec2>() // VERTEX
         .item_instanced<vec4, vec4, vec4, vec4>(); // MODEL
