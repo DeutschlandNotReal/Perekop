@@ -1,5 +1,7 @@
-in vec4 col; 
+#version 430
+in vec3 col;
+out vec4 fragColor;
 
 void main() { 
-    fragColor = col; 
-};
+    fragColor = vec4(col, 1.0); 
+}

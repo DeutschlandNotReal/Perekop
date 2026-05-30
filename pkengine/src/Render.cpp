@@ -1,4 +1,5 @@
 #include "Perekop.hpp"
+#include "pk/GUI.hpp"
 #include <cstdlib>
 #include <cstdio>
 #include <glad/glad.h>
@@ -15,30 +16,38 @@ using namespace pk;
  
 class glAttribute {
     int index{0};
-    template <typename T> void member(int d, int s, long long& o) {
+    template <typename T> void member(int d, int& o) {
         if constexpr(std::is_same_v<T, float>) {
-            glVertexAttribPointer(index, 1, GL_FLOAT, 0, s, (void*)o);
+            glVertexAttribFormat(index, 1, GL_FLOAT, 0, o);
         } else if constexpr(std::is_same_v<T, vec4> || std::is_same_v<T, vec3> || std::is_same_v<T, vec2>) 
-            glVertexAttribPointer(index, T::length(), GL_FLOAT, 0, s, (void*)o);
+            glVertexAttribFormat(index, T::length(), GL_FLOAT, 0, o);
         else if constexpr(std::is_same_v<T, int>)
-            glVertexAttribIPointer(index, 1, GL_INT, s, (void*)o);
+           glVertexAttribIFormat(index, 1, GL_INT, o);
         else if constexpr(std::is_same_v<T, uint>)
-            glVertexAttribIPointer(index, 1, GL_UNSIGNED_INT, s, (void*)o);
+           glVertexAttribIFormat(index, 1, GL_UNSIGNED_INT, o);
+        glVertexAttribBinding(index, d);
+        glEnableVertexAttribArray(index++);
         o += sizeof(T);
-        glEnableVertexAttribArray(index);
-        glVertexAttribDivisor(index++, d);
     }
 
     public:
         glAttribute() = default;
         glAttribute(GLuint array) { glBindVertexArray(array); }
         glAttribute(GLuint* array) { glGenVertexArrays(1, array); glBindVertexArray(*array); }
-        template <int d, typename... T> glAttribute& item() {
-            int stride = (sizeof(T) + ...); long long offset = 0;
-            (member<T>(d, stride, offset), ...);
+        template <typename... T> glAttribute& item() {
+            glVertexBindingDivisor(0, 0);
+            int offset{0};
+            (member<T>(0, offset), ...);
             return *this;
         }
-        template <GLenum type> glAttribute& bind(GLuint b) { glBindBuffer(type, b); return *this; }
+        template <typename... T> glAttribute& item_instanced() {
+            glVertexBindingDivisor(1, 1);
+            int offset{0};
+            (member<T>(1, offset), ...);
+            return *this;
+        }
+
+        glAttribute& bind_elements(GLuint b) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, b); return *this;}
         template <int L> glAttribute& make(GLuint* b) { glGenBuffers(L, b); return *this;}
         
         template <GLenum type, GLenum mode, typename T> glAttribute& data(GLuint buffer, const T* data, int n) {
@@ -47,8 +56,13 @@ class glAttribute {
             return *this;
         }
 
-        template <GLenum type> glAttribute& idraw(int n_ind, int n_users) {
-            glDrawElementsInstanced(GL_TRIANGLES, n_ind, type, 0, n_users);
+        template <typename T> glAttribute& vbuffer(int divisor, GLuint buffer) {
+            glBindVertexBuffer(divisor, buffer, 0, sizeof(T));
+            return *this;
+        }
+
+        glAttribute& idraw(int n_ind, int n_users) {
+            glDrawElementsInstanced(GL_TRIANGLES, n_ind, GL_UNSIGNED_SHORT, 0, n_users);
             return *this;
         }
 
@@ -83,7 +97,7 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
 Mesh::Material::Material(const char* vsrc, const char* fsrc) {
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, "vertex", GL_VERTEX_SHADER), 
-        load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
+        load_shader({fsrc}, "fragment", GL_FRAGMENT_SHADER)
     });
     layout_V = glGetUniformLocation(program, "V");
     layout_P = glGetUniformLocation(program, "P");
@@ -122,28 +136,23 @@ void Mesh::Material::use(const mat4& V, const mat4& P) const {
     }
 }
 
-void Mesh::rload() {
-    if (VAO) return;
-    glAttribute(&VAO)
-        .make<3>(&VBO)
-        .bind<GL_ELEMENT_ARRAY_BUFFER>(EBO)
-        .bind<GL_ARRAY_BUFFER>(VBO).item<0, vec3, vec3, vec2>() // VERTEX
-        .bind<GL_ARRAY_BUFFER>(IBO).item<1, vec4, vec4, vec4, vec4>(); // MODEL
-    rreload();
+void Mesh::r_load() {
+    if (VBO) return;
+    glAttribute().make<3>(&VBO);
+    r_reload();
 }
 
-void Mesh::rreload() {
-    if (!VAO) rload();
-    glAttribute(VAO)
+void Mesh::r_reload() {
+    if (!VBO) r_load();
+    glAttribute()
         .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex.begin(), vertex.size())
         .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
 }
 
-void Mesh::runload() {
-    if (!VAO) return;
+void Mesh::r_unload() {
+    if (!VBO) return;
     glDeleteBuffers(3, &VBO);
-    glDeleteVertexArrays(1, &VAO);
-    VAO = VBO = EBO = IBO = 0;
+    VBO = EBO = IBO = 0;
 }
 
 void Mesh::load() { flags = 1; }
@@ -154,7 +163,8 @@ void Perekop::draw() {
     vec2 screendim = Window::size();
     if (screendim.y == 0) return;
 
-    glClearColor(.1, .1, .1, 1);
+    const vec3 bg = World::background_colour;
+    glClearColor(bg.x, bg.y, bg.z, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     const mat4 
         V = inverse((glm::mat4)World::camera.pose),
@@ -164,11 +174,12 @@ void Perekop::draw() {
             World::camera.min, World::camera.max
         );
 
+    glBindVertexArray(Perekop::mesh_VAO);
     for (Mesh& mesh : World::meshes) {
         switch (mesh.flags) {
-            case 1: mesh.rload(); break;
-            case 2: mesh.rreload(); break;
-            case 3: mesh.runload(); break;
+            case 1: mesh.r_load(); break;
+            case 2: mesh.r_reload(); break;
+            case 3: mesh.r_unload(); break;
         }
         mesh.flags = 0;
         if (mesh.models.size() == 0 || !mesh.mat || !mesh.mat->program) continue;
@@ -182,33 +193,68 @@ void Perekop::draw() {
             transforms.push({mat[0], mat[1], mat[2], m.metadata});
         }
 
-        glAttribute(mesh.VAO)
+        glAttribute()
+            .bind_elements(mesh.EBO)
             .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms.begin(), transforms.size())
-            .idraw<GL_UNSIGNED_SHORT>(mesh.indices.size(), transforms.size());
+            .vbuffer<Mesh::Vertex>(0, mesh.VBO)
+            .vbuffer<mat4>(1, mesh.IBO)
+            .idraw(mesh.indices.size(), transforms.size());
     }
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(gui_PROG);
+
+    if (GUI::gui.size() > 0) {
+        if (GUI::gui.size() > guidata.capacity()) guidata.reserve(GUI::gui.size());
+        guidata.clear();
+        float minz{GUI::gui[0].Z}, maxz{minz};
+        for (int i = 1; i < guidata.size(); i++) {
+            float Z = GUI::gui[i].Z;
+            maxz = max(maxz, Z); minz = min(minz, Z);
+        }
+        if (GUI::gui.size() == 1) minz = 0;
+        for (const GUIObject& gui : GUI::gui) {
+            float Z = (gui.Z - minz) / (maxz - minz) - .5f;
+            guidata.rawpush({Z, gui.position, gui.size, gui.colour});
+        }
+
+        glAttribute(gui_VAO)
+            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, guidata.begin(), guidata.size())
+            .vbuffer<vec2>(0, gui_VBO)
+            .vbuffer<rawgui>(1, gui_IBO)
+
+            .idraw_array(6, guidata.size()); 
+        }
+        if (GUI::gui.size() > guidata.capacity()) guidata.reserve(GUI::gui.size());
+        guidata.clear();
+
     glAttribute(gui_VAO)
-        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, Window::gui.begin(), Window::gui.size())
-        .idraw_array(6, Window::gui.size());
+        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, guidata.begin(), guidata.size())
+        .vbuffer<vec2>(0, gui_VBO)
+        .vbuffer<rawgui>(1, gui_IBO)
+
+        .idraw_array(6, guidata.size());
 
     glfwSwapBuffers(glfw_window);
 }
 
 void Perekop::init::render() {
     preamble_v = File::read("pkengine/assets/shaders/pre_vsrc.glsl");
-    preamble_f = File::read("pkengine/assets/shaders/pre_fsrc.glsl");
+    glAttribute(&mesh_VAO)
+        .item<vec3, vec3, vec2>() // VERTEX
+        .item_instanced<vec4, vec4, vec4, vec4>(); // MODEL
+    
     vec2 gui_V[6] = {{0,0}, {0,1}, {1,0}, {1,0}, {0,1}, {1,1}};
     glAttribute(&gui_VAO)
-        .make<1>(&gui_VBO)
-        .make<1>(&gui_IBO)
-        .bind<GL_ARRAY_BUFFER>(gui_VBO).item<0, vec2>().data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(gui_VBO, gui_V, 6)
-        .bind<GL_ARRAY_BUFFER>(gui_IBO).item<1, float, vec2, vec2, vec3>();
+        .make<1>(&gui_VBO).make<1>(&gui_IBO)
+        .item<vec2>()
+        .item_instanced<float, vec2, vec2, vec4>()
+        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(gui_VBO, gui_V, 6);
+    
     const char* vsrc = File::read("pkengine/assets/shaders/gui_vert.glsl");
     gui_PROG = load_program({
         load_shader({vsrc}, "gui_vshader", GL_VERTEX_SHADER),
-        load_shader({"#version 330\n in vec3 col2; out vec4 fragColor; void main() { fragColor = vec4(col2, 1.0); }"}, "gui_fshader", GL_FRAGMENT_SHADER)
+        load_shader({"#version 330\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui_fshader", GL_FRAGMENT_SHADER)
     });
     delete[] vsrc;
 }

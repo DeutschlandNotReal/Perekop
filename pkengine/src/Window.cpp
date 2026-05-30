@@ -76,18 +76,22 @@ void Perekop::init::listeners() {
     glfwGetCursorPos(glfw_window, &lx, &ly);
     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
         switch (act) {
-            case GLFW_PRESS: return Mouse::on_down.fire(k);
-            case GLFW_RELEASE: return Mouse::on_up.fire(k);
+            case GLFW_PRESS: 
+                if (!Perekop::gui_test_down(k)) return Mouse::on_down.fire(k);
+            case GLFW_RELEASE: 
+                if (!Perekop::gui_test_up(k)) return Mouse::on_up.fire(k);
         }
     }); 
 
     glfwSetScrollCallback(glfw_window, [](GLFWwindow*, double x, double y){
+        // if (Perekop::gui_test_scroll(y)) return;
         Mouse::on_scroll.fire(y);
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
         vec2 delta = {x-lx, y-ly};
         lx = x; ly = y;
+        if (Perekop::gui_test_move()) return;
         Mouse::on_move.fire(delta);
     });
 

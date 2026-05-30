@@ -1,6 +1,7 @@
-#pragma once 
+#pragma once
+#include <pk/Geometry.hpp>
 
 namespace pk::File {
-    const char* read(const char* path, const char** end = nullptr);
-    const char* rawread(const char* path, const char** end = nullptr);
+    const char* read(const char* path, bool null_terminated = true, const char** end = nullptr);
+
 }

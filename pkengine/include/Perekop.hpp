@@ -1,13 +1,8 @@
 #pragma once
 
 #include <pk/Geometry.hpp>
+#include <pk/GUI.hpp>
 #include <pkutil/Event.hpp>
-
-namespace pk {
-    struct alignas(32) GUIElement { 
-        float Z; glm::vec2 pos{0}, size{0}; glm::vec3 col{0.5, 1, 1}; 
-    };
-}
 
 namespace Perekop {
     extern void on_launch();
@@ -33,7 +28,6 @@ namespace Perekop {
     }
 
     namespace Window {
-        inline pk::Array<pk::GUIElement> gui;
         extern glm::vec2 size(); extern void size(glm::vec2 size);
         extern glm::vec2 position(); extern void position(glm::vec2 position);
         extern const char* title(); extern void title(const char* title);
@@ -42,9 +36,16 @@ namespace Perekop {
         extern void minimize();
     }
 
+    namespace GUI {
+        inline pk::Array<pk::GUIObject> gui;
+        inline pk::Event<pk::GUIObject*> on_enter, on_exit;
+        inline pk::Event<pk::GUIObject*, int> on_down, on_up;
+    }
+
     namespace World {   
         inline pk::SparseSet<pk::Model> models;
         inline pk::SparseSet<pk::Mesh> meshes;
+        inline glm::vec3 background_colour{0.2,0.2,0.2};
 
         inline double fps{60};
         inline pk::Camera camera;

@@ -8,13 +8,11 @@ namespace Perekop { void draw(); }
 namespace pk {
     class Mesh {
         friend void Perekop::draw();
-        uint VAO{0}, VBO{0}, EBO{0}, IBO{0};
+        uint VBO{0}, EBO{0}, IBO{0};
         short flags{0};
-        void rload();
-        void rreload();
-        void runload();
-        
+        void r_load(); void r_reload(); void r_unload();
         public:
+            static Mesh from_file(const char* path);
             struct alignas(32) Vertex {  
                 glm::vec3 pos;
                 glm::vec3 normal;

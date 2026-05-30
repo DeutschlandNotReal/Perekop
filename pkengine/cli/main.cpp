@@ -1,3 +1,4 @@
+#include "pk/GUI.hpp"
 #include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -19,29 +20,27 @@ void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
 int main() {
     glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", nullptr, nullptr);
     glfwMakeContextCurrent(Perekop::glfw_window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(0);
+    glfwSwapInterval(1.0f/Perekop::World::fps);
     glfwShowWindow(Perekop::glfw_window);
+    glEnable(GL_DEPTH_TEST);
 
-    Perekop::init::listeners();
     Perekop::init::render();
+    Perekop::init::listeners();
 
     default_material = Mesh::Material(
         "void main() { gl_Position = P * V * model() * vec4(_pos, 1.0); }",
-        "void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
+        "#version 430\n out vec4 fragColor; void main() { fragColor = vec4(1.0, 0.0, 0.0, 1.0); }"
     );
 
     Perekop::on_launch();
 
-    glEnable(GL_DEPTH_TEST);
-
     Timer<double, 1> mtimer;
-
     glfwMakeContextCurrent(nullptr);
     std::thread render_thread([](){
         glfwMakeContextCurrent(Perekop::glfw_window);

@@ -10,23 +10,17 @@ add_subdirectory(${engine}/lib/glfw)
 
 find_package(OpenGL REQUIRED)
 
-file(GLOB_RECURSE engine_src CONFIGURE_DEPENDS
+file(GLOB_RECURSE src CONFIGURE_DEPENDS
     ${engine}/cli/*.cpp
     ${engine}/src/*.cpp
-)
-
-file(GLOB_RECURSE game_src CONFIGURE_DEPENDS
     ${game}/src/*.cpp
 )
 
 add_executable(perekop
-    ${engine_src}
-    ${game_src}
+    ${src}
     ${engine}/lib/glad/src/glad.c
 )
-
 target_compile_features(perekop PRIVATE cxx_std_20)
-
 target_include_directories(perekop PRIVATE
     ${engine}/lib/glfw/include
     ${engine}/lib/glad/include

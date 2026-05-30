@@ -1,3 +1,4 @@
+#include "pk/GUI.hpp"
 #include <Perekop.hpp>
 #include <cstdio>
 #include <pkutil/File.hpp>
@@ -8,7 +9,7 @@ using namespace glm;
 using namespace Perekop;
 static float t = 0;
 
-struct body { int modelid; vec3 vel, pos; float Z; };
+struct body { int modelid; vec3 vel, pos; float Z; float Q; };
 
 static Array<body> bodies;
 static uint fake_randomler = 0;
@@ -36,6 +37,10 @@ vec3 random(vec3 min, vec3 max) {
 void Perekop::on_step(double dt) {
     Game::freecam_step(dt);
     t += dt;
+    float r = sin(t*0.5)*.5+.5;
+    float g = cos(t*0.25)*.5+.5;
+    float b = (r + b) * .5;
+    World::background_colour = {r, g, b};
     for (int i = 0; i < bodies.size(); i++) {
         body& ibody = bodies[i];
         if (i != bodies.size() - 1)
@@ -45,7 +50,7 @@ void Perekop::on_step(double dt) {
                 float r2 = dot(disp, disp);
                 //if (r2 > 500 || r2 < .5) continue;
                 float r = sqrt(r2);
-                vec3 force = disp * (( 10.f-r) * -1.0f * ibody.Z * jbody.Z * (float)dt / (r2));
+                vec3 force = disp * -(( 10.f-r) * (jbody.Q * ibody.Q) * ibody.Z * jbody.Z * (float)dt / (r2 * r));
                 ibody.vel += force;
                 jbody.vel -= force;
             } 
@@ -64,11 +69,14 @@ void Perekop::on_launch() {
         *fsrc = File::read("game/assets/shaders/frag.glsl");
     auto* chudmat = new Mesh::Material(vsrc, fsrc);
     chudmat->uniform(Mesh::u_float, "t", &t);
+    chudmat->uniform(Mesh::u_vec3, "bgcol", &World::background_colour);
     delete[] vsrc;
     delete[] fsrc;
 
     Mesh& shapeler = World::meshes.insert();
+    Mesh& pyramidler = World::meshes.insert();
     shapeler.mat = chudmat;
+    pyramidler.mat = chudmat;
 
     shapeler.vertex = {
         {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},
@@ -78,9 +86,6 @@ void Perekop::on_launch() {
         {{-1, 0,-1}, {-1,0,-1}, {0, .5}},
         {{ 1, 0,-1}, {1, 0,-1}, {1, .5}}
     };
-
-    for (Mesh::Vertex& v : shapeler.vertex)
-        v.pos = normalize(v.pos);
 
     shapeler.indices = { 
         0,2,3,
@@ -93,18 +98,49 @@ void Perekop::on_launch() {
         1,2,5,
     };
 
-    shapeler.load();
+    pyramidler.vertex = {
+        {{0, 1, 0}, {0, 1, 0}, {0.5, 1}},
+        {{-1, 0, -1}, {0, -1, 0}, {0, 0}},
+        {{ 1, 0, -1}, {0, -1, 0}, {1, 0}},
+        {{ 1, 0,  1}, {0, -1, 0}, {1, 1}},
+        {{-1, 0,  1}, {0, -1, 0}, {0, 1}},
+    };
 
-    Window::gui.push({-4, {.1, .1}, {.56, .57}, {.6, .7, .8}});
+    pyramidler.indices = {
+    0, 1, 2,
+    0, 2, 3,
+    0, 3, 4,
+    0, 4, 1,
+    1, 2, 3,
+    1, 3, 4
+    };
+
+    shapeler.load();
+    pyramidler.load();
+
+    GUI::gui.push({GUIObject::frame, 0.4, {.1, .1}, {.5, .5}, {.9,.1,.4,.9}});
+    auto& slopgui = GUI::gui.back();
+
+    GUI::on_enter.listen([](GUIObject* obj){
+        printf("Slopper entered\n");
+        obj->size += vec2{0.1, 0.1};
+    });
+
+    GUI::on_exit.listen([](GUIObject* obj){
+        printf("Slopper exited\n");
+        obj->size -= vec2{0.1, 0.1};
+    });
+
     for (int i = 0; i < 100; i++) {
         Model& model = World::models.insert();
-        shapeler.models.push(model.id);
+        (random(0,1)>0.5?shapeler:pyramidler).models.push(model.id);
         vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 
              pos = random({0, 0, 0}, {10, 10, 10});
         float Z = random(0, 1) > 0.5 ? -1 : 1;
+        float Q = random(0, 1) > 0.5 ? -1 : 1;
         model.pose.pos = pos; 
-        model.metadata = vec4(Z==-1?0:1,0,Z==1?0:1,0);
-        bodies.push({model.id, vel, pos, Z});
+        model.metadata = vec4(Z==-1?0:1,(Q+1)/2,Z==1?0:1,0);
+        bodies.push({model.id, vel, pos, Z, Q});
         //printf("V(%+.2f,%+.2f,%+.2f), P(%+.2f,%+.2f,%+.2f)\n", vel.x, vel.y, vel.z, pos.x, pos.y, pos.z);
     }
 }
