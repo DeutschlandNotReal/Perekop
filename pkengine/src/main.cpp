@@ -1,11 +1,7 @@
-#include "pk/GUI.hpp"
-#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <memoryapi.h>
-#include <thread>
 
-#include <Perekop.hpp>
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
 #include <pkutil/File.hpp>
@@ -13,8 +9,6 @@ using namespace pk;
 using namespace glm;
 
 static Mesh::Appearance default_material;
-static int f_main{0};
-static bool alive{true};
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
@@ -26,7 +20,7 @@ int main() {
     Perekop::glfw_window = glfwCreateWindow(720, 480, "Perekop", nullptr, nullptr);
     glfwMakeContextCurrent(Perekop::glfw_window);
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-    glfwSwapInterval(1.0f/Perekop::World::fps);
+    glfwSwapInterval(0);
     glfwShowWindow(Perekop::glfw_window);
     glEnable(GL_DEPTH_TEST);
 
@@ -40,38 +34,16 @@ int main() {
 
     Perekop::on_launch();
 
-    Timer<double, 1> mtimer;
-    glfwMakeContextCurrent(nullptr);
-    std::thread render_thread([](){
-        glfwMakeContextCurrent(Perekop::glfw_window);
-        gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);  
-        int f{0};
-        while (alive) {
-            if (Perekop::window_resized) {
-                int w, h;
-                glfwGetWindowSize(Perekop::glfw_window, &w, &h);
-                glViewport(0, 0, w, h);
-                Perekop::window_resized = false;
-            }
-            if (f != f_main) { f = f_main; Perekop::step::draw(); }
-
-            Timer<short,0>::sleep(0.9/Perekop::World::fps);
-        }
-    });
-
-    mtimer.begin();
+    Timer<double, 1> ftimer; ftimer.begin();
     while (!glfwWindowShouldClose(Perekop::glfw_window)) {
-        f_main++;
-        double dt = mtimer.delta();
+        double dt = ftimer.delta();
         glfwPollEvents();
+        Perekop::step::draw();
         Perekop::step::window();
         Perekop::on_step(dt);
-        double fdt = mtimer.elapsed();
-        mtimer.sleep(1.0/Perekop::World::fps - fdt);
+        double fdt = ftimer.elapsed();
+        ftimer.sleep(1.0/Perekop::World::fps - fdt);
     } 
-    alive = false;
-    render_thread.join();
-
     Perekop::on_exit();
     glfwTerminate();
 }

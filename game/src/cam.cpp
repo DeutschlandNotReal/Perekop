@@ -10,28 +10,21 @@ using namespace glm;
 using World::camera;
 
 vec2 cam_angle{0};
-
 void Game::cam_init() {
     Mouse::on_scroll.listen([](int d){
         camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
 
     Mouse::on_move.listen([](vec2 d){
-        if (!Mouse::held(0) || GUI::top) return;
-        float yfov = camera.fov * (Window::size.y / Window::size.x);
+        if (Mouse::held(Mouse::left) && !GUI::top) {
+            float yfov = camera.fov * (Window::size.y / Window::size.x);
+            Mouse::pos -= d;
 
-        cam_angle += d * vec2{camera.fov, yfov} / Window::size;
-        camera.pose.rot = 
-            angleAxis(radians(cam_angle.x), vec3{0,1,0}) *
-            angleAxis(radians(cam_angle.y), vec3{1,0,0});
-    });
-
-    Mouse::on_down.listen([](int button){
-        if (button == 0) Mouse::set(Mouse::captured);
-    });
-
-    Mouse::on_up.listen([](int button){
-        if (button == 0) Mouse::set(Mouse::normal);
+            cam_angle += d * vec2{camera.fov, yfov} / Window::size;
+            camera.pose.rot = 
+                angleAxis(radians(cam_angle.x), vec3{0,1,0}) *
+                angleAxis(radians(cam_angle.y), vec3{1,0,0});
+        }
     });
 }
 

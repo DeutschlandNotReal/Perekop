@@ -10,7 +10,7 @@ const char* File::read(const char* path, bool null, const char** end) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path);
-        return "";
+        return new char('\0');
     }
     fseek(f, 0, SEEK_END);
     int len = ftell(f); rewind(f);

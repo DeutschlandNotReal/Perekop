@@ -9,7 +9,7 @@ namespace pk {
             return !(p.x < pos.x || p.y < pos.y || p.x > pos.x + size.x || p.y > pos.y + size.y);
         }
 
-        uint colour;
+        glm::vec4 col;
         glm::vec2 size{0}, pos{0};
         float Z{0};
         int id{0};

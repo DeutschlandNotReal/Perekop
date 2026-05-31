@@ -9,8 +9,6 @@ namespace pk {
     class Mesh {
         friend void Perekop::step::draw();
         uint VBO{0}, EBO{0}, IBO{0};
-        short flags{0};
-        void r_load(); void r_reload(); void r_unload();
         public:
             static Mesh from_file(const char* path);
             struct alignas(32) Vertex {  
@@ -45,7 +43,6 @@ namespace pk {
             void reload();
             void unload();
     };
-
     struct Model { short id; Pose pose; glm::vec4 metadata; };
 
     struct Camera { float min{.1}, max{200}, fov{75}; Pose pose; };

@@ -11,20 +11,22 @@ namespace Perekop {
     extern void exit();
 
     namespace Mouse {
-        enum State { captured = 0x00034004, hidden = 0x00034002, normal = 0x00034001 };
+        enum State { captured = 0x00034004, hidden = 0x00034002, normal = 0x00034001, disabled = 0x00034003 };
+        enum Button { left = 0, right = 1, middle = 2 };
         inline glm::vec2 pos{0,0};
         
         extern glm::vec3 fvec();
         extern glm::mat3 matrix();
         inline pk::Event<glm::vec2> on_move;
-        inline pk::Event<int> on_down, on_up, on_scroll;
-        extern bool held(int button);
+        inline pk::Event<Button> on_down, on_up;
+        inline pk::Event<int> on_scroll;
+        extern bool held(Button button);
         extern void set(State mouse_state);
     }
 
     namespace Input {
         inline pk::Event<int> on_down, on_up;
-        bool held(int key);
+        extern bool held(int key);
     }
 
     namespace Window {

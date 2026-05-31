@@ -70,7 +70,6 @@ void Perekop::on_launch() {
     "game/assets/shaders/frag.glsl",
     "game/assets/images/ourbrainsareshrinking.jpg"
     );
-
     chudmat->uniform(Mesh::u_float, "t", &t);
     chudmat->uniform(Mesh::u_vec3, "bgcol", &World::background_colour);
 

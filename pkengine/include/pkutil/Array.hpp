@@ -62,6 +62,10 @@ namespace pk {
                 if (new_size > capacity()) resize(new_size);
             }
 
+            void reserve_clear(uint new_size) {
+                reserve(new_size); clear();
+            }
+
             template <typename... A> void push(A&&... args) { 
                 new (next()) T(args...); 
             }
@@ -102,6 +106,9 @@ namespace pk {
                 b.data = b.cap = b.cur = nullptr;
                 return *this;
             }
+
+            bool full() const { return cur == cap; }
+            bool empty() const { return cur == 0; }
     };
 }
 

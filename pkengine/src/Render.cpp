@@ -1,3 +1,4 @@
+#include "Perekop.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -98,9 +99,10 @@ void load_texture(GLuint* texture, const char* path) {
     if (!data) {
         printf("\033[31mTexture at path '%s' not found.\n\033[0m", path); return;
     }
-    int format = (channels==1)?GL_RED:(channels=2)?GL_RGB:GL_RGBA;
+    int format = (channels==1)?GL_RED:(channels==3)?GL_RGB:GL_RGBA;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
@@ -113,11 +115,10 @@ Mesh::Appearance::Appearance(const char* vpath, const char* fpath, const char* t
         load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
     });
     delete[] vsrc; delete[] fsrc;  
-    layoutP = glGetUniformLocation(program, "V");
-    layoutV = glGetUniformLocation(program, "P");
+    layoutP = glGetUniformLocation(program, "P");
+    layoutV = glGetUniformLocation(program, "V");
     if (!tpath) return;
     layoutT = glGetUniformLocation(program, "_texture");
-    glGenTextures(1, &texture);
 
     load_texture(&texture, tpath);
 }
@@ -160,28 +161,24 @@ void Mesh::Appearance::use(const mat4& V, const mat4& P) const {
     }
 }
 
-void Mesh::r_load() {
+void Mesh::load() {
     if (VBO) return;
     glAttribute().make<3>(&VBO);
-    r_reload();
+    reload();
 }
 
-void Mesh::r_reload() {
-    if (!VBO) r_load();
+void Mesh::reload() {
+    if (!VBO) load();
     glAttribute()
         .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex.begin(), vertex.size())
         .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
 }
 
-void Mesh::r_unload() {
+void Mesh::unload() {
     if (!VBO) return;
     glDeleteBuffers(3, &VBO);
     VBO = EBO = IBO = 0;
 }
-
-void Mesh::load() { flags = 1; }
-void Mesh::reload() { flags = 2; }
-void Mesh::unload() { flags = 3; }
 
 void Perekop::step::draw() {
     if (Window::size.y == 0) return;
@@ -199,13 +196,7 @@ void Perekop::step::draw() {
 
     glBindVertexArray(Perekop::mesh_VAO);
     for (Mesh& mesh : World::meshes) {
-        switch (mesh.flags) {
-            case 1: mesh.r_load(); break;
-            case 2: mesh.r_reload(); break;
-            case 3: mesh.r_unload(); break;
-        }
-        mesh.flags = 0;
-        if (mesh.models.size() == 0 || !mesh.appearance || !mesh.appearance->program) continue;
+        if (mesh.models.empty() || !mesh.appearance) continue;
         transforms.clear();
         transforms.reserve(mesh.models.size());
         mesh.appearance->use(V, P);
@@ -227,39 +218,29 @@ void Perekop::step::draw() {
     glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(gui_PROG);
 
-    if (GUI::gui.size() > 0) {
-        if (GUI::gui.size() > guidata.capacity()) guidata.reserve(GUI::gui.size());
-        guidata.clear();
+    if (!GUI::gui.empty()) {
+        guidata.reserve_clear(GUI::gui.size());
         float minz{0}, maxz{1};
 
         for (const GUIObject& gui : GUI::gui) {
             maxz = max(maxz, gui.Z); minz = min(minz, gui.Z);
         }
+
         float iZR = 1.f / (maxz - minz);
-
-        for (const GUIObject& gui : GUI::gui) {
-            float Z = (gui.Z - minz) * iZR;
-
-            vec4 col = vec4{gui.colour & 255, (gui.colour << 8) & 255, (gui.colour << 16) & 255, (gui.colour << 24) & 255} / 255.f;
-            guidata.rawpush({Z, gui.pos, gui.size, col});
-        }
-
+        for (const GUIObject& gui : GUI::gui)
+            guidata.rawpush({
+            (gui.Z - minz) * iZR, 
+            gui.pos, 
+            gui.size, 
+            gui.col
+        });
+        
         glAttribute(gui_VAO)
             .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, guidata.begin(), guidata.size())
             .vbuffer<vec2>(0, gui_VBO)
             .vbuffer<rawgui>(1, gui_IBO)
-
-            .idraw_array(6, guidata.size()); 
-        }
-        if (GUI::gui.size() > guidata.capacity()) guidata.reserve(GUI::gui.size());
-        guidata.clear();
-
-    glAttribute(gui_VAO)
-        .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, guidata.begin(), guidata.size())
-        .vbuffer<vec2>(0, gui_VBO)
-        .vbuffer<rawgui>(1, gui_IBO)
-
-        .idraw_array(6, guidata.size());
+            .idraw_array(6, guidata.size());
+    }
 
     glfwSwapBuffers(glfw_window);
 }

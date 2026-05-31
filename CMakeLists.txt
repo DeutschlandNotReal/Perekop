@@ -11,7 +11,6 @@ add_subdirectory(${engine}/lib/glfw)
 find_package(OpenGL REQUIRED)
 
 file(GLOB_RECURSE src CONFIGURE_DEPENDS
-    ${engine}/cli/*.cpp
     ${engine}/src/*.cpp
     ${game}/src/*.cpp
 )

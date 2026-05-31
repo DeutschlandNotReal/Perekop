@@ -11,7 +11,6 @@ namespace Perekop {
     inline pk::Array<glm::mat4> transforms{50};
     inline pk::Array<pk::rawgui> guidata;
 
-    inline bool window_resized{false};
     namespace init {
         extern void draw();
         extern void window();

@@ -6,13 +6,12 @@ using namespace glm;
 using namespace Perekop;
 
 void Game::gui_init() {
-    GUI::gui.push({0xFFFFFFFF, {.3, .3}, {.1, .1}, 1});
-    GUI::gui.push({0xFF4421FF, {.2, .2}, {0.2 , 0}, 2});
+    GUI::gui.push({{.4, .6, .6, 1}, {.3, .3}, {.1, .1}, 1});
+    GUI::gui.push({{.3, .3, .1, 1}, {.2, .2}, {0.2 , 0}, 2});
     
     Mouse::on_move.listen([](vec2 movement){
-        if (GUI::top && Mouse::held(0)) {
+        if (GUI::top && Mouse::held(Mouse::left)) {
             GUI::top->pos += movement / Window::size;
-            GUI::top->colour ^= 0xFF12FF00;
         }
     });
 }
