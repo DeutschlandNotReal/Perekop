@@ -62,11 +62,7 @@ namespace pk {
                 if (new_size > capacity()) resize(new_size);
             }
 
-            void reserve_clear(uint new_size) {
-                reserve(new_size); clear();
-            }
-
-            template <typename... A> void push(A&&... args) { 
+            template <typename... A> void emplace(A&&... args) { 
                 new (next()) T(args...); 
             }
 
@@ -84,9 +80,10 @@ namespace pk {
                 copy(cur++, &item, 1);
             }
 
-            Array(const Array& b): 
-                cur(b.cur), cap(b.cap), data(alloc<T>(b.size())) {
+            Array(const Array& b): data(alloc<T>(b.size())) {
                 copy(data, b.data, b.size());
+                cap = data + (b.cap-b.data);
+                cur = data + (b.cur-b.data);
             }
 
             Array& operator=(const Array& b) {
@@ -102,13 +99,12 @@ namespace pk {
 
             Array& operator=(Array&& b) {
                 dealloc(data);
-                cur = b.cur; cap = b.cap; data = b.data;
-                b.data = b.cap = b.cur = nullptr;
+                new (this) Array(b);
                 return *this;
             }
 
             bool full() const { return cur == cap; }
-            bool empty() const { return cur == 0; }
-    };
+            bool empty() const { return cur == data; }
+        };
 }
 

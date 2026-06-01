@@ -1,4 +1,3 @@
-#include "Perekop.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -144,9 +143,9 @@ void Mesh::Appearance::use(const mat4& V, const mat4& P) const {
     for (const Uniform& u : uniforms) {
         switch (u.type) {
             case u_mat3:
-                glUniformMatrix3fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
+                glUniformMatrix3fv(u.layout, 1, false, (float*)u.data); break;
             case u_mat4:
-                glUniformMatrix4fv(u.layout, 1, GL_FALSE, (float*)u.data); break;
+                glUniformMatrix4fv(u.layout, 1, false, (float*)u.data); break;
             case u_float:
                 glUniform1f(u.layout, *(float*)u.data); break;
             case u_int:
@@ -180,50 +179,61 @@ void Mesh::unload() {
     VBO = EBO = IBO = 0;
 }
 
-void Perekop::step::draw() {
-    if (Window::size.y == 0) return;
+void Perekop::render(bool recollect) {
+    using namespace World;
+    if (Window::size.y == 0) return; // aspect ratio of inf (bad)
 
-    const vec3 bg = World::background_colour;
-    glClearColor(bg.x, bg.y, bg.z, 1.0);
+    glClearColor(bgcol.r, bgcol.g, bgcol.b, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    const mat4 
-        V = inverse((glm::mat4)World::camera.pose),
-        P = perspective(
-            radians(World::camera.fov), 
-            Window::size.x / Window::size.y,
-            World::camera.min, World::camera.max
-        );
+
+    mat4 view = camera.view(), proj = camera.proj(Window::size.x / Window::size.y);
 
     glBindVertexArray(Perekop::mesh_VAO);
-    for (Mesh& mesh : World::meshes) {
-        if (mesh.models.empty() || !mesh.appearance) continue;
-        transforms.clear();
-        transforms.reserve(mesh.models.size());
-        mesh.appearance->use(V, P);
 
-        for (short modelid : mesh.models) {
-            Model& m = World::models[modelid];
-            mat3x4 mat = m.pose;
-            transforms.push({mat[0], mat[1], mat[2], m.metadata});
-        }
+    // transform prealloc
+    for (const Mesh& mesh : World::meshes) {
+        if (mesh.id <= 0) continue; // invalid
+        while (transforms.size() < mesh.id)
+            transforms.emplace(8);
 
+        transforms[mesh.id-1].clear();
+    }
+
+    // transform collection
+    if (recollect) for (const Model& model : World::models) {
+        // model.mesh value of 0 means no mesh assigned
+        if (!model.mesh || model.mesh-1 >= transforms.size()) continue;
+        mat4 mdata = model.body ? model.pose * World::bodies[model.body].pose : model.pose;
+
+        mdata[3] = model.metadata;
+        transforms[model.mesh-1].push(mdata);
+    }
+
+    // instanced draw
+    for (const Mesh& mesh : World::meshes) {
+        Array<mat4>& T = transforms[mesh.id-1];
+        if (T.empty()) continue;
+        mesh.appearance->use(view, proj);
         glAttribute()
             .bind_elements(mesh.EBO)
-            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, transforms.begin(), transforms.size())
+            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, T.begin(), T.size())
             .vbuffer<Mesh::Vertex>(0, mesh.VBO)
             .vbuffer<mat4>(1, mesh.IBO)
-            .idraw(mesh.indices.size(), transforms.size());
+            .idraw(mesh.indices.size(), T.size());
     }
 
     glClear(GL_DEPTH_BUFFER_BIT);
     glUseProgram(gui_PROG);
 
+    // gui instanced draw
     if (!GUI::gui.empty()) {
-        guidata.reserve_clear(GUI::gui.size());
+        guidata.reserve(GUI::gui.size());
+        guidata.clear();
         float minz{0}, maxz{1};
 
         for (const GUIObject& gui : GUI::gui) {
-            maxz = max(maxz, gui.Z); minz = min(minz, gui.Z);
+            maxz = max(maxz, gui.Z); 
+            minz = min(minz, gui.Z);
         }
 
         float iZR = 1.f / (maxz - minz);
@@ -245,7 +255,7 @@ void Perekop::step::draw() {
     glfwSwapBuffers(glfw_window);
 }
 
-void Perekop::init::draw() {
+void Perekop::init_render() {
     preamble_v = File::read("pkengine/assets/shaders/pre_vsrc.glsl");
     preamble_f = File::read("pkengine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)
@@ -262,7 +272,7 @@ void Perekop::init::draw() {
     const char* vsrc = File::read("pkengine/assets/shaders/gui_vert.glsl");
     gui_PROG = load_program({
         load_shader({vsrc}, "gui_vshader", GL_VERTEX_SHADER),
-        load_shader({"#version 330\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui_fshader", GL_FRAGMENT_SHADER)
+        load_shader({"#version 430\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui_fshader", GL_FRAGMENT_SHADER)
     });
     delete[] vsrc;
 }

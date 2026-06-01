@@ -1,8 +1,7 @@
-#include <cctype>
+#include <Internal.hpp>
+
 #include <cstdio>
-#include <cstdlib>
 #include <pkutil/File.hpp>
-#include <pk/Geometry.hpp>
 using namespace pk;
 using namespace glm;
 

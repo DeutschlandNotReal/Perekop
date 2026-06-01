@@ -4,7 +4,7 @@
 namespace pk {
     template <typename T> class SparseSet {
         using I = decltype(T::id);
-        // type T got to have 'id' member (mesh & model)
+        // type T got to have 'id' member
         Array<T> data;
         Array<I> index;
 
@@ -16,8 +16,8 @@ namespace pk {
             T* end() const { return data.end(); }
             
             template <typename... A> T& insert(A&&... args) {
-                index.push(index.size());
-                data.push(args...);
+                index.push(index.size()+1);
+                data.emplace(args...);
                 data.back().id = index.back();
                 return data.back();
             }

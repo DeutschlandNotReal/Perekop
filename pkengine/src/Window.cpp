@@ -1,11 +1,17 @@
-#include "Perekop.hpp"
-#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <Internal.hpp>
 using namespace pk;
 using namespace glm;
+
+double mx, my;
+int winx, winy;
+int winw, winh;
+const char* wint;
+
+// Mouse::pos ranges from 0 to 1 where (1, 1) is the top-right corner
+// glfw does it in pixels and where (1, 1) is bottom-right corner...
 
 namespace Perekop::Mouse {
     vec3 fvec() {
@@ -32,10 +38,6 @@ namespace Perekop::Mouse {
     bool held(Button b) {
         return glfwGetMouseButton(glfw_window, b) == 1;
     }
-
-    void set(State state) {
-        glfwSetInputMode(glfw_window, GLFW_CURSOR, state);
-    }
 }
 
 namespace Perekop::Input {
@@ -49,21 +51,15 @@ namespace Perekop::Window {
     void maximize() { glfwMaximizeWindow(glfw_window); }
 }
 
-void Perekop::init::window() {
-    {
-        int w, h;
-        glfwGetWindowSize(glfw_window, &w, &h);
-        Window::size = Window::size_v = {w, h};
-    }{
-        int x, y;
-        glfwGetWindowPos(glfw_window, &x, &y);
-        Window::pos = Window::pos_v = {x, y};
-    }
-    {
-        double x, y;
-        glfwGetCursorPos(glfw_window, &x, &y);
-        Mouse::pos = Mouse::pos_v = {x, Window::size.y - y};
-    }
+void Perekop::init_window() {
+    glfwGetWindowSize(glfw_window, &winw, &winh);
+    Window::size = {winw, winh};
+
+    glfwGetWindowPos(glfw_window, &winx, &winy);
+    Window::pos = {winx, winy};
+    
+    glfwGetCursorPos(glfw_window, &mx, &my);
+    Mouse::pos = vec2{mx, Window::size.y - my} / Window::size;
 
     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
         switch (act) {
@@ -77,52 +73,70 @@ void Perekop::init::window() {
     }); 
 
     glfwSetScrollCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        // if (Perekop::gui_test_scroll(y)) return;
         Mouse::on_scroll.fire(y);
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        Mouse::pos_v = {x, Window::size_v.y - y};
-        Perekop::get_gui_top();
-        vec2 delta = Mouse::pos_v - Mouse::pos;
-        if (glfwGetInputMode(glfw_window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) 
-            Mouse::pos_v = Mouse::pos;
-        Mouse::on_move.fire(delta);
+        if (x == mx && y == my) return;
+        vec2 delta = vec2{x, y} - vec2{mx, my};
+        Perekop::query_gui();
+
+        if (Mouse::locked) 
+            glfwSetCursorPos(glfw_window, mx, my);
+        else {
+            mx = x; my = y;
+        }
+
+        Mouse::pos = vec2{x, Window::size.y - y} / Window::size;
+        Mouse::on_move.fire(delta / Window::size);
     });
 
     glfwSetKeyCallback(glfw_window, [](GLFWwindow*, int k, int, int act, int){
         switch (act) {
-            case GLFW_PRESS: return Input::on_down.fire(k);
-            case GLFW_RELEASE: return Input::on_up.fire(k); 
+            case GLFW_PRESS: 
+                return Input::on_down.fire(k);
+            case GLFW_RELEASE: 
+                return Input::on_up.fire(k); 
         }
     });
 
     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
         glViewport(0, 0, w, h);
-        Window::size_v = Window::size = vec2{w, h};
+        if (winw == w && winh == h) return; else { winw = w; winh = h; }
+        Window::size = vec2{w, h};
     });
 
     glfwSetWindowPosCallback(glfw_window, [](GLFWwindow*, int x, int y){
-        Window::pos_v = Window::pos = vec2{x, y};
+        if (winx == x && winy == y) return; else { winx = x; winy = y; }
+        Window::pos = vec2{x, y};
     });
 
     glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
-        Perekop::step::draw();
+        Perekop::render(false);
     });
 }
 
-void Perekop::step::window() {
-    if (Window::size != Window::size_v) { 
-        Window::size_v = Window::size; 
-        glfwSetWindowSize(glfw_window, Window::size.x, Window::size.y); 
-    } if (Window::pos != Window::pos_v) { 
-        Window::pos_v = Window::pos;  
-        glfwSetWindowPos(glfw_window, Window::pos.x, Window::pos.y); 
-    } if (Mouse::pos != Mouse::pos_v) {
-        Mouse::pos_v = Mouse::pos;
-        glfwSetCursorPos(glfw_window, Mouse::pos.x, Window::size.y - Mouse::pos.y);
-    } if (Window::title != Window::title_v) {
-        Window::title_v = Window::title;
-        glfwSetWindowTitle(glfw_window, Window::title);
+void Perekop::step_window() {
+    using namespace Window;
+    // checks if game changed window/mouse values, updates if true
+    if (size.x != winw || size.y != winh) { 
+        winw = size.x, winh = size.y;
+        glfwSetWindowSize(glfw_window, winw, winh); 
+    } 
+
+    if (pos.x != winw || pos.y != winy) { 
+        winx = pos.x; winy = pos.y;
+        glfwSetWindowPos(glfw_window, winx, winy);
+    }
+
+    vec2 mpos = vec2{mx, size.y - my} / size;
+    if (length(mpos - Mouse::pos) > 0.005 && !Mouse::locked) {
+        mx = Mouse::pos.x * size.x; my = (1 - Mouse::pos.y) * size.y;
+        glfwSetCursorPos(glfw_window, mx, my);
+    }
+
+    if (title != wint) {
+        wint = title;
+        glfwSetWindowTitle(glfw_window, wint);
     }
 }

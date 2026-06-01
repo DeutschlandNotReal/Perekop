@@ -1,7 +1,7 @@
 #pragma once
-
 #include <pk/Geometry.hpp>
 #include <pk/GUI.hpp>
+#include <pk/Body.hpp>
 #include <pkutil/Event.hpp>
 
 namespace Perekop {
@@ -11,9 +11,9 @@ namespace Perekop {
     extern void exit();
 
     namespace Mouse {
-        enum State { captured = 0x00034004, hidden = 0x00034002, normal = 0x00034001, disabled = 0x00034003 };
         enum Button { left = 0, right = 1, middle = 2 };
         inline glm::vec2 pos{0,0};
+        inline bool locked{false};
         
         extern glm::vec3 fvec();
         extern glm::mat3 matrix();
@@ -21,7 +21,6 @@ namespace Perekop {
         inline pk::Event<Button> on_down, on_up;
         inline pk::Event<int> on_scroll;
         extern bool held(Button button);
-        extern void set(State mouse_state);
     }
 
     namespace Input {
@@ -47,7 +46,8 @@ namespace Perekop {
     namespace World {   
         inline pk::SparseSet<pk::Model> models;
         inline pk::SparseSet<pk::Mesh> meshes;
-        inline glm::vec3 background_colour{0.2,0.2,0.2};
+        inline pk::SparseSet<pk::Body> bodies;
+        inline glm::vec3 bgcol{0.2,0.2,0.2};
 
         inline double fps{60};
         inline pk::Camera camera;

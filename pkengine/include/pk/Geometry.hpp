@@ -4,10 +4,15 @@
 #include <pk/Pose.hpp>
 #include <pkutil/SparseSet.hpp>
 
-namespace Perekop::step { void draw(); }
+#ifdef PK_INTERNAL
+namespace Perekop { void render(bool); }
+#endif
+
 namespace pk {
     class Mesh {
-        friend void Perekop::step::draw();
+        #ifdef PK_INTERNAL
+        friend void Perekop::render(bool);
+        #endif
         uint VBO{0}, EBO{0}, IBO{0};
         public:
             static Mesh from_file(const char* path);
@@ -22,7 +27,9 @@ namespace pk {
             };
 
             class Appearance {
-                friend void Perekop::step::draw();
+                #ifdef PK_INTERNAL
+                friend void Perekop::render(bool);
+                #endif 
                 struct Uniform { int layout; UniType type; const void* data; };
                 uint program{0}, texture{0}, layoutP{0}, layoutV{0}, layoutT{0};
                 Array<Uniform> uniforms;
@@ -30,20 +37,36 @@ namespace pk {
                 public:
                     Appearance() = default;
                     Appearance(const char* vpath, const char* fpath, const char* tpath = nullptr);
-                    
+                     
                     void uniform(UniType T, const char* title, const void* data);
             };
             
             short id{0};
             Appearance* appearance{nullptr};
             Array<Vertex> vertex;
-            Array<short> indices, models;
+            Array<short> indices;
 
             void load();
             void reload();
             void unload();
     };
-    struct Model { short id; Pose pose; glm::vec4 metadata; };
 
-    struct Camera { float min{.1}, max{200}, fov{75}; Pose pose; };
+    struct Model { 
+        short id, mesh{0}, body{0};
+        Pose pose;
+        glm::vec4 metadata;
+    };
+
+    struct Camera { 
+        float min{.1}, max{200}, fov{75}; 
+        Pose pose;
+
+        glm::mat4 view() const { 
+            return glm::inverse((glm::mat4)pose); 
+        }
+
+        glm::mat4 proj(float aspect) const { 
+            return glm::perspective(glm::radians(fov), aspect, min, max); 
+        }
+    };
 }

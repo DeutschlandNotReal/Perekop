@@ -40,7 +40,7 @@ void Perekop::on_step(double dt) {
     float r = sin(t*0.5)*.5+.5;
     float g = cos(t*0.25)*.5+.5;
     float b = (r + b) * .5;
-    World::background_colour = {r, g, b};
+    World::bgcol = {r, g, b};
     for (int i = 0; i < bodies.size(); i++) {
         body& ibody = bodies[i];
         if (i != bodies.size() - 1)
@@ -71,7 +71,7 @@ void Perekop::on_launch() {
     "game/assets/images/ourbrainsareshrinking.jpg"
     );
     chudmat->uniform(Mesh::u_float, "t", &t);
-    chudmat->uniform(Mesh::u_vec3, "bgcol", &World::background_colour);
+    chudmat->uniform(Mesh::u_vec3, "bgcol", &World::bgcol);
 
     Mesh& shapeler = World::meshes.insert();
     Mesh& pyramidler = World::meshes.insert();
@@ -120,7 +120,7 @@ void Perekop::on_launch() {
 
     for (int i = 0; i < 100; i++) {
         Model& model = World::models.insert();
-        (random(0,1)>0.5?shapeler:pyramidler).models.push(model.id);
+        model.mesh = (random(0,1)>0.5?shapeler:pyramidler).id;
         vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 
              pos = random({0, 0, 0}, {10, 10, 10});
         float Z = random(0, 1) > 0.5 ? -1 : 1;

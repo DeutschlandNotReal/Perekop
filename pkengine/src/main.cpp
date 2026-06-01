@@ -24,8 +24,8 @@ int main() {
     glfwShowWindow(Perekop::glfw_window);
     glEnable(GL_DEPTH_TEST);
 
-    Perekop::init::draw();
-    Perekop::init::window();
+    Perekop::init_render();
+    Perekop::init_window();
 
     default_material = Mesh::Appearance(
         "pkengine/assets/shaders/def_vsrc.glsl",
@@ -38,8 +38,11 @@ int main() {
     while (!glfwWindowShouldClose(Perekop::glfw_window)) {
         double dt = ftimer.delta();
         glfwPollEvents();
-        Perekop::step::draw();
-        Perekop::step::window();
+
+        Perekop::step_physics(dt);
+        Perekop::render(true);
+        Perekop::step_window();
+
         Perekop::on_step(dt);
         double fdt = ftimer.elapsed();
         ftimer.sleep(1.0/Perekop::World::fps - fdt);

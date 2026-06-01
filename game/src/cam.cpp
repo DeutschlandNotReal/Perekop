@@ -1,6 +1,4 @@
-#include "glm/ext/quaternion_trigonometric.hpp"
 #include <Perekop.hpp>
-#include <cstdio>
 #include <game/cam.hpp>
 #include <GLFW/glfw3.h>
 
@@ -9,23 +7,31 @@ using namespace Perekop;
 using namespace glm;
 using World::camera;
 
-vec2 cam_angle{0};
+vec2 cangle{0};
 void Game::cam_init() {
     Mouse::on_scroll.listen([](int d){
         camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
 
-    Mouse::on_move.listen([](vec2 d){
+    Mouse::on_move.listen([](vec2 movement){
         if (Mouse::held(Mouse::left) && !GUI::top) {
             float yfov = camera.fov * (Window::size.y / Window::size.x);
-            Mouse::pos -= d;
 
-            cam_angle += d * vec2{camera.fov, yfov} / Window::size;
+            cangle += movement * 15.f * vec2{camera.fov, yfov} / Window::size;
             camera.pose.rot = 
-                angleAxis(radians(cam_angle.x), vec3{0,1,0}) *
-                angleAxis(radians(cam_angle.y), vec3{1,0,0});
+                angleAxis(radians(cangle.x), vec3{0,1,0}) *
+                angleAxis(radians(cangle.y), vec3{1,0,0});
         }
     });
+
+    Mouse::on_down.listen([](Mouse::Button b){
+        if (b == Mouse::left) Mouse::locked = true;
+    });
+
+    Mouse::on_up.listen([](Mouse::Button b){
+        if (b == Mouse::left) Mouse::locked = false;
+    });
+
 }
 
 using Input::held;

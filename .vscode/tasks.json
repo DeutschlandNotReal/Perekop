@@ -13,7 +13,7 @@
             "problemMatcher": []
         },
         {
-            "label": "the other build",
+            "label": "rebuild",
             "type": "shell",
             "command": "rm -r build; cmake -B build",
             "problemMatcher": []
