@@ -38,6 +38,9 @@ namespace Perekop::Mouse {
     bool held(Button b) {
         return glfwGetMouseButton(glfw_window, b) == 1;
     }
+
+    void lock() { glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
+    void unlock() { glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); }
 }
 
 namespace Perekop::Input {
@@ -64,10 +67,10 @@ void Perekop::init_window() {
     glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
         switch (act) {
             case GLFW_PRESS: 
-                if (GUI::top) GUI::on_down.fire(GUI::top, k);
+                if (Gui::top) Gui::on_down.fire(Gui::top, k);
                 return Mouse::on_down.fire(Mouse::Button(k));
             case GLFW_RELEASE: 
-                if (GUI::top) GUI::on_up.fire(GUI::top, k);
+                if (Gui::top) Gui::on_up.fire(Gui::top, k);
                 return Mouse::on_up.fire(Mouse::Button(k));
         }
     }); 
@@ -81,7 +84,7 @@ void Perekop::init_window() {
         vec2 delta = vec2{x, y} - vec2{mx, my};
         Perekop::query_gui();
 
-        if (Mouse::locked) 
+        if (glfwGetInputMode(glfw_window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) 
             glfwSetCursorPos(glfw_window, mx, my);
         else {
             mx = x; my = y;
@@ -130,7 +133,7 @@ void Perekop::step_window() {
     }
 
     vec2 mpos = vec2{mx, size.y - my} / size;
-    if (length(mpos - Mouse::pos) > 0.005 && !Mouse::locked) {
+    if (length(mpos - Mouse::pos) > 0.005) {
         mx = Mouse::pos.x * size.x; my = (1 - Mouse::pos.y) * size.y;
         glfwSetCursorPos(glfw_window, mx, my);
     }

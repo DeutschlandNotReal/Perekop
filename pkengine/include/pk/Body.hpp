@@ -1,13 +1,25 @@
 #pragma once
 #include <pkutil/Array.hpp>
+#include <pkUtil/SparseSet.hpp>
 #include <pk/Geometry.hpp>
+
+#ifdef PK_INTERNAL
+namespace Perekop { void render(bool); }
+#endif
 
 namespace pk {
     class Body {
+        #ifdef PK_INTERNAL
+        friend void Perekop::render(bool);
+        #endif
+        friend SparseSet<Body>;
+
         glm::mat3 I{1}, invI{1};
         float mass{1};
         bool dirty{false};
+        short rootid{0}; // root model
 
+        Body(Model& root);
         public:
             Pose pose;
             glm::vec3

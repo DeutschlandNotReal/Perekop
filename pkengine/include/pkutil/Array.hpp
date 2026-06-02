@@ -1,6 +1,7 @@
 #pragma once
 #include <cstring>
 #include <initializer_list>
+
 using uint = unsigned int;
 namespace pk {
     template <typename T> inline T* alloc(int n) {
@@ -12,41 +13,45 @@ namespace pk {
     }
 
     template <typename T> inline T* copy(T* dst, const T* src, int n) {
-        std::memcpy(dst, src, n*sizeof(T));
+        if (dst && src) std::memcpy(dst, src, n*sizeof(T));
         return dst;
     }
 
-    template <typename T> inline void realloc(T*& ptr, int n, int new_n) {
-        T* prev = ptr;
-        ptr = copy(alloc<T>(new_n), ptr, n);
-        dealloc(prev);
-    }
-
     template <typename T> class Array {
-        T *data, *cur, *cap;
+        T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
         T* next() {
-            if (cur == cap) resize(size() * 2 + 1);
+            if (cur == cap) 
+                resize(size() * 1.5 + 8);
             return cur++;
         }
 
-        void resize(uint new_capacity) {
-            uint L = size();
-            realloc(data, capacity(), new_capacity);
-            cap = data + new_capacity;
-            cur = data + L;
+        void resize(uint newcap) {
+            T* last = data;
+            data = copy(alloc<T>(newcap), last, size());
+
+            cap = data + newcap;
+            cur += data - last;
+            dealloc(last);
         }
         
         public:
-            Array(uint len = 1): 
-                data(alloc<T>(len)), cur(data), cap(data+len)
+            Array() = default;
+            Array(uint len): 
+                data(alloc<T>(len)), 
+                cur(data), 
+                cap(data+len)
             {}
 
-            Array(std::initializer_list<T> init): 
-                data(alloc<T>(init.size())), cur(data+init.size()), cap(data+init.size())
-            { copy(data, init.begin(), init.size()); }
+            Array(std::initializer_list<T> items): 
+                data(alloc<T>(items.size()))
+            { 
+                cap = cur = data + items.size();
+                copy(data, items.begin(), items.size()); 
+            }
 
             ~Array() { dealloc(data); }
+
             T& operator[](uint i) const { return data[i]; }
             T* begin() const { return data; }
             T* end() const { return cur; }
@@ -57,6 +62,14 @@ namespace pk {
             void pop() { --cur; }
             T& popout() { return *--cur; }
             T& swap_pop(uint i) { return data[i] = popout(); }
+
+            void fit_to_size() {
+                if (capacity() == size()) return;
+                T* last = data;
+                data = copy(alloc<T>(size()), last, size());
+                cur += data - last;
+                cap = cur;
+            }
 
             void reserve(uint new_size) {
                 if (new_size > capacity()) resize(new_size);
@@ -82,24 +95,28 @@ namespace pk {
 
             Array(const Array& b): data(alloc<T>(b.size())) {
                 copy(data, b.data, b.size());
-                cap = data + (b.cap-b.data);
-                cur = data + (b.cur-b.data);
+                cap = data + b.size();
+                cur = data + b.capacity();
             }
 
             Array& operator=(const Array& b) {
-                dealloc(data);
-                new (this) Array(b);
+                if (&b == this) return *this;
+                if (capacity() < b.size()) { dealloc(data); data = alloc<T>(b.size()); cap = data + b.size(); }
+                 copy(data, b.data, b.size());
+                cur = data + b.size();
+
                 return *this;
             }
 
-            Array(Array&& b): 
-                cur(b.cur), cap(b.cap), data(b.data) {
+            Array(Array&& b): cur(b.cur), cap(b.cap), data(b.data) {
                 b.data = b.cap = b.cur = nullptr;
             }
 
             Array& operator=(Array&& b) {
+                if (&b == this) return *this;
                 dealloc(data);
-                new (this) Array(b);
+                cur = b.cur; cap = b.cap; data = b.data;
+                b.data = b.cap = b.cur = nullptr;
                 return *this;
             }
 
@@ -107,4 +124,3 @@ namespace pk {
             bool empty() const { return cur == data; }
         };
 }
-

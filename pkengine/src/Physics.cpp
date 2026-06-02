@@ -4,6 +4,10 @@
 using namespace pk;
 using namespace glm;
 
+Body::Body(Model& root): rootid(root.id) {
+    
+};
+
 void Body::add_pmass(vec3 p, float m) {
     dirty = true;
     const float& x = p.x, y = p.y, z = p.z;

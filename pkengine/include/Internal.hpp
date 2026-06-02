@@ -1,4 +1,6 @@
 #pragma once
+
+namespace Perekop { void render(bool recollect); }
 #define PK_INTERNAL
 #include <Perekop.hpp>
 
@@ -16,7 +18,6 @@ namespace Perekop {
     void init_render();
     void init_window();
 
-    void render(bool recollect);
     void step_window();
     void step_physics(float dt);
 
@@ -29,3 +30,5 @@ namespace Perekop {
 
     extern void query_gui();
 }
+
+#undef PK_INTERNAL

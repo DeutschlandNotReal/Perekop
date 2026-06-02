@@ -14,10 +14,10 @@ void Game::cam_init() {
     });
 
     Mouse::on_move.listen([](vec2 movement){
-        if (Mouse::held(Mouse::left) && !GUI::top) {
+        if (Mouse::held(Mouse::left) && !Gui::top) {
             float yfov = camera.fov * (Window::size.y / Window::size.x);
 
-            cangle += movement * 15.f * vec2{camera.fov, yfov} / Window::size;
+            cangle += movement * vec2{camera.fov, yfov};
             camera.pose.rot = 
                 angleAxis(radians(cangle.x), vec3{0,1,0}) *
                 angleAxis(radians(cangle.y), vec3{1,0,0});
@@ -25,11 +25,11 @@ void Game::cam_init() {
     });
 
     Mouse::on_down.listen([](Mouse::Button b){
-        if (b == Mouse::left) Mouse::locked = true;
+        if (b == Mouse::left && !Gui::top) Mouse::lock();
     });
 
     Mouse::on_up.listen([](Mouse::Button b){
-        if (b == Mouse::left) Mouse::locked = false;
+        if (b == Mouse::left && !Gui::top) Mouse::unlock();
     });
 
 }

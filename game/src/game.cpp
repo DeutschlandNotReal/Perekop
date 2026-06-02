@@ -65,18 +65,20 @@ void Perekop::on_launch() {
     Game::gui_init();
     printf("Game begin\n");
 
-    auto* chudmat = new Mesh::Appearance(
-    "game/assets/shaders/vert.glsl",
-    "game/assets/shaders/frag.glsl",
-    "game/assets/images/ourbrainsareshrinking.jpg"
+    Shader& chudshader = *new Shader(
+        "game/assets/shaders/vert.glsl",
+        "game/assets/shaders/frag.glsl"
     );
-    chudmat->uniform(Mesh::u_float, "t", &t);
-    chudmat->uniform(Mesh::u_vec3, "bgcol", &World::bgcol);
+
+    Texture chudtexture = Texture("game/assets/images/ourbrainsareshrinking.jpg");
+
+    chudshader.uniform(Uniform::u_float, "t", &t);
+    chudshader.uniform(Uniform::u_vec3, "bgcol", &World::bgcol);
 
     Mesh& shapeler = World::meshes.insert();
     Mesh& pyramidler = World::meshes.insert();
-    shapeler.appearance = chudmat;
-    pyramidler.appearance = chudmat;
+    shapeler.shader = pyramidler.shader = &chudshader;
+    shapeler.texture = pyramidler.texture = chudtexture;
 
     shapeler.vertex = {
         {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},

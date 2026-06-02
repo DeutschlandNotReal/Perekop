@@ -1,6 +1,6 @@
 #pragma once
 #include <pk/Geometry.hpp>
-#include <pk/GUI.hpp>
+#include <pk/Gui.hpp>
 #include <pk/Body.hpp>
 #include <pkutil/Event.hpp>
 
@@ -13,8 +13,8 @@ namespace Perekop {
     namespace Mouse {
         enum Button { left = 0, right = 1, middle = 2 };
         inline glm::vec2 pos{0,0};
-        inline bool locked{false};
-        
+
+        extern void lock(); extern void unlock();
         extern glm::vec3 fvec();
         extern glm::mat3 matrix();
         inline pk::Event<glm::vec2> on_move;
@@ -31,14 +31,15 @@ namespace Perekop {
     namespace Window {
         inline glm::vec2 size{0,0}, pos{0, 0};
         inline const char* title;
-        
+
+        extern int get_frame();
         extern void maximize();
         extern void minimize();
     }
 
-    namespace GUI {
+    namespace Gui {
         inline pk::GUIObject* top{nullptr};
-        inline pk::Array<pk::GUIObject> gui;
+        inline pk::Array<pk::GUIObject> items;
         inline pk::Event<pk::GUIObject*> on_enter, on_exit;
         inline pk::Event<pk::GUIObject*, int> on_down, on_up;
     }

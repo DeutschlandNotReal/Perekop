@@ -1,3 +1,4 @@
+#include "glm/fwd.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -9,6 +10,7 @@
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
 #include <pkutil/File.hpp>
+
 using namespace glm;
 using namespace pk;
  
@@ -65,7 +67,7 @@ class glAttribute {
         }
 
         glAttribute& idraw_array(int n_vert, int n_users) {
-            glad_glDrawArraysInstanced(GL_TRIANGLES, 0, n_vert, n_users);
+            glDrawArraysInstanced(GL_TRIANGLES, 0, n_vert, n_users);
             return *this;
         }
 };
@@ -107,40 +109,46 @@ void load_texture(GLuint* texture, const char* path) {
     stbi_image_free(data);
 }
 
-Mesh::Appearance::Appearance(const char* vpath, const char* fpath, const char* tpath) {
+Texture::Texture(const char* path) {
+    load_texture(&id, path);
+};
+
+Shader::Shader(const char* vpath, const char* fpath) {
     const char *vsrc = File::read(vpath), *fsrc = File::read(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, "vertex", GL_VERTEX_SHADER), 
         load_shader({Perekop::preamble_f, fsrc}, "fragment", GL_FRAGMENT_SHADER)
     });
-    delete[] vsrc; delete[] fsrc;  
+    delete[] vsrc; delete[] fsrc;
+
     layoutP = glGetUniformLocation(program, "P");
     layoutV = glGetUniformLocation(program, "V");
-    if (!tpath) return;
-    layoutT = glGetUniformLocation(program, "_texture");
-
-    load_texture(&texture, tpath);
+    layoutT = glGetUniformLocation(program, "image");
 }
 
-void Mesh::Appearance::uniform(Mesh::UniType T, const char* title, const void* data) {
+void Shader::uniform(Uniform type, const char* title, const void* data) {
     uniforms.push({
         glGetUniformLocation(program, title),
-        T,
+        type,
         data
     });
 };
 
-void Mesh::Appearance::use(const mat4& V, const mat4& P) const {
+void Texture::use(uint layoutT) const {
+    if (!id) return;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, id);
+    glUniform1i(layoutT, 0);
+}
+
+void Shader::use(const mat4& V, const mat4& P) const {
+    if (!program) return;
     glUseProgram(program);
     glUniformMatrix4fv(layoutV, 1,GL_FALSE, (float*)&V);
     glUniformMatrix4fv(layoutP, 1, GL_FALSE, (float*)&P);
 
-    if (texture && layoutT) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture); 
-        glUniform1i(layoutT, 0);
-    }
-    for (const Uniform& u : uniforms) {
+    for (const LUniform& u : uniforms) {
+        using enum Uniform;
         switch (u.type) {
             case u_mat3:
                 glUniformMatrix3fv(u.layout, 1, false, (float*)u.data); break;
@@ -194,7 +202,7 @@ void Perekop::render(bool recollect) {
     for (const Mesh& mesh : World::meshes) {
         if (mesh.id <= 0) continue; // invalid
         while (transforms.size() < mesh.id)
-            transforms.emplace(8);
+            transforms.emplace();
 
         transforms[mesh.id-1].clear();
     }
@@ -202,8 +210,8 @@ void Perekop::render(bool recollect) {
     // transform collection
     if (recollect) for (const Model& model : World::models) {
         // model.mesh value of 0 means no mesh assigned
-        if (!model.mesh || model.mesh-1 >= transforms.size()) continue;
-        mat4 mdata = model.body ? model.pose * World::bodies[model.body].pose : model.pose;
+        if (!model.mesh || model.mesh > transforms.size()) continue;
+        mat4 mdata = (model.body && model.id != World::bodies[model.body].rootid) ? model.pose * World::bodies[model.body].pose : model.pose;
 
         mdata[3] = model.metadata;
         transforms[model.mesh-1].push(mdata);
@@ -212,8 +220,10 @@ void Perekop::render(bool recollect) {
     // instanced draw
     for (const Mesh& mesh : World::meshes) {
         Array<mat4>& T = transforms[mesh.id-1];
-        if (T.empty()) continue;
-        mesh.appearance->use(view, proj);
+        if (T.empty() || !mesh.shader) continue;
+        mesh.shader->use(view, proj);
+        mesh.texture.use(mesh.shader->layoutT);        
+
         glAttribute()
             .bind_elements(mesh.EBO)
             .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, T.begin(), T.size())
@@ -226,18 +236,18 @@ void Perekop::render(bool recollect) {
     glUseProgram(gui_PROG);
 
     // gui instanced draw
-    if (!GUI::gui.empty()) {
-        guidata.reserve(GUI::gui.size());
+    if (!Gui::items.empty()) {
+        guidata.reserve(Gui::items.size());
         guidata.clear();
         float minz{0}, maxz{1};
 
-        for (const GUIObject& gui : GUI::gui) {
+        for (const GUIObject& gui : Gui::items) {
             maxz = max(maxz, gui.Z); 
             minz = min(minz, gui.Z);
         }
 
         float iZR = 1.f / (maxz - minz);
-        for (const GUIObject& gui : GUI::gui)
+        for (const GUIObject& gui : Gui::items)
             guidata.rawpush({
             (gui.Z - minz) * iZR, 
             gui.pos, 
