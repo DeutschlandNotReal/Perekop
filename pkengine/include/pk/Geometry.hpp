@@ -2,7 +2,6 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <pk/Pose.hpp>
-#include <pkutil/SparseSet.hpp>
 #include <pk/Graphics.hpp>
 
 namespace pk {

@@ -1,4 +1,4 @@
-#include "Perekop.hpp"
+#define PK_ENGINE_SRC
 #include <Internal.hpp>
 #include <pk/Body.hpp>
 using namespace pk;

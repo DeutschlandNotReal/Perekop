@@ -1,5 +1,5 @@
 #pragma once
-
+#ifdef PK_ENGINE_SRC
 namespace Perekop { void render(bool recollect); }
 #define PK_INTERNAL
 #include <Perekop.hpp>
@@ -32,3 +32,4 @@ namespace Perekop {
 }
 
 #undef PK_INTERNAL
+#endif

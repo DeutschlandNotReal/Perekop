@@ -2,14 +2,14 @@
 #include <pkutil/Array.hpp>
 
 namespace pk {
-    template <typename T> class SparseSet {
+    template <typename T> class Set {
         using I = decltype(T::id);
         // type T got to have 'id' member
         Array<T> data;
         Array<I> index;
 
        public:
-            SparseSet(uint L = 8): data(L), index(L) {};
+            Set(uint L = 8): data(L), index(L) {};
 
             T& operator[](I i) const { return data[index[i]]; }
             T* begin() const { return data.begin(); }

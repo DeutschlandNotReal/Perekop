@@ -1,6 +1,6 @@
 #pragma once
 #include <pkutil/Array.hpp>
-#include <pkUtil/SparseSet.hpp>
+#include <pkutil/Set.hpp>
 #include <pk/Geometry.hpp>
 
 #ifdef PK_INTERNAL
@@ -12,7 +12,7 @@ namespace pk {
         #ifdef PK_INTERNAL
         friend void Perekop::render(bool);
         #endif
-        friend SparseSet<Body>;
+        friend Set<Body>;
 
         glm::mat3 I{1}, invI{1};
         float mass{1};

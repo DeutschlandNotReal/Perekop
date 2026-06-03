@@ -3,12 +3,12 @@
 
 namespace pk {
     template <typename... T> class Event {
-        using callback = void(*)(T...);
+        using callback = void(*)(const T&...);
         struct Entry { callback cb; void* data; };
         Array<Entry> listeners;
         short i{0};
         public:
-            void fire(T... items) {
+            void fire(const T&... items) {
                 for (i = 0; i < listeners.size(); i++)
                     listeners[i].cb(items...);
             }

@@ -11,9 +11,8 @@ void Game::gui_init() {
         {{.3, .3, .1, 1}, {.2, .2}, {0.2 , 0}, 2}
     };
     
-    Mouse::on_move.listen([](vec2 movement){
-        if (Gui::top && Mouse::held(Mouse::left)) {
-            Gui::top->pos += movement / Window::size;
-        }
+    Mouse::on_move.listen([](const vec2& movement){
+        if (Gui::top && Mouse::held(Mouse::left)) 
+            Gui::top->pos += movement / Window::get_size();
     });
 }

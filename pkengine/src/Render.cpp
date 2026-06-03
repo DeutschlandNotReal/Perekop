@@ -1,3 +1,4 @@
+#define PK_ENGINE_SRC
 #include "glm/fwd.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -189,12 +190,13 @@ void Mesh::unload() {
 
 void Perekop::render(bool recollect) {
     using namespace World;
-    if (Window::size.y == 0) return; // aspect ratio of inf (bad)
+    vec2 wsize = Window::get_size();
+    if (wsize.y == 0.f) return; // aspect ratio of inf (bad)
 
     glClearColor(bgcol.r, bgcol.g, bgcol.b, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mat4 view = camera.view(), proj = camera.proj(Window::size.x / Window::size.y);
+    mat4 view = camera.view(), proj = camera.proj(wsize.x / wsize.y);
 
     glBindVertexArray(Perekop::mesh_VAO);
 
@@ -248,7 +250,7 @@ void Perekop::render(bool recollect) {
 
         float iZR = 1.f / (maxz - minz);
         for (const GUIObject& gui : Gui::items)
-            guidata.rawpush({
+            guidata.push_unsafe({
             (gui.Z - minz) * iZR, 
             gui.pos, 
             gui.size, 

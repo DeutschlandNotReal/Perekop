@@ -13,8 +13,12 @@ namespace Perekop {
     namespace Mouse {
         enum Button { left = 0, right = 1, middle = 2 };
         inline glm::vec2 pos{0,0};
+        void point_to(glm::vec2 point);
 
-        extern void lock(); extern void unlock();
+        extern void lock(); 
+        extern void unlock();
+        extern bool is_locked();
+
         extern glm::vec3 fvec();
         extern glm::mat3 matrix();
         inline pk::Event<glm::vec2> on_move;
@@ -29,10 +33,11 @@ namespace Perekop {
     }
 
     namespace Window {
-        inline glm::vec2 size{0,0}, pos{0, 0};
-        inline const char* title;
+        inline pk::Event<glm::vec2> resized;
+        extern glm::vec2 get_size();
+        extern void set_size(glm::vec2 size);
+        extern void set_title(cstring title);
 
-        extern int get_frame();
         extern void maximize();
         extern void minimize();
     }
@@ -40,14 +45,12 @@ namespace Perekop {
     namespace Gui {
         inline pk::GUIObject* top{nullptr};
         inline pk::Array<pk::GUIObject> items;
-        inline pk::Event<pk::GUIObject*> on_enter, on_exit;
-        inline pk::Event<pk::GUIObject*, int> on_down, on_up;
     }
 
     namespace World {   
-        inline pk::SparseSet<pk::Model> models;
-        inline pk::SparseSet<pk::Mesh> meshes;
-        inline pk::SparseSet<pk::Body> bodies;
+        inline pk::Set<pk::Model> models;
+        inline pk::Set<pk::Mesh> meshes;
+        inline pk::Set<pk::Body> bodies;
         inline glm::vec3 bgcol{0.2,0.2,0.2};
 
         inline double fps{60};

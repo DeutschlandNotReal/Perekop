@@ -1,3 +1,4 @@
+#define PK_ENGINE_SRC
 #include <Internal.hpp>
 #include <pk/Gui.hpp>
 
@@ -8,13 +9,8 @@ void Perekop::query_gui() {
     Gui::top = nullptr;
     if (Gui::items.empty()) return;
     for (GUIObject& gui : Gui::items) {
-        bool occupied = gui.intersect(Mouse::pos);
-        if (occupied) {
-            if (!Gui::top || Gui::top->Z > gui.Z) Gui::top = &gui;
-            if (!gui.entered) { gui.entered = true; Gui::on_enter.fire(&gui); }
-        } else if (gui.entered) {
-            gui.entered = false;
-            Gui::on_exit.fire(&gui);
-        }
+        gui.entered = gui.intersect(Mouse::pos);
+        if (gui.entered && (!Gui::top || Gui::top->Z > gui.Z))
+            Gui::top = &gui; 
     }
 }

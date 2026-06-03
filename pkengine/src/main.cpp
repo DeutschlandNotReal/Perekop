@@ -1,6 +1,6 @@
+#define PK_ENGINE_SRC
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <memoryapi.h>
 
 #include <Internal.hpp>
 #include <pkutil/Time.hpp>
@@ -8,8 +8,6 @@
 using namespace pk;
 using namespace glm;
 using namespace Perekop;
-
-static Shader default_shader;
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
@@ -36,7 +34,6 @@ int main() {
 
         step_physics(dt);
         render(true);
-        step_window();
 
         on_step(dt);
         double fdt = ftimer.elapsed();

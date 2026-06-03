@@ -9,13 +9,14 @@ using World::camera;
 
 vec2 cangle{0};
 void Game::cam_init() {
-    Mouse::on_scroll.listen([](int d){
+    Mouse::on_scroll.listen([](auto d){
         camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
 
-    Mouse::on_move.listen([](vec2 movement){
+    Mouse::on_move.listen([](auto movement){
         if (Mouse::held(Mouse::left) && !Gui::top) {
-            float yfov = camera.fov * (Window::size.y / Window::size.x);
+            vec2 size = Window::get_size();
+            float yfov = camera.fov * (size.y / size.x);
 
             cangle += movement * vec2{camera.fov, yfov};
             camera.pose.rot = 
@@ -24,12 +25,12 @@ void Game::cam_init() {
         }
     });
 
-    Mouse::on_down.listen([](Mouse::Button b){
-        if (b == Mouse::left && !Gui::top) Mouse::lock();
+    Mouse::on_down.listen([](auto button){
+        if (button == Mouse::left && !Gui::top) Mouse::lock();
     });
 
-    Mouse::on_up.listen([](Mouse::Button b){
-        if (b == Mouse::left && !Gui::top) Mouse::unlock();
+    Mouse::on_up.listen([](auto button){
+        if (button == Mouse::left && !Gui::top) Mouse::unlock();
     });
 
 }

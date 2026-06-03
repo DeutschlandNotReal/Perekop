@@ -1,3 +1,4 @@
+#define PK_ENGINE_SRC
 #include <Internal.hpp>
 
 #include <cstdio>
@@ -5,7 +6,7 @@
 using namespace pk;
 using namespace glm;
 
-const char* File::read(const char* path, bool null, const char** end) {
+cstring File::read(cstring path, bool null, cstring* end) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path);
