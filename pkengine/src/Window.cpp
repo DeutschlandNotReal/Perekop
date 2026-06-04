@@ -1,5 +1,6 @@
 #include "Perekop.hpp"
 #include "pkutil/Array.hpp"
+#include <cstdio>
 #define PK_ENGINE_SRC
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -90,13 +91,15 @@ void Perekop::init_window() {
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
         if (x == mouse_lx && y == mouse_ly) return;
+        double dx = x - mouse_lx, dy = y - mouse_ly;
         vec2 size = Window::get_size();
-        vec2 upos = vec2{x, size.y - y} / size;
 
-        vec2 delta = Mouse::pos-upos;
+        vec2 delta = vec2{dx, dy} / size;
         Perekop::query_gui();
-        if (!Mouse::is_locked()) Mouse::pos += delta;
 
+        mouse_lx = x; mouse_ly = y;
+        if (!Mouse::is_locked()) Mouse::pos -= delta;
+   
         Mouse::on_move.fire(delta);
     });
 
@@ -112,9 +115,5 @@ void Perekop::init_window() {
     glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
         glViewport(0, 0, w, h);
         Window::resized.fire({w, h});
-    });
-
-    glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
-        Perekop::render(false);
     });
 }

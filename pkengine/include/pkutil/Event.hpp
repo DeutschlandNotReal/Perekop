@@ -6,11 +6,13 @@ namespace pk {
         using callback = void(*)(const T&...);
         struct Entry { callback cb; void* data; };
         Array<Entry> listeners;
-        short i{0};
+        short i{-1};
+
         public:
             void fire(const T&... items) {
                 for (i = 0; i < listeners.size(); i++)
                     listeners[i].cb(items...);
+                i = -1;
             }
 
             void listen(callback callback, void* data = nullptr) {
@@ -18,14 +20,13 @@ namespace pk {
             }
 
             void exit() {
+                if (i == -1) return;
                 listeners[i--] = listeners.popout();
             }
         
-            template <typename t> t& value(){
-                return *(t*)listeners[i].data;
+            template <typename t> t* value(){
+                if (i == -1) return nullptr;
+                return (t*)listeners[i].data;
             }
-
-            Event() = default;
-            Event(Event&& e): listeners((Array<T...>&&)e.listeners) {}
     };
 }

@@ -74,14 +74,14 @@ namespace pk {
 
             void clear() { 
                 if constexpr (!std::is_trivially_destructible_v<T>)
-                    while (cur != data) (--cur)->~T();
+                    for (T* i = cur-1; i >= data; i--) i->~T();
                 cur = data; 
             }
 
             void pop() { 
                 if constexpr(!std::is_trivially_destructible_v<T>)
                     (--cur)->~T();
-                else -- cur;
+                else --cur;
             }
 
             T popout() { 
@@ -92,12 +92,20 @@ namespace pk {
                 if (new_size > capacity()) resize(new_size);
             }
 
-            template <typename... A> void emplace(A&&... args) {
-                new (next()) T(args...); 
+            template <typename... A> T& emplace(A&&... args) {
+                new (next()) T(args...);
+                return back(); 
             }
 
-            void push(const T& item) { 
+            void swap(uint i, uint j) {
+                T temp = T((T&&) data[i]);
+                new (data+i) T((T&&) data[j]);
+                new (data+j) T((T&&) temp);
+            }
+
+            T& push(const T& item) { 
                 copy(next(), &item, 1);
+                return back();
             }
 
             void push(std::initializer_list<T> items) {

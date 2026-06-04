@@ -1,27 +1,31 @@
 #include <Perekop.hpp>
-#include <game/cam.hpp>
+#include <cstdio>
+#include <game/camera.hpp>
 #include <GLFW/glfw3.h>
 
 using namespace pk;
 using namespace Perekop;
 using namespace glm;
-using World::camera;
 
-vec2 cangle{0};
-void Game::cam_init() {
+
+float _pitch{0}, _yaw{0};
+
+void Game::init::camera() {
     Mouse::on_scroll.listen([](auto d){
-        camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
+        World::camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
 
-    Mouse::on_move.listen([](auto movement){
+    Mouse::on_move.listen([](const vec2& delta){
         if (Mouse::held(Mouse::left) && !Gui::top) {
             vec2 size = Window::get_size();
-            float yfov = camera.fov * (size.y / size.x);
+            float yfov = World::camera.fov * (size.y / size.x);
 
-            cangle += movement * vec2{camera.fov, yfov};
-            camera.pose.rot = 
-                angleAxis(radians(cangle.x), vec3{0,1,0}) *
-                angleAxis(radians(cangle.y), vec3{1,0,0});
+            _pitch = clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
+            _yaw += delta.x * World::camera.fov;
+
+            World::camera.pose.rot = 
+                angleAxis(_yaw, vec3{0,1,0}) *
+                angleAxis(_pitch, vec3{1,0,0});
         }
     });
 
@@ -35,8 +39,8 @@ void Game::cam_init() {
 
 }
 
-using Input::held;
-void Game::cam_step(float dt) {
+void Game::step::camera(float dt) {
+    using Input::held;
     vec3 delta{0};
 
     if (held('S')) delta += vec3{0,0,1};
@@ -46,5 +50,5 @@ void Game::cam_step(float dt) {
     if (held('E')) delta += vec3{0,1,0};
     if (held('Q')) delta -= vec3{0,1,0};
 
-    camera.pose += (delta * dt) * Mouse::matrix();
+    World::camera.pose += (delta * dt) * Mouse::matrix();
 };

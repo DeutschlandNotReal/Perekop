@@ -1,7 +1,7 @@
 #include <Perekop.hpp>
 #include <cstdio>
 #include <pkutil/File.hpp>
-#include <game/cam.hpp>
+#include <game/camera.hpp>
 #include <game/gui.hpp>
 
 using namespace pk;
@@ -14,7 +14,7 @@ struct body { int modelid; vec3 vel, pos; float Z; float Q; };
 static Array<body> bodies;
 static uint fake_randomler = 0;
 
-uint random() {
+uint random_u32() {
     fake_randomler ^= 0xF123123FA;
     fake_randomler += 0xF2100041F;
     fake_randomler *= 0xA004112F;
@@ -22,8 +22,8 @@ uint random() {
     return fake_randomler;
 }
 
-float random(float min, float max) {
-    return min + (max - min) * (random() / (float)0xFFFFFFFF);
+float random(float min = 0, float max = 1) {
+    return min + (max - min) * (random_u32() / (float)0xFFFFFFFF);
 }
 
 vec3 random(vec3 min, vec3 max) {
@@ -35,12 +35,13 @@ vec3 random(vec3 min, vec3 max) {
 }
 
 void Perekop::on_step(double dt) {
-    Game::cam_step(dt);
+    Game::step::camera(dt);
+
     t += dt;
-    float r = sin(t*0.5)*.5+.5;
-    float g = cos(t*0.25)*.5+.5;
-    float b = (r + b) * .5;
+
+    float r = random(), g = random(), b = random();
     World::bgcol = {r, g, b};
+
     for (int i = 0; i < bodies.size(); i++) {
         body& ibody = bodies[i];
         if (i != bodies.size() - 1)
@@ -53,7 +54,8 @@ void Perekop::on_step(double dt) {
                 vec3 force = disp * -(( 10.f-r) * (jbody.Q * ibody.Q) * ibody.Z * jbody.Z * (float)dt / (r2 * r));
                 ibody.vel += force;
                 jbody.vel -= force;
-            } 
+            }
+        
         ibody.pos += ibody.vel * (float)dt;
         ibody.vel *= 0.9f;
         World::models[ibody.modelid].pose.pos = ibody.pos;
@@ -61,8 +63,9 @@ void Perekop::on_step(double dt) {
 }
 
 void Perekop::on_launch() {
-    Game::cam_init();
-    Game::gui_init();
+    Game::init::camera();
+    Game::init::gui();
+
     printf("Game begin\n");
 
     Shader& chudshader = *new Shader(
@@ -80,7 +83,7 @@ void Perekop::on_launch() {
     shapeler.shader = pyramidler.shader = &chudshader;
     shapeler.texture = pyramidler.texture = chudtexture;
 
-    shapeler.vertex = {
+    shapeler.vertices = {
         {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},
         {{ 0,-1, 0}, {0,-1, 0}, {.5, 0}},
         {{ 1, 0, 1}, {1, 0, 1}, {1, .5}},
@@ -100,7 +103,7 @@ void Perekop::on_launch() {
         1,2,5,
     };
 
-    pyramidler.vertex = {
+    pyramidler.vertices = {
         {{0, 1, 0}, {0, 1, 0}, {0.5, 1}},
         {{-1, 0, -1}, {0, -1, 0}, {0, 0}},
         {{ 1, 0, -1}, {0, -1, 0}, {1, 0}},

@@ -17,7 +17,7 @@ namespace pk::Time {
         ~Stopwatch() { *result = now<U>() - start; }
     };
 
-    template <typename U, unsigned short L> class Tracker {
+    template <typename U, unsigned short L = 1> class Tracker {
         short ptr{-1}; U records[L];
         public:
             void begin(U offset = 0) { records[++ptr] = now<U>() + offset; }

@@ -98,9 +98,10 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
 void load_texture(GLuint* texture, const char* path) {
     int width, height, channels;
     unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
-    if (!data) {
+
+    if (!data) 
         printf("\033[31mTexture at path '%s' not found.\n\033[0m", path); return;
-    }
+    
     int format = (channels==1)?GL_RED:(channels==3)?GL_RGB:GL_RGBA;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
@@ -178,7 +179,7 @@ void Mesh::load() {
 void Mesh::reload() {
     if (!VBO) load();
     glAttribute()
-        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertex.begin(), vertex.size())
+        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertices.begin(), vertices.size())
         .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
 }
 
@@ -206,7 +207,7 @@ void Perekop::render(bool recollect) {
         while (transforms.size() < mesh.id)
             transforms.emplace();
 
-        transforms[mesh.id-1].clear();
+        if (!recollect) transforms[mesh.id-1].clear();
     }
 
     // transform collection

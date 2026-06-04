@@ -5,7 +5,7 @@ using namespace pk;
 using namespace glm;
 using namespace Perekop;
 
-void Game::gui_init() {
+void Game::init::gui() {
     Gui::items = {
         {{.4, .6, .6, 1}, {.3, .3}, {.1, .1}, 1},
         {{.3, .3, .1, 1}, {.2, .2}, {0.2 , 0}, 2}

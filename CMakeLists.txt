@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 project(Perekop LANGUAGES C CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_BUILD_TYPE Release)
 
 set(engine ${CMAKE_SOURCE_DIR}/pkengine)
 set(game ${CMAKE_SOURCE_DIR}/game)
@@ -19,7 +20,19 @@ add_executable(perekop
     ${src}
     ${engine}/lib/glad/src/glad.c
 )
+
 target_compile_features(perekop PRIVATE cxx_std_20)
+
+# put every compile flag under the sun
+# might break something soon but it is super super super fast
+target_compile_options(perekop PRIVATE
+    $<$<CONFIG:Release>:-O3 -DNDEBUG -march=native -flto -ffast-math -funroll-loops>
+)
+
+set_target_properties(perekop PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+)
+
 target_include_directories(perekop PRIVATE
     ${engine}/lib/glfw/include
     ${engine}/lib/glad/include

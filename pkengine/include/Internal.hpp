@@ -29,6 +29,8 @@ namespace Perekop {
         gui_PROG{0};
 
     extern void query_gui();
+
+    extern glm::mat3 to_inertia(glm::vec3 localpoint);
 }
 
 #undef PK_INTERNAL
