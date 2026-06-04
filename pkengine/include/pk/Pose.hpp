@@ -8,18 +8,10 @@ namespace pk {
         glm::quat rot{1, 0, 0, 0};
 
         operator glm::vec3() const { return pos; }
+        operator glm::quat() const { return rot; }
 
-        operator glm::mat4() const {
-            return glm::translate(glm::mat4(1), pos) * glm::mat4_cast(rot);
-        }
-
-        operator glm::mat3x4() const {
-            glm::mat3 r = glm::mat3_cast(rot);
-            return {
-                {r[0], pos.x},
-                {r[1], pos.y},
-                {r[2], pos.z}
-            };
+        glm::mat4 mat4() const {
+            return glm::translate(glm::identity<glm::mat4>(), pos) * glm::mat4_cast(rot);
         }
 
         Pose operator+(const glm::vec3& b) const { return {pos + b, rot}; }

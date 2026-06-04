@@ -51,6 +51,12 @@ class glAttribute {
         glAttribute& bind_elements(GLuint b) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, b); return *this;}
         template <int L> glAttribute& make(GLuint* b) { glGenBuffers(L, b); return *this;}
         
+        template <GLenum type, GLenum mode, typename T> glAttribute& data(GLuint buffer, const pk::Array<T>& data) {
+            glBindBuffer(type, buffer);
+            glBufferData(type, data.size()*sizeof(T), data.begin(), mode);
+            return *this;
+        }
+
         template <GLenum type, GLenum mode, typename T> glAttribute& data(GLuint buffer, const T* data, int n) {
             glBindBuffer(type, buffer);
             glBufferData(type, n*sizeof(T), data, mode);
@@ -99,9 +105,11 @@ void load_texture(GLuint* texture, const char* path) {
     int width, height, channels;
     unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
 
-    if (!data) 
-        printf("\033[31mTexture at path '%s' not found.\n\033[0m", path); return;
-    
+    if (!data) {
+        printf("\033[31mTexture at path '%s' not found.\n\033[0m", path);
+        return;
+    }
+
     int format = (channels==1)?GL_RED:(channels==3)?GL_RGB:GL_RGBA;
     glGenTextures(1, texture);
     glBindTexture(GL_TEXTURE_2D, *texture);
@@ -123,9 +131,9 @@ Shader::Shader(const char* vpath, const char* fpath) {
     });
     delete[] vsrc; delete[] fsrc;
 
-    layoutP = glGetUniformLocation(program, "P");
-    layoutV = glGetUniformLocation(program, "V");
-    layoutT = glGetUniformLocation(program, "image");
+    layoutP = glGetUniformLocation(program, "proj");
+    layoutV = glGetUniformLocation(program, "view");
+    layoutT = glGetUniformLocation(program, "f_image");
 }
 
 void Shader::uniform(Uniform type, const char* title, const void* data) {
@@ -179,8 +187,8 @@ void Mesh::load() {
 void Mesh::reload() {
     if (!VBO) load();
     glAttribute()
-        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertices.begin(), vertices.size())
-        .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices.begin(), indices.size());
+        .data<GL_ARRAY_BUFFER, GL_STATIC_DRAW>(VBO, vertices)
+        .data<GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW>(EBO, indices);
 }
 
 void Mesh::unload() {
@@ -198,41 +206,45 @@ void Perekop::render(bool recollect) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     mat4 view = camera.view(), proj = camera.proj(wsize.x / wsize.y);
-
     glBindVertexArray(Perekop::mesh_VAO);
 
     // transform prealloc
     for (const Mesh& mesh : World::meshes) {
         if (mesh.id <= 0) continue; // invalid
-        while (transforms.size() < mesh.id)
-            transforms.emplace();
+        while (cache::T.size() < mesh.id) cache::T.emplace();
 
-        if (!recollect) transforms[mesh.id-1].clear();
+        if (recollect) cache::T[mesh.id-1].clear();
     }
 
     // transform collection
     if (recollect) for (const Model& model : World::models) {
         // model.mesh value of 0 means no mesh assigned
-        if (!model.mesh || model.mesh > transforms.size()) continue;
-        mat4 mdata = (model.body && model.id != World::bodies[model.body].rootid) ? model.pose * World::bodies[model.body].pose : model.pose;
+        if (!model.mesh || model.mesh > cache::T.size()) continue;
+        // if mesh is part of body & isn't root part, mesh pose is treated as relative to root pose
+        mat4 transform = model.pose.mat4(); 
 
-        mdata[3] = model.metadata;
-        transforms[model.mesh-1].push(mdata);
+        if (model.body) {
+            const Body& mbody = World::bodies[model.body];
+            if (model.id != mbody.rootid) transform *= mbody.pose.mat4();
+        }
+
+        cache::T[model.mesh-1].emplace(transform, model.metadata);
     }
 
     // instanced draw
     for (const Mesh& mesh : World::meshes) {
-        Array<mat4>& T = transforms[mesh.id-1];
-        if (T.empty() || !mesh.shader) continue;
+        const Array<ModelData>& modeldata = cache::T[mesh.id-1];
+        if (modeldata.empty() || !mesh.shader) continue;
+
         mesh.shader->use(view, proj);
         mesh.texture.use(mesh.shader->layoutT);        
 
         glAttribute()
             .bind_elements(mesh.EBO)
-            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, T.begin(), T.size())
+            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(mesh.IBO, modeldata)
             .vbuffer<Mesh::Vertex>(0, mesh.VBO)
-            .vbuffer<mat4>(1, mesh.IBO)
-            .idraw(mesh.indices.size(), T.size());
+            .vbuffer<ModelData>(1, mesh.IBO)
+            .idraw(mesh.indices.size(), modeldata.size());
     }
 
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -240,8 +252,8 @@ void Perekop::render(bool recollect) {
 
     // gui instanced draw
     if (!Gui::items.empty()) {
-        guidata.reserve(Gui::items.size());
-        guidata.clear();
+        cache::gui.reserve(Gui::items.size());
+        cache::gui.clear();
         float minz{0}, maxz{1};
 
         for (const GUIObject& gui : Gui::items) {
@@ -251,7 +263,7 @@ void Perekop::render(bool recollect) {
 
         float iZR = 1.f / (maxz - minz);
         for (const GUIObject& gui : Gui::items)
-            guidata.push_unsafe({
+            cache::gui.push_unsafe({
             (gui.Z - minz) * iZR, 
             gui.pos, 
             gui.size, 
@@ -259,10 +271,10 @@ void Perekop::render(bool recollect) {
         });
         
         glAttribute(gui_VAO)
-            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, guidata.begin(), guidata.size())
+            .data<GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW>(gui_IBO, cache::gui.begin(), cache::gui.size())
             .vbuffer<vec2>(0, gui_VBO)
-            .vbuffer<rawgui>(1, gui_IBO)
-            .idraw_array(6, guidata.size());
+            .vbuffer<GuiData>(1, gui_IBO)
+            .idraw_array(6, cache::gui.size());
     }
 
     glfwSwapBuffers(glfw_window);
@@ -272,8 +284,10 @@ void Perekop::init_render() {
     preamble_v = File::read("pkengine/assets/shaders/pre_vsrc.glsl");
     preamble_f = File::read("pkengine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)
-        .item<vec3, vec3, vec2>() // VERTEX
-        .item_instanced<vec4, vec4, vec4, vec4>(); // MODEL
+        // vertex (pos, norm, uv)
+        .item<vec3, vec3, vec2>()
+        // model (t, meta)
+        .item_instanced<vec4, vec4, vec4, vec4, vec4>();
     
     vec2 gui_V[6] = {{0,0}, {0,1}, {1,0}, {1,0}, {0,1}, {1,1}};
     glAttribute(&gui_VAO)

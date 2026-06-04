@@ -9,6 +9,8 @@ using namespace glm;
 using namespace Perekop;
 static float t = 0;
 
+
+
 struct body { int modelid; vec3 vel, pos; float Z; float Q; };
 
 static Array<body> bodies;
@@ -35,11 +37,14 @@ vec3 random(vec3 min, vec3 max) {
 }
 
 void Perekop::on_step(double dt) {
+    const float pi = 3.14159265f;
     Game::step::camera(dt);
 
     t += dt;
 
-    float r = random(), g = random(), b = random();
+    float r = sin(t), g = sin(t - pi * (2.f/3.f)), b = sin(t - pi * (4.f/3.f));
+    r = (r+1)*.5; g = (g+1)*.5; b = (b+1)*.5;
+
     World::bgcol = {r, g, b};
 
     for (int i = 0; i < bodies.size(); i++) {
@@ -64,7 +69,7 @@ void Perekop::on_step(double dt) {
 
 void Perekop::on_launch() {
     Game::init::camera();
-    Game::init::gui();
+    //Game::init::gui();
 
     printf("Game begin\n");
 
@@ -75,8 +80,8 @@ void Perekop::on_launch() {
 
     Texture chudtexture = Texture("game/assets/images/ourbrainsareshrinking.jpg");
 
-    chudshader.uniform(Uniform::u_float, "t", &t);
-    chudshader.uniform(Uniform::u_vec3, "bgcol", &World::bgcol);
+    chudshader.uniform(Uniform::u_float, "time", &t);
+    chudshader.uniform(Uniform::u_vec3, "f_bgcol", &World::bgcol);
 
     Mesh& shapeler = World::meshes.insert();
     Mesh& pyramidler = World::meshes.insert();
@@ -123,7 +128,7 @@ void Perekop::on_launch() {
     shapeler.load();
     pyramidler.load();
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 500; i++) {
         Model& model = World::models.insert();
         model.mesh = (random(0,1)>0.5?shapeler:pyramidler).id;
         vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 

@@ -1,7 +1,11 @@
-in vec3 col;
-in vec2 uv;
-uniform sampler2D _texture;
+in vec4 f_colour;
+in vec2 f_uv;
+in float f_t;
+
+uniform vec3 f_bgcol;
+uniform sampler2D f_image;
+
 
 void main() { 
-    fragColor = vec4(col, 1.0) * texture(_texture, uv); 
+    fragColor = mix(f_colour * texture(f_image, f_uv), vec4(f_bgcol, 1.0), f_t); 
 }

@@ -57,14 +57,13 @@ namespace pk {
                 copy<T, true>(data, items.begin(), items.size()); 
             }
 
-            ~Array() { 
-                if constexpr (!std::is_trivially_destructible_v<T>)
-                    for (T* i = data; i < cur; i++)
+            ~Array() {
+                clear();
                 dealloc(data); 
             }
 
             T& operator[](uint i) const { return data[i]; }
-
+            
             T* begin() const { return data; }
             T* end() const { return cur; }
             T& back() const { return *(cur-1); }

@@ -1,12 +1,15 @@
-uniform float t;
-out vec3 col;
-out float a;
-out vec2 uv;
+uniform float time;
+
+out vec4 f_colour;
+out vec2 f_uv;
+out float f_t;
 
 void main() { 
-    vec4 VM = V * model() * vec4(_pos, 1.0);
-    gl_Position = P * VM;
-    float t = clamp(1.0-exp(VM.z * 0.1), 0, 1);
-    col = mix(meta.xyz, vec3(0, 0, 0), t);
-    uv = _uv;
+    vec4 viewspace = view * model * vec4(v_pos, 1.0);
+    gl_Position = proj * viewspace;
+    float depth = -viewspace.z;
+
+    f_colour = vec4(metadata.xyz, 1.0);
+    f_uv = v_uv;
+    f_t = clamp(1.0 - exp(-depth * 0.1), 0, 1);
 }

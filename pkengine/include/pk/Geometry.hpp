@@ -40,11 +40,11 @@ namespace pk {
     };
 
     struct Camera { 
-        float min{.1}, max{200}, fov{glm::radians(70.f)}; 
+        float min{1e-6}, max{200}, fov{glm::radians(70.f)}; 
         Pose pose;
 
         glm::mat4 view() const { 
-            return glm::inverse((glm::mat4)pose); 
+            return glm::inverse(pose.mat4()); 
         }
 
         glm::mat4 proj(float aspect) const { 

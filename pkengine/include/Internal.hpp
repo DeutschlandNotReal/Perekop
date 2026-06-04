@@ -6,14 +6,26 @@ namespace Perekop { void render(bool recollect); }
 
 class GLFWwindow;
 namespace pk {
-    struct rawgui { float Z; glm::vec2 p, s; glm::vec4 RGBA; };
+    struct GuiData { 
+        float Z; 
+        glm::vec2 p, s; 
+        glm::vec4 RGBA;
+    };
+
+    struct ModelData { 
+        glm::mat4 transform; 
+        glm::vec4 metadata; 
+    };
 };
 
 namespace Perekop {
     inline const char *preamble_v{nullptr}, *preamble_f{nullptr};
     inline GLFWwindow* glfw_window{nullptr};
-    inline pk::Array<pk::Array<glm::mat4>> transforms;
-    inline pk::Array<pk::rawgui> guidata;
+
+    namespace cache {
+        inline pk::Array<pk::Array<pk::ModelData>> T;
+        inline pk::Array<pk::GuiData> gui;
+    }
 
     void init_render();
     void init_window();

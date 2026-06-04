@@ -1,7 +1,5 @@
-#include "Perekop.hpp"
-#include "pkutil/Array.hpp"
-#include <cstdio>
 #define PK_ENGINE_SRC
+#include <cstdio>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 

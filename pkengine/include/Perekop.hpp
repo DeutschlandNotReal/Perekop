@@ -53,7 +53,7 @@ namespace Perekop {
         inline pk::Set<pk::Body> bodies;
         inline glm::vec3 bgcol{0.2,0.2,0.2};
 
-        inline double fps{60}, tps{30};
+        inline double fps{50};
         inline pk::Camera camera;
     }
 }
