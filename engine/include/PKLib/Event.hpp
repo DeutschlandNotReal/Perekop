@@ -1,11 +1,11 @@
 #pragma once
-#include <PKCore/Array.hpp>
+#include <PKCore/Vector.hpp>
 
 namespace pk {
     template <typename... T> class Event {
         using callback = void(*)(const T&...);
         struct Entry { callback cb; void* data; };
-        dynarray<Entry> listeners;
+        vector<Entry> listeners;
         short i{-1};
 
         public:

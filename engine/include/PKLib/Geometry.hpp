@@ -1,4 +1,5 @@
 #pragma once
+#include "glm/ext/matrix_clip_space.hpp"
 #include <PKLib/Math.hpp>
 #include <PKLib/Pose.hpp>
 #include <PKLib/Graphics.hpp>
@@ -20,8 +21,8 @@ namespace pk {
             Texture texture;
             Shader* shader{nullptr};
             
-            array<Vertex> vertices;
-            array<short> indices;
+            vector<Vertex> vertices;
+            vector<short> indices;
 
             void load();
             void unload();
@@ -42,7 +43,7 @@ namespace pk {
         }
 
         mat4 proj(float aspect) const { 
-            return glm::perspective(fov, aspect, min, max); 
+            return glm::perspectiveZO(fov, aspect, min, max); 
         }
     };
 }

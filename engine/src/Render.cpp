@@ -1,5 +1,6 @@
 #define PK_ENGINE_SRC 
-#define STB_IMAGE_IMPLEMENTATION
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+// #define PK_DEBUG "render.cpp"
 
 #include <PKLib/Math.hpp>
 #include <glad/glad.h>
@@ -75,7 +76,7 @@ class glAttribute {
 
 GLuint load_shader(std::initializer_list<const char*> src, stringview title, GLenum T) {
     GLuint shader = glCreateShader(T);
-    glShaderSource(shader, src.size(), src.begin(), NULL);
+    glShaderSource(shader, src.size(), src.begin(), 0);
     glCompileShader(shader);
     int ok;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
@@ -97,7 +98,7 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
 
 void load_texture(GLuint* texture, const char* path) {
     int width, height, channels;
-    unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
+    uint8_t* data = stbi_load(path, &width, &height, &channels, 0);
 
     if (!data) {
         printf("\033[31mTexture at path '%s' not found.\n\033[0m", path);
@@ -229,7 +230,8 @@ void Perekop::render(bool recollect) {
 
     // instanced draw
     for (const Mesh& mesh : World::meshes) {
-        dynarray<ModelData>& modeldata = cache::T[mesh.id-1];
+        if (mesh.id <= 0) continue;
+        vector<ModelData>& modeldata = cache::T[mesh.id-1];
         if (modeldata.empty() || !mesh.shader) continue;
 
         mesh.shader->use(view, proj);
@@ -277,6 +279,8 @@ void Perekop::render(bool recollect) {
 }
 
 void Perekop::init_render() {
+    glDepthFunc(GL_GREATER);
+    glClearDepth(0.0);
     preamble_v = File::read("engine/assets/shaders/pre_vsrc.glsl");
     preamble_f = File::read("engine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)

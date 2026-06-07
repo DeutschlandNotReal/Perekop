@@ -1,4 +1,6 @@
 #define PK_ENGINE_SRC
+// #define PK_DEBUG "physics.cpp"
+
 #include <Internal.hpp>
 #include <PKLib/Body.hpp>
 using namespace pk;

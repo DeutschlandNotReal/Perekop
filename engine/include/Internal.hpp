@@ -19,12 +19,12 @@ namespace pk {
 };
 
 namespace Perekop {
-    inline const char *preamble_v{nullptr}, *preamble_f{nullptr};
+    inline pk::string preamble_v{}, preamble_f{};
     inline GLFWwindow* glfw_window{nullptr};
 
     namespace cache {
-        inline pk::dynarray<pk::dynarray<pk::ModelData>> T;
-        inline pk::dynarray<pk::GuiData> gui;
+        inline pk::vector<pk::vector<pk::ModelData>> T;
+        inline pk::vector<pk::GuiData> gui;
     }
 
     void init_render();

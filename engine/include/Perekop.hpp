@@ -46,7 +46,7 @@ namespace Perekop {
 
     namespace Gui {
         inline pk::GUIObject* top{nullptr};
-        inline pk::dynarray<pk::GUIObject> items;
+        inline pk::vector<pk::GUIObject> items;
     }
 
     namespace World {   

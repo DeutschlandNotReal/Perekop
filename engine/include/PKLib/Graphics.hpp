@@ -1,6 +1,6 @@
 #pragma once
 #include <PKLib/Math.hpp>
-#include <PKCore/Array.hpp>
+#include <PKCore/Vector.hpp>
 #include <PKCore/String.hpp>
 #include <glm/matrix.hpp>
 
@@ -16,7 +16,7 @@ namespace pk {
 
         struct LUniform { int layout; Uniform type; const void* data; };
         uint32_t program{0}, layoutP{0}, layoutV{0}, layoutT{0};
-        dynarray<LUniform> uniforms;
+        vector<LUniform> uniforms;
         void use(const mat4& V, const mat4& P) const;
         
         public:

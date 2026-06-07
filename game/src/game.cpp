@@ -11,7 +11,7 @@ static float t = 0;
 
 struct body { int modelid; vec3 vel, pos; float Z; };
 
-static dynarray<body> bodies;
+static vector<body> bodies;
 static uint fake_randomler = 0;
 
 uint random_u32() {
@@ -117,7 +117,7 @@ void Perekop::on_launch() {
         {{ 1, 0,  1}, {0, -1, 0}, {1, 1}},
         {{-1, 0,  1}, {0, -1, 0}, {0, 1}},
     };
-
+ 
     pyramidler.indices = {
     0, 1, 2,
     0, 2, 3,
@@ -130,7 +130,7 @@ void Perekop::on_launch() {
     shapeler.load();
     pyramidler.load();
 
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 4000; i++) {
         Model& model = World::models.insert();
         model.mesh = (random(0,1)>0.5?shapeler:pyramidler).id;
         vec3 pos = random({-25, -25, -25}, {25, 25, 25});

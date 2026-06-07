@@ -1,4 +1,6 @@
 #define PK_ENGINE_SRC
+#define PK_DEBUG "main.cpp"
+
 #include <format>
 #include <thread>
 #include <glad/glad.h>
@@ -27,9 +29,13 @@ int main() {
 
     init_render();
     init_window();
-    on_launch();
 
     Time::Tracker<double, 2> frame_timer;
+    frame_timer.begin();
+    printf("on_launch() begin\n");
+    on_launch();
+    printf("on_launch() end (%.2fms)\n", frame_timer.stop() * 1000);
+
     frame_timer.begin();
     glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
         Perekop::render(false);
@@ -48,6 +54,7 @@ int main() {
 
             if (ticks > 4) {
                 // ticks dropped to not overload
+                printf("we're dropping ticks son (%i)\n", ticks - 1);
                 accumulator -= (ticks - 1) * ifps;
                 ticks = 1;
             }
@@ -67,7 +74,12 @@ int main() {
 
         std::this_thread::yield();
     }
+    (void)frame_timer.stop();
+    frame_timer.begin();
 
+    printf("on_exit() begin\n");
     on_exit();
+    printf("on_exit() end (%.2fms)\n", frame_timer.stop() * 1000);
+
     glfwTerminate();
 }

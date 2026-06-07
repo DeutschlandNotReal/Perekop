@@ -1,3 +1,4 @@
+// #define PK_DEBUG "camera.cpp"
 #include <Perekop.hpp>
 #include <game/camera.hpp>
 #include <GLFW/glfw3.h>

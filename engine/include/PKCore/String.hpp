@@ -1,31 +1,48 @@
 #pragma once
 #include <PKCore/Memory.hpp>
 
+#ifdef PK_DEBUG
+#define PK_DEBUG_STRING PK_DEBUG
+#endif
+
+#ifdef PK_DEBUG_STRING
+#include <cstdio>
+#endif
+
 namespace pk {
     class string {
-        char* data{nullptr};
-        uint32_t len{0};
+        char* data{nullptr}; uint32_t len{0};
 
+        void nullterm() { data[len] = '\0'; }
         public:
-            char& operator[](uint32_t i) const { return data[i]; }
+            char& operator[](uint32_t i) const { 
+                #ifdef PK_DEBUG_STRING
+                if (i >= size())
+                    printf("\033[31m(%s) ERROR: string OOB [%i/%u]\n\033[0m", PK_DEBUG_STRING, i, size());
+                #endif
+
+                return data[i]; 
+            }
             uint32_t size() const { return len; }
             char* begin() const { return data; }
             char* end()   const { return data + len; }
-            [[nodiscard]] string() = default;
-            [[nodiscard]] string(uint32_t L): data(PKAlloc<char>(L+1)), len(L) { data[L] = '\0'; }
+            string() = default;
+            string(uint32_t L): data(PKAlloc<char>(L + 1)), len(L) { nullterm(); }
 
             template <uint32_t L> 
-            [[nodiscard]] string(const char (&str)[L]): data(PKAlloc(L)), len(L-1) { 
+            string(const char (&str)[L]): data(PKAlloc<char>(L)), len(L - 1) { 
                 PKCopy(data, str, L);
+                nullterm();
             }
 
-            [[nodiscard]] string(const char* str) {
+            string(const char* str) {
                 len = strlen(str);
-                data = PKAlloc(len+1);
+                data = PKAlloc<char>(len+1);
                 PKCopy(data, str, len+1);
+                nullterm();
             }
 
-            [[nodiscard]] string(string&& str) {
+            string(string&& str) {
                 data = str.data; len = str.len;
                 str.data = nullptr; str.len = 0;
             }
@@ -36,25 +53,28 @@ namespace pk {
 
                 data = str.data; len = str.len;
                 str.data = nullptr; str.len = 0;
+                nullterm();
                 return *this;
             }
 
-            [[nodiscard]] string(const string& str) {
-                data = PKAlloc(str.len+1);
-                PKCopy(data, str.data, str.len+1);
+            string(const string& str) {
+                data = PKAlloc<char>(str.len+1);
+                PKCopy(data, str.data, str.len + 1);
                 len = str.len;
+                nullterm();
             }
 
             string& operator=(const string& str) {
                 if (&str == this) return *this;
-                if (data) {
-                    if (str.len != len) { PKFree(data); data = PKAlloc(str.len + 1); }
-                } else {
-                    data = PKAlloc(str.len + 1);
-                }
 
-                PKCopy(data, str.data, str.len+1);
+                if (data) {
+                    if (len != str.len) { PKFree(data); data = PKAlloc<char>(str.len + 1); }
+                } else { data = PKAlloc<char>(str.len + 1); }
+
+                PKCopy(data, str.data, str.len);
                 len = str.len;
+                str.data[len] = '\0';
+                nullterm();
                 return *this;
             }
 
@@ -63,25 +83,25 @@ namespace pk {
             [[nodiscard]] explicit operator bool() const { return data != nullptr; }
             [[nodiscard]] bool operator !() const { return data == nullptr; }
 
-            ~string() { PKFree(data); }  
+            ~string() { if (data) PKFree(data); }  
     };
 
     // referance to string without alloc
     class stringview {
         friend string;
-        const char* data{nullptr}; uint32_t len;
+        const char* data{nullptr}; uint32_t len{0};
 
         public:
-            [[nodiscard]] stringview() = default;
-            [[nodiscard]] stringview(const string& str): data(str.begin()), len(str.size()) {}
-            [[nodiscard]] stringview(const char* str): data(str), len(strlen(str)) {}
+            stringview() = default;
+            stringview(const string& str): data(str.begin()), len(str.size()) {}
+            stringview(const char* str): data(str), len(strlen(str)) {}
 
-            template <uint32_t L> 
-            [[nodiscard]] stringview(char (&str)[L]): data(str), len(L-1) {}
+            template <uint32_t L> stringview(const char (&str)[L]): data(str), len(L-1) {}
 
             operator const char*() const { return data; }
             char operator[](uint32_t i) const { return data[i]; } 
             uint32_t size() const { return len; }
+
             const char* begin() const { return data; }
             const char* end()   const { return data + len; }
             

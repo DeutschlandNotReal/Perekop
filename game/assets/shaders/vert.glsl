@@ -11,5 +11,5 @@ void main() {
 
     f_colour = vec4(metadata.xyz, 1.0);
     f_uv = v_uv;
-    f_t = clamp(1.0 - exp(-depth * 0.1), 0, 1);
+    f_t = clamp(1.0 - exp(-depth * 0.05), 0, 1);
 }

@@ -1,4 +1,6 @@
 #define PK_ENGINE_SRC
+// #define PK_DEBUG "file.cpp"
+
 #include <Internal.hpp>
 
 #include <cstdio>
@@ -17,5 +19,6 @@ string File::read(stringview path) {
     string str{len};
 
     fread(str.begin(), 1, len, f);   
-    return str;
+    fclose(f);
+    return {(string&&) str};
 }

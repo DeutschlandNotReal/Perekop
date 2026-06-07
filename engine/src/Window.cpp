@@ -1,4 +1,6 @@
 #define PK_ENGINE_SRC
+// #define PK_DEBUG "window.cpp"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
