@@ -1,10 +1,7 @@
 #define PK_ENGINE_SRC
-// #define PK_DEBUG "gui.cpp"
 
 #include <Internal.hpp>
 #include <PKLib/Gui.hpp>
-
-
 
 using namespace pk;
 using namespace glm;

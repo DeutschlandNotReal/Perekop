@@ -1,13 +1,5 @@
 #pragma once
-#include <PKCore/Memory.hpp>
-
-#ifdef PK_DEBUG
-#define PK_DEBUG_STRING PK_DEBUG
-#endif
-
-#ifdef PK_DEBUG_STRING
-#include <cstdio>
-#endif
+#include <PKCore/memory.hpp>
 
 namespace pk {
     class string {
@@ -15,14 +7,8 @@ namespace pk {
 
         void nullterm() { data[len] = '\0'; }
         public:
-            char& operator[](uint32_t i) const { 
-                #ifdef PK_DEBUG_STRING
-                if (i >= size())
-                    printf("\033[31m(%s) ERROR: string OOB [%i/%u]\n\033[0m", PK_DEBUG_STRING, i, size());
-                #endif
+            char& operator[](uint32_t i) const { return data[i]; }
 
-                return data[i]; 
-            }
             uint32_t size() const { return len; }
             char* begin() const { return data; }
             char* end()   const { return data + len; }
@@ -86,17 +72,17 @@ namespace pk {
             ~string() { if (data) PKFree(data); }  
     };
 
-    // referance to string without alloc
-    class stringview {
+    // referance to string without owning
+    class refstring {
         friend string;
         const char* data{nullptr}; uint32_t len{0};
 
         public:
-            stringview() = default;
-            stringview(const string& str): data(str.begin()), len(str.size()) {}
-            stringview(const char* str): data(str), len(strlen(str)) {}
+            refstring() = default;
+            refstring(const string& str): data(str.begin()), len(str.size()) {}
+            refstring(const char* str): data(str), len(strlen(str)) {}
 
-            template <uint32_t L> stringview(const char (&str)[L]): data(str), len(L-1) {}
+            template <uint32_t L> refstring(const char (&str)[L]): data(str), len(L-1) {}
 
             operator const char*() const { return data; }
             char operator[](uint32_t i) const { return data[i]; } 

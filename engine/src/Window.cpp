@@ -1,5 +1,4 @@
 #define PK_ENGINE_SRC
-// #define PK_DEBUG "window.cpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -62,7 +61,7 @@ namespace Perekop::Window {
     }
 
     void set_size(glm::vec2 size) { glfwSetWindowSize(glfw_window, size.x, size.y); }
-    void set_title(stringview title) { glfwSetWindowTitle(glfw_window, title); }
+    void set_title(refstring title) { glfwSetWindowTitle(glfw_window, title); }
 
     void minimize() { glfwIconifyWindow(glfw_window); }
     void maximize() { glfwMaximizeWindow(glfw_window); }

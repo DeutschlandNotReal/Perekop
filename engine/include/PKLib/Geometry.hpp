@@ -1,5 +1,4 @@
 #pragma once
-#include "glm/ext/matrix_clip_space.hpp"
 #include <PKLib/Math.hpp>
 #include <PKLib/Pose.hpp>
 #include <PKLib/Graphics.hpp>

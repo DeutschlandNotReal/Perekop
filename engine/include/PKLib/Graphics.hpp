@@ -1,8 +1,9 @@
 #pragma once
-#include <PKLib/Math.hpp>
-#include <PKCore/Vector.hpp>
-#include <PKCore/String.hpp>
 #include <glm/matrix.hpp>
+
+#include <PKCore/vector.hpp>
+#include <PKCore/string.hpp>
+#include <PKLib/Math.hpp>
 
 namespace pk {
     enum class Uniform {
@@ -21,9 +22,9 @@ namespace pk {
         
         public:
             Shader() = default;
-            Shader(stringview title, stringview vspath, stringview fspath);
+            Shader(refstring title, refstring vspath, refstring fspath);
 
-            void uniform(Uniform type, stringview title, const void* data);
+            void uniform(Uniform type, refstring title, const void* data);
     };
 
     class Texture {
@@ -34,6 +35,6 @@ namespace pk {
         void use(uint32_t layout) const;
         public:
             Texture() = default;
-            Texture(stringview path);
+            Texture(refstring path);
     };
 }

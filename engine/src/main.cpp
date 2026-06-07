@@ -1,5 +1,4 @@
 #define PK_ENGINE_SRC
-#define PK_DEBUG "main.cpp"
 
 #include <format>
 #include <thread>
@@ -54,7 +53,6 @@ int main() {
 
             if (ticks > 4) {
                 // ticks dropped to not overload
-                printf("we're dropping ticks son (%i)\n", ticks - 1);
                 accumulator -= (ticks - 1) * ifps;
                 ticks = 1;
             }

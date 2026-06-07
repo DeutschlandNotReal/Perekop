@@ -1,5 +1,4 @@
 #define PK_ENGINE_SRC
-// #define PK_DEBUG "file.cpp"
 
 #include <Internal.hpp>
 
@@ -7,7 +6,7 @@
 #include <PKLib/File.hpp>
 using namespace pk;
 
-string File::read(stringview path) {
+string File::read(refstring path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path.begin());

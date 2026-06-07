@@ -1,6 +1,6 @@
 #pragma once
-#include <PKLib/Geometry.hpp>
+#include <PKCore/string.hpp>
 
 namespace pk::File {
-    [[nodiscard]] string read(stringview path);
+    [[nodiscard]] string read(refstring path);
 }

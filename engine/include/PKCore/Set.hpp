@@ -1,11 +1,11 @@
-#include <PKCore/Vector.hpp>
+#include <PKCore/vector.hpp>
 
-#ifdef PK_DEBUG
-#define PK_DEBUG_SET PK_DEBUG
-#endif
-
-#ifdef PK_DEBUG_SET
-#include <PKCore/Debug.hpp>
+#if defined(PK_DEBUG_SET) && PK_DEBUG_SET != 0
+#include <PKCore/debug.hpp>
+// debug flags:
+// 0b0001: index
+// 0b0010: insert
+// 0b0100: remove
 #endif
 
 namespace pk {
@@ -21,8 +21,9 @@ namespace pk {
 
             T& operator[](I i) const { 
                 // index is 1 based so 0 can represent empty
-                #ifdef PK_SET_DEBUG
-                printf("(%s) set<%s> [%i/%i]\n", PK_DEBUG_SET, pk::t_name<T>(), i, size());
+
+                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0001)
+                    if (i > top) printf("\033[31m(%s) ERROR: set<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, top);
                 #endif
                 return dense[sparse[i-1]]; 
             }
@@ -32,11 +33,13 @@ namespace pk {
             
             template <typename... A> T& insert(A&&... args) {
                 dense.emplace(args...).id = top + 1;
-                #ifdef PK_SET_DEBUG
-                printf("(%s) set<%s> insert (id %i)\n", PK_DEBUG_SET, pk::t_name<T>(), top+1);
+
+                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0010)
+                    printf("(%s) set<%s> insert (id %i)\n", PK_DEBUG, classname<T>, top+1);
                 #endif
-                sparse.reserve(++top);
+
                 sparse.emplace(dense.size() - 1);
+                sparse.reserve(++top);
 
                 return dense.back();
             }
@@ -45,8 +48,8 @@ namespace pk {
                 if (i > top || i <= 0) return;
                 I dense_id = sparse[i-1];
         
-                #ifdef PK_SET_DEBUG
-                printf("(%s) set<%s> remove (id %i)\n", PK_DEBUG_SET, pk::t_name<T>(), i);
+                #if defined(PK_SET_DEBUG) && (PK_DEBUG_SET & 0b0100)
+                    printf("(%s) set<%s> remove (id %i)\n", PK_DEBUG, classname<T>, i);
                 #endif
 
                 if (dense_id != dense.size() - 1) {

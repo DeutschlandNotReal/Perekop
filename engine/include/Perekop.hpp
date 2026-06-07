@@ -1,5 +1,5 @@
 #pragma once
-#include <PKCore/String.hpp>
+#include <PKCore/string.hpp>
 #include <PKLib/Geometry.hpp>
 #include <PKLib/Gui.hpp>
 #include <PKLib/Body.hpp>
@@ -38,7 +38,7 @@ namespace Perekop {
 
         extern vec2 get_size();
         extern void set_size(vec2 size);
-        extern void set_title(pk::stringview title);
+        extern void set_title(pk::refstring title);
 
         extern void maximize();
         extern void minimize();

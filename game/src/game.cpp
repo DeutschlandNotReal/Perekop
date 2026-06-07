@@ -1,3 +1,8 @@
+#define PK_DEBUG "game.cpp"
+#define PK_DEBUG_VEC   0b0000
+#define PK_DEBUG_SET   0b0110
+#define PK_DEBUG_MEM   0b0000
+
 #include <Perekop.hpp>
 #include <cstdio>
 #include <PKLib/File.hpp>

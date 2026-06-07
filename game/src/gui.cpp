@@ -1,4 +1,3 @@
-// #define PK_DEBUG "gui.cpp"
 #include <Perekop.hpp>
 #include <game/gui.hpp>
 

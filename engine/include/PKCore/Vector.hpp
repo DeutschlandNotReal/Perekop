@@ -1,14 +1,13 @@
 #pragma once
-#include <PKCore/Memory.hpp>
+#include <PKCore/memory.hpp>
 #include <initializer_list>
 #include <type_traits>
 
-#ifdef PK_DEBUG
-#define PK_DEBUG_ARRAY PK_DEBUG
-#endif
-
-#ifdef PK_DEBUG_ARRAY
-#include <PKCore/Debug.hpp>
+#if defined(PK_DEBUG_VEC) && PK_DEBUG_VEC != 0
+#include <PKCore/debug.hpp>
+// debug flags:
+// 0b0001: vector index OOB
+// 0b0010: vector growth
 #endif
 
 namespace pk {
@@ -17,9 +16,11 @@ namespace pk {
 
         void resize(uint32_t ncap) {
             if (!data) { data = cur = PKAlloc<T>(ncap); cap = data + ncap; return; }
-            #ifdef PK_DEBUG_ARRAY
-            printf("(%s) vector<%s> resize (%u -> %u)\n", PK_DEBUG_ARRAY, pk::t_name<T>(), capacity(), ncap);
+
+            #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0001) 
+                printf("(%s) vector<%s> resize (%u -> %u)\n", PK_DEBUG, classname<T>, capacity(), ncap);
             #endif
+
             uint32_t len = size();
             T* ldata = data;
             data = PKAlloc<T>(ncap);
@@ -38,8 +39,6 @@ namespace pk {
             vector() = default;
             vector(uint32_t len): data(PKAlloc<T>(len)) { cap = data + len; cur = data; }
 
-            // was like this before vvv
-            // vector(uint32_t len): data(PKAlloc<T>(len)) { cap = cur = data + len; }
             vector(std::initializer_list<T> items): data(PKAlloc<T>(items.size())) {
                 cap = cur = data + items.size();
                 PKCopy(data, items.begin(), items.size());
@@ -49,19 +48,16 @@ namespace pk {
                 cap = cur = data + L; 
                 PKCopy(data, items, L); 
             }
-
-
             
             [[nodiscard]] explicit operator bool() const { return data != nullptr; }
             [[nodiscard]] bool operator!() const { return data == nullptr; }
 
             T& operator[](uint32_t i) const {
-                #ifdef PK_DEBUG_ARRAY
-                if (i >= size())
-                    printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG_ARRAY, pk::t_name<T>(), i, size());
-                else if (!data)
-                    printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/nil]\n\033[0m", PK_DEBUG_ARRAY, pk::t_name<T>(), i);
-                
+                #if defined(K_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
+                    if (i >= size())
+                        printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, size());
+                    else if (!data)
+                        printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/nil]\n\033[0m", PK_DEBUG, classname<T>, i);
                 #endif
                 return data[i]; 
             }
@@ -69,11 +65,13 @@ namespace pk {
             T& back()  const { return *(cur-1); }
             T* begin() const { return data; }
             T* end()   const { return cur; }
+
             [[nodiscard]] bool empty() const { return cur == data; }
             [[nodiscard]] bool full()  const { return cap == cur; }
             
-            uint32_t size() const { return cur - data; }
+            uint32_t size()     const { return cur - data; }
             uint32_t capacity() const { return cap - data; }
+            uint32_t bytesize() const { return size() * sizeof(T); }
 
             vector(vector&& b): data(b.data), cap(b.cap), cur(b.cur) { b.data = b.cap = b.cur = nullptr; }
             vector& operator=(vector&& b) {
@@ -115,7 +113,7 @@ namespace pk {
             }
 
             void pop() { 
-                if constexpr(!std::is_trivially_destructible_v<T>)
+                if constexpr (!std::is_trivially_destructible_v<T>)
                     (--cur)->~T();
                 else --cur;
             }
@@ -157,15 +155,14 @@ namespace pk {
             }
 
             ~vector() {
-                if (data) {
-                    clear();
-                    PKFree(data);
-                };
+                if (!data) return;
+                clear();
+                PKFree(data);
             }
     };
 
-    // For viewers who just read array data (dont care if static or dynamic, only reads)
-    template <typename T> class arrayview {
+    // referance to array data without owning
+    template <typename T> class refarray {
         T *data{nullptr}, *cap{nullptr};
         public:
             T* begin() const { return data; }
@@ -173,10 +170,10 @@ namespace pk {
             T& operator[](uint32_t i) const { return data[i]; }
             uint32_t size() const { return cap - data; }
 
-            arrayview(const T&) = delete;
-            arrayview(T& i): data(&i), cap(&i+1) {}
-            arrayview(const vector<T>& a): data(a.begin()), cap(a.end()) {}
+            refarray(const T&) = delete;
+            refarray(T& i): data(&i), cap(&i+1) {}
+            refarray(const vector<T>& a): data(a.begin()), cap(a.end()) {}
 
-            template <uint32_t L> arrayview(T (&items)[L]): data(items), cap(items+L) {}
+            template <uint32_t L> refarray(T (&items)[L]): data(items), cap(items+L) {}
     };
 }

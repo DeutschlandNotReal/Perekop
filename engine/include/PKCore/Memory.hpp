@@ -3,34 +3,36 @@
 #include <type_traits>
 #include <cstdint>
 
-#ifdef PK_DEBUG
-#define PK_DEBUG_MEM PK_DEBUG
-#endif
-
-#ifdef PK_DEBUG_MEM
-#include <PKCore/Debug.hpp>
+#if defined(PK_DEBUG_MEM) && PK_DEBUG_MEM != 0
+#include <PKCore/debug.hpp>
+// debug flags:
+// 0b0001: PKAlloc
+// 0b0010: PKFree
+// 0b0100: PKMove
+// 0b1000: PKCopy
 #endif
 
 template <typename T> [[nodiscard]] inline T* PKAlloc(uint32_t n) {
     T* ptr = (T*)::operator new(sizeof(T) * n);
-    #ifdef PK_DEBUG_MEM
-    printf("(%s) PKAlloc<%s>(%i) (%p)\n", PK_DEBUG_MEM, pk::t_name<T>(), n, ptr);
+    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0001)
+    if constexpr (PK_DEBUG_MEM & 0b0001)
+        printf("(%s) PKAlloc<%s>(%i) (%p)\n", PK_DEBUG, pk::classname<T>, n, ptr);
     #endif
 
     return ptr;
 }
 
 template <typename T> inline void PKFree(T* ptr) { 
-    #ifdef PK_DEBUG_MEM
-    printf("(%s) PKFree<%s> (%p)\n", PK_DEBUG_MEM, pk::t_name<T>(), ptr);
+    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0010)
+        printf("(%s) PKFree<%s> (%p)\n", PK_DEBUG, pk::classname<T>, ptr);
     #endif
 
     ::operator delete(ptr); 
 }
 
 template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n) {
-    #ifdef PK_DEBUG_MEM
-    printf("(%s) PKCopy<%s>(%i) (%p -> %p)\n", PK_DEBUG_MEM, pk::t_name<T>(), n, src, dst);
+    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0100)
+        printf("(%s) PKCopy<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
     #endif
 
     if (!dst || !src) return;
@@ -42,9 +44,10 @@ template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n) {
 }
 
 template <typename T> inline void PKMove(T* dst, T* src, uint32_t n) {
-    #ifdef PK_DEBUG_MEM
-    printf("(%s) PKMove<%s>(%i) (%p -> %p)\n", PK_DEBUG_MEM, pk::t_name<T>(), n, src, dst);
+    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b1000)
+        printf("(%s) PKMove<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
     #endif 
+
     if (!dst || !src) return;
 
     if constexpr (std::is_trivially_copyable_v<T>)

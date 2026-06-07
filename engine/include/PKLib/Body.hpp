@@ -1,5 +1,5 @@
 #pragma once
-#include <PKCore/Set.hpp>
+#include <PKCore/set.hpp>
 #include <PKLib/Geometry.hpp>
 
 #ifdef PK_INTERNAL
