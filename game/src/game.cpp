@@ -1,6 +1,6 @@
 #include <Perekop.hpp>
 #include <cstdio>
-#include <pkutil/File.hpp>
+#include <PKLib/File.hpp>
 #include <game/camera.hpp>
 #include <game/gui.hpp>
 
@@ -9,11 +9,9 @@ using namespace glm;
 using namespace Perekop;
 static float t = 0;
 
+struct body { int modelid; vec3 vel, pos; float Z; };
 
-
-struct body { int modelid; vec3 vel, pos; float Z; float Q; };
-
-static Array<body> bodies;
+static dynarray<body> bodies;
 static uint fake_randomler = 0;
 
 uint random_u32() {
@@ -54,15 +52,19 @@ void Perekop::on_step(double dt) {
                 body& jbody = bodies[j];
                 vec3 disp = jbody.pos - ibody.pos;
                 float r2 = dot(disp, disp);
-                //if (r2 > 500 || r2 < .5) continue;
                 float r = sqrt(r2);
-                vec3 force = disp * -(( 10.f-r) * (jbody.Q * ibody.Q) * ibody.Z * jbody.Z * (float)dt / (r2 * r));
+                vec3 force;
+                if (r > 1)
+                    force = disp * ( -ibody.Z * jbody.Z * (float)dt / (r2 * r));
+                else 
+                    force = -disp;
+
                 ibody.vel += force;
                 jbody.vel -= force;
             }
         
         ibody.pos += ibody.vel * (float)dt;
-        ibody.vel *= 0.9f;
+        ibody.vel *= 0.999f;
         World::models[ibody.modelid].pose.pos = ibody.pos;
     }
 }
@@ -73,7 +75,7 @@ void Perekop::on_launch() {
 
     printf("Game begin\n");
 
-    Shader& chudshader = *new Shader(
+    Shader& chudshader = *new Shader("chudshader",
         "game/assets/shaders/vert.glsl",
         "game/assets/shaders/frag.glsl"
     );
@@ -109,7 +111,7 @@ void Perekop::on_launch() {
     };
 
     pyramidler.vertices = {
-        {{0, 1, 0}, {0, 1, 0}, {0.5, 1}},
+        {{ 0, 1, 0}, {0, 1, 0}, {0.5, 1}},
         {{-1, 0, -1}, {0, -1, 0}, {0, 0}},
         {{ 1, 0, -1}, {0, -1, 0}, {1, 0}},
         {{ 1, 0,  1}, {0, -1, 0}, {1, 1}},
@@ -128,16 +130,14 @@ void Perekop::on_launch() {
     shapeler.load();
     pyramidler.load();
 
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 2000; i++) {
         Model& model = World::models.insert();
         model.mesh = (random(0,1)>0.5?shapeler:pyramidler).id;
-        vec3 vel = random({-1, -1, -1}, {1, 1, 1}), 
-             pos = random({0, 0, 0}, {10, 10, 10});
+        vec3 pos = random({-25, -25, -25}, {25, 25, 25});
         float Z = random(0, 1) > 0.5 ? -1 : 1;
-        float Q = random(0, 1) > 0.5 ? -1 : 1;
         model.pose.pos = pos; 
-        model.metadata = vec4(Z==-1?0:1,(Q+1)/2,Z==1?0:1,0);
-        bodies.push({model.id, vel, pos, Z, Q});
+        model.metadata = vec4(Z==-1?0:1,0,Z==1?0:1,0);
+        bodies.push({model.id, {}, pos, Z});
         //printf("V(%+.2f,%+.2f,%+.2f), P(%+.2f,%+.2f,%+.2f)\n", vel.x, vel.y, vel.z, pos.x, pos.y, pos.z);
     }
 }

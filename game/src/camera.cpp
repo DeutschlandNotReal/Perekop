@@ -1,12 +1,10 @@
 #include <Perekop.hpp>
-#include <cstdio>
 #include <game/camera.hpp>
 #include <GLFW/glfw3.h>
 
 using namespace pk;
 using namespace Perekop;
 using namespace glm;
-
 
 float _pitch{0}, _yaw{0};
 
@@ -21,7 +19,7 @@ void Game::init::camera() {
             float yfov = World::camera.fov * (size.y / size.x);
 
             _pitch = clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
-            _yaw += delta.x * World::camera.fov;
+            _yaw -= delta.x * World::camera.fov;
 
             World::camera.pose.rot = 
                 angleAxis(_yaw, vec3{0,1,0}) *
