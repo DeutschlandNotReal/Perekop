@@ -8,14 +8,13 @@
 // debug flags:
 // 0b0001: PKAlloc
 // 0b0010: PKFree
-// 0b0100: PKMove
-// 0b1000: PKCopy
+// 0b0100: PKCopy
+// 0b1000: PKMove
 #endif
 
 template <typename T> [[nodiscard]] inline T* PKAlloc(uint32_t n) {
     T* ptr = (T*)::operator new(sizeof(T) * n);
     #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0001)
-    if constexpr (PK_DEBUG_MEM & 0b0001)
         printf("(%s) PKAlloc<%s>(%i) (%p)\n", PK_DEBUG, pk::classname<T>, n, ptr);
     #endif
 

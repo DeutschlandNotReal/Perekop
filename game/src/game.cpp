@@ -1,7 +1,7 @@
 #define PK_DEBUG "game.cpp"
-#define PK_DEBUG_VEC   0b0000
-#define PK_DEBUG_SET   0b0110
-#define PK_DEBUG_MEM   0b0000
+#define PK_DEBUG_VEC   0
+#define PK_DEBUG_SET   0
+#define PK_DEBUG_MEM   0
 
 #include <Perekop.hpp>
 #include <cstdio>
@@ -135,7 +135,7 @@ void Perekop::on_launch() {
     shapeler.load();
     pyramidler.load();
 
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 2000; i++) {
         Model& model = World::models.insert();
         model.mesh = (random(0,1)>0.5?shapeler:pyramidler).id;
         vec3 pos = random({-25, -25, -25}, {25, 25, 25});

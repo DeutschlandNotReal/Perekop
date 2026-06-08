@@ -43,29 +43,31 @@ int main() {
     double accumulator{0};
 
     while (!glfwWindowShouldClose(glfw_window)) {
-        double dt = frame_timer.delta();
+        accumulator += frame_timer.delta();
         double ifps = 1.0 / World::fps;
 
-        accumulator += dt;
         if (accumulator >= ifps) {
             glfwPollEvents();
-            int ticks = accumulator / ifps;
+            int ticks = accumulator * World::fps;
+            double dt = ifps;
 
             if (ticks > 4) {
                 // ticks dropped to not overload
-                accumulator -= (ticks - 1) * ifps;
-                ticks = 1;
+                dt *= (ticks * 0.5);
+                accumulator -= (ticks - 2) * ifps;
+                ticks = 2;
             }
 
             frame_timer.begin();
             while (accumulator >= ifps) {
                 accumulator -= ifps;
-                step_physics(ifps);
-                on_step(ifps);
+                step_physics(dt);
+                on_step(dt);
             }
-            double utilisation = frame_timer.stop() / ifps;
 
-            glfwSetWindowTitle(glfw_window, std::format("Perekop | UTIL {:2.3f}%", utilisation * 100).c_str());
+            double util = frame_timer.stop() * World::fps * 100;
+
+            glfwSetWindowTitle(glfw_window, std::format("Perekop | UTIL {:2.3f}%", util).c_str());
 
             render(true);
         }

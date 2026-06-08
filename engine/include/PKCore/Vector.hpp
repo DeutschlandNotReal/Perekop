@@ -8,6 +8,7 @@
 // debug flags:
 // 0b0001: vector index OOB
 // 0b0010: vector growth
+// 0b0100: vector reserve ignored
 #endif
 
 namespace pk {
@@ -53,7 +54,7 @@ namespace pk {
             [[nodiscard]] bool operator!() const { return data == nullptr; }
 
             T& operator[](uint32_t i) const {
-                #if defined(K_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
+                #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
                     if (i >= size())
                         printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, size());
                     else if (!data)
@@ -118,12 +119,15 @@ namespace pk {
                 else --cur;
             }
 
-            [[nodiscard]] T&& popout() { 
-                return *--cur;
+            [[nodiscard]] T popout() { 
+                return (T&&)*--cur;
             }
 
             void reserve(uint32_t new_size) {
                 if (new_size > capacity()) resize(new_size);
+                #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0100) 
+                    else printf("(%s) vector<%s> reserve ignored [%u/%u]\n", PK_DEBUG, classname<T>, new_size, size());
+                #endif
             }
 
             template <typename... A> T& emplace(A&&... args) {
