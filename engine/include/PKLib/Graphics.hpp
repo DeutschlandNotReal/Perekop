@@ -22,9 +22,9 @@ namespace pk {
         
         public:
             Shader() = default;
-            Shader(refstring title, refstring vspath, refstring fspath);
+            Shader(rstring title, rstring vspath, rstring fspath);
 
-            void uniform(Uniform type, refstring title, const void* data);
+            void uniform(Uniform type, rstring title, const void* data);
     };
 
     class Texture {
@@ -35,6 +35,6 @@ namespace pk {
         void use(uint32_t layout) const;
         public:
             Texture() = default;
-            Texture(refstring path);
+            Texture(rstring path);
     };
 }

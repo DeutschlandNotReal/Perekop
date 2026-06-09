@@ -1,8 +1,6 @@
+#include <winscard.h>
 #define PK_ENGINE_SRC
 #define PK_PRINT_OBJ
-
-#define PK_DEBUG "file.cpp"
-#define PK_DEBUG_VEC ~0
 
 #include <Internal.hpp>
 
@@ -11,7 +9,7 @@
 #include <PKLib/Geometry.hpp>
 using namespace pk;
 
-string File::read(refstring path) {
+string File::read(rstring path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path.begin());
@@ -27,98 +25,123 @@ string File::read(refstring path) {
     return {(string&&) str};
 }
 
-Mesh::Mesh(refstring path) {
+Mesh::Mesh(rstring path) {
     string src = File::read(path);
     if (!src) return;
-    #ifdef PK_PRINT_OBJ
-        printf("Reading OBJ %s\n", path.begin());
-    #endif
-    
-    refstring reader{src};
-    vector<vec3> vpos, vnor;
-    vector<vec2> vtex;
-    struct OBJTVert { short p, t, n; };
 
-    bool has_newline{true};
-    while (has_newline) {
-        reader.skip_space();
+    printf("Reading OBJ %s\n", path.begin());
+    
+    rstring reader{src};
+
+    vector<vec3> pos{16};
+    vector<vec3> nor{16};
+    vector<vec2> tex{16};
+
+    // sort of a map, BLOAT!
+    struct entry { 
+        uint16_t id; 
+        vector<entry> leaf;
+    };
+    vector<entry> vertex_map;
+
+    auto id_search = [](const entry& e, uint16_t id){ return e.id == id; };
+
+    while (true) {
+        reader.skip_whitespace();
+
         switch (reader.consume()) {
             case 'v': {
                 switch (reader[0]) {
                     case 't': { // uv
-                        vec2 v{
-                            reader.next_float(),
-                            reader.next_float()
-                        }; 
-                        vtex.push(v);
-                        reader.adv();
-                        #ifdef PK_PRINT_OBJ
-                            printf("OBJ: vt%i (%.2f, %.2f)\n", vtex.size() - 1, v.x, v.y);
-                        #endif
-                        break;
+                        tex.emplace(
+                            reader.nextf32(),
+                            reader.nextf32()
+                        );
+
+                        reader.advance(); break;
                     }
                     case 'n': { // normal
-                        vec3 v{
-                            reader.next_float(),
-                            reader.next_float(),
-                            reader.next_float()
-                        }; 
-                        vnor.push(v);
-                        reader.adv(); 
-                        #ifdef PK_PRINT_OBJ
-                            printf("OBJ: vn%i (%.2f, %.2f, %.2f)\n", vnor.size() - 1, v.x, v.y, v.z);
-                        #endif
-                        break;
+                        nor.emplace(
+                            reader.nextf32(),
+                            reader.nextf32(),
+                            reader.nextf32()
+                        );
+
+                        reader.advance(); break;
                     }
                     default: { // position
-                        vec3 v{
-                            reader.next_float(),
-                            reader.next_float(),
-                            reader.next_float()
-                        };
-                        vpos.push(v);
-                        #ifdef PK_PRINT_OBJ
-                            printf("OBJ: v%i (%.2f, %.2f, %.2f)\n", vpos.size() - 1, v.x, v.y, v.z);
-                        #endif
-                        break;
+                        pos.emplace(
+                            reader.nextf32(),
+                            reader.nextf32(),
+                            reader.nextf32()
+                        );
                     }
-                    break;
                 }
+                break;
             }
 
             case 'f': {
-                OBJTVert V[3];
+                uint16_t vids[4];
+                int vcount{0};
 
-                for (int i = 0; i < 3; i++) {
-                    short p = reader.next_long(), uv, n;
-                    if (reader[0] == '/' && reader[1] == '/') {
-                        uv = -1; reader.adv(); n = reader.next_long();
+                auto* nline = reader.find('\n');
+                nline = (nline ? nline : reader.end());
+
+                while (reader.begin() < nline) {
+                    uint16_t p = reader.nexti64();
+                    reader.advance();
+                    uint16_t t = reader.nexti64();
+                    reader.advance();
+                    uint16_t n = reader.nexti64();
+
+                    uint16_t v = vertices.size();
+
+                    // i should probably make a map class soon
+                    entry* p_find = vertex_map.lfind(id_search, p);
+                    if (p_find) {
+                        entry* t_find = p_find->leaf.lfind(id_search, t);
+                        if (t_find) {
+                            entry* n_find = t_find->leaf.lfind(id_search, n);
+                            if (n_find) { v = *(uint16_t*)((char*)&n_find->leaf + 8); } else {
+                                entry& n_vec = t_find->leaf.emplace(n, vector<entry>());
+                                *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
+                            }
+                        } else {
+                            entry& t_vec = p_find->leaf.emplace(t, vector<entry>());
+                            entry& n_vec = t_vec.leaf.emplace(n, vector<entry>());
+                            *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
+                        }
                     } else {
-                        uv = reader.next_long(); reader.adv();
-                        n = reader.next_long();
+                        entry& p_vec = vertex_map.emplace(p, vector<entry>());
+                        entry& t_vec = p_vec.leaf.emplace(t, vector<entry>());
+                        entry& n_vec = t_vec.leaf.emplace(n, vector<entry>());
+                        *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
                     }
-                    V[i] = {p, uv, n};
+                    
+                    vids[vcount++] = v;
+                    if (vcount >=4) break;
+                    if (v == vertices.size()) {
+                        vertices.emplace(pos[p], nor[n], tex[t]);
+                    }
                 }
 
-                for (int i = 0; i < 3; i++) {
-                    vertices.emplace(
-                        vpos[V[i].p],
-                        vnor[V[i].n],
-                        (V[i].t == -1 ? vec2{0, 0} : vtex[V[i].t])
-                    );
-
-                    uint16_t last = vertices.size() - 1;
-                    indices.push({last, ++last, ++last});
-
-                    #ifdef PK_PRINT_OBJ
-                        printf("OBJ: t (v%i, v%i, v%i)\n", vtex.size() - 1, last - 2, last - 1, last);
-                    #endif
+                if (vcount == 3) {
+                    indices.push({vids[0], vids[1], vids[2]});
+                } else if (vcount == 4) {
+                    indices.push({
+                        vids[0], vids[1], vids[2],
+                        vids[0], vids[2], vids[3]
+                    });
+                } else {
+                    printf("%i, what are we doing here?\n", vcount);
                 }
-
                 break;
             }
         }
 
-        reader.next_line(&has_newline);
+        auto* nline = reader.find('\n');
+        if (nline) { reader.point(nline); } else { break; }
     }
+
+    printf("Finished reading OBJ %s, produced %i vertices, %i triangles\n", path.begin(), vertices.size(), indices.size() / 3);
 }

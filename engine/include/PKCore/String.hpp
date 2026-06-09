@@ -1,6 +1,7 @@
 #pragma once
 #include <PKCore/memory.hpp>
 #include <cctype>
+#include <cinttypes>
 #include <cstdlib>
 
 namespace pk {
@@ -74,53 +75,51 @@ namespace pk {
             ~string() { if (data) PKFree(data); }  
     };
 
-    // referance to string without owning
-    class refstring {
+    // non-owning referance to string
+    class rstring {
         friend string;
         using cchar = const char;
         cchar *data{nullptr}, *cap{0};
 
         public:
-            refstring() = default;
-            refstring(const string& str): data(str.begin()), cap(data + str.size()) {}
-            refstring(cchar* str): data(str), cap(data + strlen(str)) {}
+            rstring() = default;
+            rstring(const string& str): data(str.begin()), cap(data + str.size()) {}
+            rstring(cchar* str): data(str), cap(data + strlen(str)) {}
 
-            template <uint32_t L> refstring(cchar (&str)[L]): data(str), cap(data + L-1) {}
+            template <uint32_t L> rstring(cchar (&str)[L]): data(str), cap(data + L-1) {}
 
             operator cchar*() const { return data; }
-            cchar operator[](uint32_t i) const { return data[i]; } 
+            char operator[](uint32_t i) const { return data[i]; } 
             uint32_t size() const { return cap - data; }
 
             char back() { return *(cap-1); }
-            char front() { return *data; }
             cchar* begin() const { return data; }
             cchar* end()   const { return cap; }
             
             [[nodiscard]] explicit operator bool() const { return data != nullptr; }
             [[nodiscard]] bool operator !() const { return data == nullptr; }
 
-            void next_line(bool* found = nullptr) {
-                cchar* ptr = (cchar*)std::memchr(data, '\n', size());
-                if (found) *found = (ptr != nullptr);
-                if (ptr) data = ptr;
+            cchar* find(char c) {
+                return (cchar*) std::memchr(data, c, size());
             }
 
-            void skip_space() {
+            void point(cchar* ptr) {
+                if (ptr < cap) data = ptr;
+            }
+
+            void skip_whitespace() {
                 while (data != cap && isspace(*data)) ++data;
             }
 
-            void adv()        { ++data; }
-            void adv(int d)   { data += d; }
-            char next()       { return *++data; }
-            char consume()    { return *data++; }
-            char peek() const { return *data; } // same as front
+            void advance() { ++data; }
+            char consume() { return *data++; }
 
-            float next_float() {
+            float nextf32() {
                 return strtof(data, (char**)&data);
             }
 
-            uint64_t next_long() {
-                return strtoll(data, (char**)&data, 10);
+            uint64_t nexti64() {
+                return strtoimax(data, (char**)&data, 10);
             }
     };
 }

@@ -1,8 +1,8 @@
 #include "PKLib/Geometry.hpp"
 #define PK_DEBUG "game.cpp"
-#define PK_DEBUG_VEC  ~0
-#define PK_DEBUG_SET  ~0
-#define PK_DEBUG_MEM   0b0011
+#define PK_DEBUG_VEC   0
+#define PK_DEBUG_SET   0
+#define PK_DEBUG_MEM   0
 
 #include <Perekop.hpp>
 #include <cstdio>
@@ -43,12 +43,11 @@ vec3 random(vec3 min, vec3 max) {
     };
 }
 
-static uint16 meshid_shapeler{0};
-static uint16 meshid_pyramidler{0};
+static uint16 monkey_id{0};
 
 void make_body(Pose T, vec3 vel) {
     Model& model = World::models.insert();
-    model.mesh = (random()>.5?meshid_shapeler:meshid_pyramidler);
+    model.mesh = monkey_id;
     model.pose = T;
     float Z = random() > .5 ? -1 : 1;
     model.metadata = vec4(Z==-1?0:1,0,Z==1?0:1,0);
@@ -95,7 +94,6 @@ void Perekop::on_step(double dt) {
 
 void Perekop::on_launch() {
     Game::init::camera();
-    //Game::init::gui();
 
     printf("Game begin\n");
 
@@ -109,41 +107,11 @@ void Perekop::on_launch() {
     chudshader.uniform(Uniform::u_float, "time", &t);
     chudshader.uniform(Uniform::u_vec3, "f_bgcol", &World::bgcol);
 
-    Mesh& shapeler = World::meshes.insert();
-    Mesh& pyramidler = World::meshes.insert("game/assets/models/truemesh.obj");
-    shapeler.shader = pyramidler.shader = &chudshader;
-    shapeler.texture = pyramidler.texture = chudtexture;
-    meshid_shapeler = shapeler.id;
-    meshid_pyramidler = pyramidler.id;
+    Mesh& monkey = World::meshes.insert("game/assets/models/truemesh.obj");
+    monkey.shader = &chudshader;
+    monkey.texture = chudtexture;
 
-    shapeler.vertices = {
-        {{ 0, 1, 0}, {0, 1, 0}, {.5, 1}},
-        {{ 0,-1, 0}, {0,-1, 0}, {.5, 0}},
-        {{ 1, 0, 1}, {1, 0, 1}, {1, .5}},
-        {{-1, 0, 1}, {-1,0, 1}, {0, .5}},
-        {{-1, 0,-1}, {-1,0,-1}, {0, .5}},
-        {{ 1, 0,-1}, {1, 0,-1}, {1, .5}}
-    };
-
-    shapeler.indices = { 
-        0,2,3,
-        0,3,4,
-        0,4,5,
-        0,5,2,
-        1,3,2,
-        1,4,3,
-        1,5,4,
-        1,2,5,
-    };
-
-    shapeler.load();
-    pyramidler.load();
-
-    Mouse::on_down.listen([](auto b){
-        if (b == Mouse::left) {
-            make_body(World::camera.pose, World::camera.pose.fvec());
-        }
-    });
+    monkey.load();
 
     for (int i = 0; i < 2000; i++) {
         make_body(random({-25, -25, -25}, {25, 25, 25}), {});

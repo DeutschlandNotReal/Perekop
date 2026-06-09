@@ -50,7 +50,7 @@ class glAttribute {
         glAttribute& bind_elements(GLuint b) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, b); return *this;}
         template <int L> glAttribute& gbuffer(GLuint* b) { glGenBuffers(L, b); return *this;}
         
-        template <typename T> glAttribute& data(GLuint buffer, GLenum type, GLenum usage, refarray<T> data) {
+        template <typename T> glAttribute& data(GLuint buffer, GLenum type, GLenum usage, vecspan<T> data) {
             glBindBuffer(type, buffer);
             glBufferData(type, data.size()*sizeof(T), data.begin(), usage);
             return *this;
@@ -72,7 +72,7 @@ class glAttribute {
         }
 };
 
-GLuint load_shader(std::initializer_list<const char*> src, refstring title, GLenum T) {
+GLuint load_shader(std::initializer_list<const char*> src, rstring title, GLenum T) {
     GLuint shader = glCreateShader(T);
     glShaderSource(shader, src.size(), src.begin(), 0);
     glCompileShader(shader);
@@ -112,11 +112,11 @@ void load_texture(GLuint* texture, const char* path) {
     stbi_image_free(data);
 }
 
-Texture::Texture(refstring path) {
+Texture::Texture(rstring path) {
     load_texture(&id, path);
 };
 
-Shader::Shader(refstring title, refstring vpath, refstring fpath) {
+Shader::Shader(rstring title, rstring vpath, rstring fpath) {
     string vsrc = File::read(vpath), fsrc = File::read(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
@@ -128,7 +128,7 @@ Shader::Shader(refstring title, refstring vpath, refstring fpath) {
     layoutT = glGetUniformLocation(program, "f_image");
 }
 
-void Shader::uniform(Uniform type, refstring title, const void* data) {
+void Shader::uniform(Uniform type, rstring title, const void* data) {
     uniforms.push({
         glGetUniformLocation(program, title),
         type,

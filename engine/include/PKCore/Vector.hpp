@@ -1,5 +1,6 @@
 #pragma once
 #include <PKCore/memory.hpp>
+#include <cstddef>
 #include <initializer_list>
 #include <type_traits>
 
@@ -34,7 +35,7 @@ namespace pk {
         }
 
         T* next() {
-            if (cur == cap) grow();
+            if (!data || cur == cap) grow();
             return cur++;
         }
 
@@ -59,15 +60,16 @@ namespace pk {
 
             T& operator[](uint32_t i) const {
                 #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
-                    if (i >= size())
+                    if (!data)
+                        printf("\033[31m(%s) ERROR: vector<%s> empty [%i]\n\033[0m", PK_DEBUG, classname<T>, i);
+                    else if (i >= size())
                         printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, size());
-                    else if (!data)
-                        printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/nil]\n\033[0m", PK_DEBUG, classname<T>, i);
                 #endif
                 return data[i]; 
             }
 
-            T& back()  const { return operator[](size() - 1); }
+            T& back()  const { return *(cur-1); }
+
             T* begin() const { return data; }
             T* end()   const { return cur; }
 
@@ -123,6 +125,12 @@ namespace pk {
                 } else { --cur; }
             }
 
+            template <typename f, typename b> T* lfind(f comparator, b& ref) {
+                if (data) for (T* i = data; i < cur; i++) {
+                    if (comparator(*i, ref)) return i;
+                }
+                return nullptr;
+            }
 
             void popout(T* to) {
                 new (to) T((T&&) *--cur); // move out
@@ -158,10 +166,13 @@ namespace pk {
             }
 
             void push(std::initializer_list<T> items) {
-                reserve(size() + items.size());
+                if (size() + items.size() > capacity()) grow();
+
                 PKCopy(cur, items.begin(), items.size());
                 cur += items.size();
             }
+
+            
 
             ~vector() {
                 if (!data) return;
@@ -170,8 +181,8 @@ namespace pk {
             }
     };
 
-    // referance to array data without owning, substitute for std::span
-    template <typename T> class refarray {
+    // reference to vector content without copy, and generalises for other arrays
+    template <typename T> class vecspan {
         T *data{nullptr}, *cap{nullptr};
         public:
             T* begin() const { return data; }
@@ -179,10 +190,10 @@ namespace pk {
             T& operator[](uint32_t i) const { return data[i]; }
             uint32_t size() const { return cap - data; }
 
-            refarray(const T&) = delete;
-            refarray(T& i): data(&i), cap(&i+1) {}
-            refarray(const vector<T>& a): data(a.begin()), cap(a.end()) {}
+            vecspan(const T&) = delete;
+            vecspan(T& i): data(&i), cap(&i+1) {}
+            vecspan(const vector<T>& a): data(a.begin()), cap(a.end()) {}
 
-            template <uint32_t L> refarray(T (&items)[L]): data(items), cap(items+L) {}
+            template <uint32_t L> vecspan(T (&items)[L]): data(items), cap(items+L) {}
     };
 }

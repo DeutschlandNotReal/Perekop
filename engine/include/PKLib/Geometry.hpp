@@ -15,12 +15,9 @@ namespace pk {
 
         public:
             Mesh() = default;
-            Mesh(refstring obj_path); // file.cpp
+            Mesh(rstring obj_path); // file.cpp
 
-            struct alignas(32) Vertex { 
-                vec3 p, n; vec2 uv; 
-                Vertex(vec3 p, vec3 n, vec2 uv): p(p), n(n), uv(uv) {}
-            };
+            struct alignas(32) Vertex { vec3 p, n; vec2 uv; };
             uint16_t id{0};
 
             Texture texture;

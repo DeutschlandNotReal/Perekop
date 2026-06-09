@@ -38,7 +38,7 @@ namespace Perekop {
 
         extern vec2 get_size();
         extern void set_size(vec2 size);
-        extern void set_title(pk::refstring title);
+        extern void set_title(pk::rstring title);
 
         extern void maximize();
         extern void minimize();

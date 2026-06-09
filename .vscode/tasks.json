@@ -4,22 +4,18 @@
         {
             "label": "build",
             "type": "shell",
-
-            "command": "cmake --build build -- -j4"
+            "command": "cmake --build build -- -j4",
+            "problemMatcher": []
         },
-
         {
             "label": "run",
             "type": "shell",
-
-            "command": "./perekop.exe",
+            "command": "./perekop.exe"
         },
-
         {
             "label": "config",
             "type": "shell",
-            
-            "command": "rm -r build; cmake -B build -DCMAKE_BUILD_TYPE=Release",
+            "command": "rm -r build; cmake -B build -DCMAKE_BUILD_TYPE=Release"
         }
     ]
 }
