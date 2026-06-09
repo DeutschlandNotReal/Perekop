@@ -9,6 +9,11 @@ namespace pk {
         operator vec3() const { return pos; }
         operator quat() const { return rot; }
 
+        Pose() = default;
+        Pose(vec3 pos): pos(pos) {}
+        Pose(quat rot): rot(rot) {}
+        Pose(vec3 pos, quat rot): pos(pos), rot(rot) {}
+
         mat4 mat4() const {
             return glm::translate(glm::identity<glm::mat4>(), pos) * glm::mat4_cast(rot);
         }

@@ -29,7 +29,7 @@ template <typename T> inline void PKFree(T* ptr) {
     ::operator delete(ptr); 
 }
 
-template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n) {
+template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n = 1) {
     #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0100)
         printf("(%s) PKCopy<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
     #endif
@@ -42,7 +42,7 @@ template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n) {
         new (dst + i) T(src[i]); 
 }
 
-template <typename T> inline void PKMove(T* dst, T* src, uint32_t n) {
+template <typename T> inline void PKMove(T* dst, T* src, uint32_t n = 1) {
     #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b1000)
         printf("(%s) PKMove<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
     #endif 

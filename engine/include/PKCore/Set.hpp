@@ -42,9 +42,10 @@ namespace pk {
             
             template <typename... A> T& insert(A&&... args) {
                 ++items;
+                I id;
 
                 if (!free.empty()) {
-                    I id = free.popout();
+                    free.popout(&id);
                     new (&data[id - 1]) T(args...);
                     data[id - 1].id = id;
 
@@ -54,35 +55,44 @@ namespace pk {
 
                     return data[id - 1];
                 } else {
-                    I id = data.size() + 1;
+                    id = data.size() + 1;
                     data.emplace(args...).id = id;
 
                     #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0010)
                         printf("(%s) set<%s> insert back (id %i)\n", PK_DEBUG, classname<T>, id);
                     #endif
-                    
+
                     return data[id - 1];
                 }
             }
 
-            void remove(I id, T* recall = nullptr) {
+            void remove(I id) {
                 --items;
-
                 if (id == data.back()) {
-                    if (recall)
-                        new (recall) T((T&&) data.popout());
-                    else { data.pop(); };
+                    data.pop();
                 } else {
-                    if (recall)
-                        new (recall) T((T&&) data[id - 1]);
-                    else if constexpr(!std::is_trivially_destructible_v<T>)
+                    if constexpr(!std::is_trivially_destructible_v<T>)
                         data[id - 1].~T();
-                    data[id - 1] = 0;
+
+                    data[id - 1].id = 0;
                     free.emplace(id);
                 }
 
                 #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0100)
                     printf("(%s) set<%s> remove (id %i)\n", PK_DEBUG, classname<T>, id);
+                #endif
+            }
+
+            void removeout(I id, T* to) {
+                --items;
+                if (id == data.size()) { 
+                    data.popout(to); 
+                } else { 
+                    new (to) T((T&&) data[id - 1]);
+                }
+
+                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0100)
+                    printf("(%s) set<%s> removeout (id %i)\n", PK_DEBUG, classname<T>, id);
                 #endif
             }
 

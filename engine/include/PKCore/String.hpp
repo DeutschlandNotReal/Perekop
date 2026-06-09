@@ -1,5 +1,7 @@
 #pragma once
 #include <PKCore/memory.hpp>
+#include <cctype>
+#include <cstdlib>
 
 namespace pk {
     class string {
@@ -75,23 +77,50 @@ namespace pk {
     // referance to string without owning
     class refstring {
         friend string;
-        const char* data{nullptr}; uint32_t len{0};
+        using cchar = const char;
+        cchar *data{nullptr}, *cap{0};
 
         public:
             refstring() = default;
-            refstring(const string& str): data(str.begin()), len(str.size()) {}
-            refstring(const char* str): data(str), len(strlen(str)) {}
+            refstring(const string& str): data(str.begin()), cap(data + str.size()) {}
+            refstring(cchar* str): data(str), cap(data + strlen(str)) {}
 
-            template <uint32_t L> refstring(const char (&str)[L]): data(str), len(L-1) {}
+            template <uint32_t L> refstring(cchar (&str)[L]): data(str), cap(data + L-1) {}
 
-            operator const char*() const { return data; }
-            char operator[](uint32_t i) const { return data[i]; } 
-            uint32_t size() const { return len; }
+            operator cchar*() const { return data; }
+            cchar operator[](uint32_t i) const { return data[i]; } 
+            uint32_t size() const { return cap - data; }
 
-            const char* begin() const { return data; }
-            const char* end()   const { return data + len; }
+            char back() { return *(cap-1); }
+            char front() { return *data; }
+            cchar* begin() const { return data; }
+            cchar* end()   const { return cap; }
             
             [[nodiscard]] explicit operator bool() const { return data != nullptr; }
             [[nodiscard]] bool operator !() const { return data == nullptr; }
+
+            void next_line(bool* found = nullptr) {
+                cchar* ptr = (cchar*)std::memchr(data, '\n', size());
+                if (found) *found = (ptr != nullptr);
+                if (ptr) data = ptr;
+            }
+
+            void skip_space() {
+                while (data != cap && isspace(*data)) ++data;
+            }
+
+            void adv()        { ++data; }
+            void adv(int d)   { data += d; }
+            char next()       { return *++data; }
+            char consume()    { return *data++; }
+            char peek() const { return *data; } // same as front
+
+            float next_float() {
+                return strtof(data, (char**)&data);
+            }
+
+            uint64_t next_long() {
+                return strtoll(data, (char**)&data, 10);
+            }
     };
 }

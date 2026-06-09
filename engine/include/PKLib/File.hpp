@@ -2,5 +2,5 @@
 #include <PKCore/string.hpp>
 
 namespace pk::File {
-    [[nodiscard]] string read(refstring path);
+    string read(refstring path);
 }

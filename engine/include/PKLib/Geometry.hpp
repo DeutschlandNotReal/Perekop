@@ -14,21 +14,27 @@ namespace pk {
         vec3 lbound, hbound;
 
         public:
-            struct alignas(32) Vertex { vec3 p, n; vec2 uv; };
-            short id{0};
+            Mesh() = default;
+            Mesh(refstring obj_path); // file.cpp
+
+            struct alignas(32) Vertex { 
+                vec3 p, n; vec2 uv; 
+                Vertex(vec3 p, vec3 n, vec2 uv): p(p), n(n), uv(uv) {}
+            };
+            uint16_t id{0};
 
             Texture texture;
             Shader* shader{nullptr};
             
             vector<Vertex> vertices;
-            vector<short> indices;
+            vector<uint16_t> indices;
 
             void load();
             void unload();
     };
 
     struct Model { 
-        short id, mesh{0}, body{0};
+        uint16_t id{0}, mesh{0}, body{0};
         Pose pose;
         vec4 metadata;
     };

@@ -12,13 +12,15 @@
 #endif
 
 namespace pk {
+
+    // dynamic array std::vector substitute
     template <typename T> class vector {
         T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
         void resize(uint32_t ncap) {
             if (!data) { data = cur = PKAlloc<T>(ncap); cap = data + ncap; return; }
 
-            #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0001) 
+            #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
                 printf("(%s) vector<%s> resize (%u -> %u)\n", PK_DEBUG, classname<T>, capacity(), ncap);
             #endif
 
@@ -32,11 +34,13 @@ namespace pk {
         }
 
         T* next() {
-            if (cur == cap) resize(capacity() * 1.5 + 8);
+            if (cur == cap) grow();
             return cur++;
         }
 
         public:
+            void grow() { resize(capacity() * 1.5 + 8); }
+
             vector() = default;
             vector(uint32_t len): data(PKAlloc<T>(len)) { cap = data + len; cur = data; }
 
@@ -63,7 +67,7 @@ namespace pk {
                 return data[i]; 
             }
 
-            T& back()  const { return *(cur-1); }
+            T& back()  const { return operator[](size() - 1); }
             T* begin() const { return data; }
             T* end()   const { return cur; }
 
@@ -113,14 +117,15 @@ namespace pk {
                 cur = data; 
             }
 
-            void pop() { 
-                if constexpr (!std::is_trivially_destructible_v<T>)
+            void pop() {
+                if constexpr (!std::is_trivially_destructible_v<T>) {
                     (--cur)->~T();
-                else --cur;
+                } else { --cur; }
             }
 
-            [[nodiscard]] T popout() { 
-                return (T&&)*--cur;
+
+            void popout(T* to) {
+                new (to) T((T&&) *--cur); // move out
             }
 
             void reserve(uint32_t new_size) {
@@ -142,13 +147,13 @@ namespace pk {
             }
 
             T& push(const T& item) { 
-                PKCopy(next(), &item, 1);
+                PKCopy(next(), &item);
                 return back();
             }
 
             // unsafe push
             T& u_push(const T& item) {
-                PKCopy(cur++, &item, 1);
+                PKCopy(cur++, &item);
                 return back();
             }
 
@@ -165,7 +170,7 @@ namespace pk {
             }
     };
 
-    // referance to array data without owning
+    // referance to array data without owning, substitute for std::span
     template <typename T> class refarray {
         T *data{nullptr}, *cap{nullptr};
         public:

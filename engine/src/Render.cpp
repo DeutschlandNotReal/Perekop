@@ -174,7 +174,7 @@ void Mesh::load() {
     if (VBO) return; // already loaded
     glAttribute()
         .gbuffer<3>(&VBO)
-        .data<short>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
+        .data<uint16_t>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
         .data<Mesh::Vertex>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
 
     lbound = hbound = vertices[0].p;
