@@ -21,8 +21,8 @@ namespace pk::time {
         short ptr{-1}; U records[L];
         public:
             void begin(U offset = 0) { records[++ptr] = now<U>() + offset; }
-            [[nodiscard]] U stop() { return now<U>() - records[ptr--]; }
-            [[nodiscard]] U elapsed() { return now<U>() - records[ptr]; }
+            U stop() { return now<U>() - records[ptr--]; }
+            [[nodiscard]] U elapsed() const { return now<U>() - records[ptr]; }
             [[nodiscard]] U delta() {
                 U dt = elapsed(); records[ptr] += dt; return dt;
             }

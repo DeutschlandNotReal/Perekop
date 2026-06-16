@@ -2,17 +2,17 @@
 #include <PKCore/vector.hpp>
 
 // searches, sorts and other algorithmns for array
- namespace pk::alg {
-    // Linear search
-    template <typename T> T* lfind(span<T> array, const T& ref) {
+ namespace pk {
+    // linear search
+    template <typename T> T* lsearch(span<T> array, const T& ref) {
         if (array) for (T *i = array.begin(); i < array.end(); i++)
             if (*i == ref) return i;
 
         return nullptr;
     }
 
-    // Finds pointer of where ref would be if inserted into array in order, assumes array is already ordered
-    template <typename T> T* low_bound(span<T> array, const T &ref) {
+    // gets pointer where ref would be if sorted
+    template <typename T> T* lower_bound(span<T> array, const T &ref) {
         uint32_t l = 0, h = array.size();
 
         while (l != h) {
@@ -23,13 +23,14 @@
         return array.begin() + l;
     }
 
-    // Binary search
-    template <typename T> T* bfind(span<T> array, const T &ref, T** nearest = nullptr) {
-        T* closest = low_bound(array, ref);
-        if (closest < array.end() && *closest == ref)
-            return closest;
-        else if (nearest) 
-            *nearest = closest;
+    // binary search
+    template <typename T> T* bsearch(span<T> array, const T &ref, T** nearest = nullptr) {
+        T* bound = lower_bound(array, ref);
+
+        if (bound != array.end() && *bound == ref)
+            return bound;
+        else if (nearest)
+            *nearest = bound;
 
         return nullptr;
     }
@@ -38,8 +39,8 @@
     template <typename T> T& ordered_insert(vector<T>& vec, const T &item) {
         if (vec.is_full()) vec.grow();
 
-        T* closest = low_bound(vec, item);
+        T* closest = lower_bound(vec, item);
 
-        return vec.push_at(closest - vec.begin());
+        return vec.push(closest - vec.begin(), item);
     }
 }

@@ -1,7 +1,6 @@
 #define PK_ENGINE_SRC
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <type_traits>
 #include <stb_image.h>
 
 #include <Internal.hpp>
@@ -51,6 +50,7 @@ class glAttribute {
         template <typename T> glAttribute& data(GLuint buffer, GLenum type, GLenum usage, span<T> data) {
             glBindBuffer(type, buffer);
             glBufferData(type, data.size()*sizeof(T), data.begin(), usage);
+
             return *this;
         }
 
@@ -127,7 +127,7 @@ Shader::Shader(vstring title, vstring vpath, vstring fpath) {
 }
 
 void Shader::uniform(UniformType type, vstring title, const void* data) {
-    uniforms.push({
+    uniforms.push_back({
         glGetUniformLocation(program, title),
         type,
         data
@@ -169,10 +169,11 @@ void Shader::use(const mat4& V, const mat4& P) const {
 }
 
 void Mesh::load() {
-    glAttribute()
+    glAttribute(Perekop::mesh_VAO)
         .gbuffer<3>(&VBO)
         .data<uint16_t>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
-        .data<Mesh::Vertex>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices);
+        .data<Mesh::Vertex>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices)
+        .vbuffer<Mesh::Vertex>(0, VBO);
     
     lbound = hbound = vertices[0].p;
     inertia = {0};
@@ -199,12 +200,12 @@ void Perekop::render(bool recollect) {
     mat4 view = camera.view(), proj = camera.proj(wsize.x / wsize.y);
     glBindVertexArray(Perekop::mesh_VAO);
 
-    for (const Mesh &mesh : World::meshes) {
-        if (mesh.id <= 0) continue; // invalid
-        while (cache::T.size() < mesh.id) cache::T.emplace();
+    // transform prealloc
+    while (cache::T.size() < World::meshes.size())
+        cache::T.emplace_back();
 
-        if (recollect) cache::T[mesh.id-1].clear();
-    }
+    if (recollect) for (vector<ModelData> &modeldata : cache::T)
+        modeldata.clear();
 
     // transform collection
     if (recollect) for (const Model &model : World::models) {
@@ -218,7 +219,7 @@ void Perekop::render(bool recollect) {
             if (model.id != mbody.rootid) transform *= mbody.pose.mat4();
         }
 
-        cache::T[model.mesh-1].emplace(transform, model.metadata);
+        cache::T[model.mesh-1].emplace_back(transform, model.metadata);
     }
 
     // instanced draw
@@ -237,10 +238,9 @@ void Perekop::render(bool recollect) {
         mesh.shader->use(view, proj);
         mesh.texture.use(mesh.shader->layoutT);        
 
-        glAttribute()
+        glAttribute(Perekop::mesh_VAO)
             .bind_elements(mesh.EBO)
             .data<ModelData>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, modeldata)
-            .vbuffer<Mesh::Vertex>(0, mesh.VBO)
             .vbuffer<ModelData>(1, mesh.IBO)
             .idraw(mesh.indices.size(), modeldata.size());
     }
@@ -261,7 +261,7 @@ void Perekop::render(bool recollect) {
 
         float iZR = 1.f / (maxz - minz);
         for (const GUIObject &gui : Gui::items)
-            cache::gui.emplace( (gui.Z - minz) * iZR, gui.pos, gui.size, gui.col );
+            cache::gui.emplace_back( (gui.Z - minz) * iZR, gui.pos, gui.size, gui.col );
         
         glAttribute(gui_VAO)
             .data<GuiData>(gui_IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, cache::gui)

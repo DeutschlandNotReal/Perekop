@@ -1,7 +1,7 @@
 #define PK_ENGINE_SRC
 
 #include <Internal.hpp>
-#include <PKLib/Gui.hpp>
+#include <PKLib/gui.hpp>
 
 using namespace pk;
 using namespace glm;

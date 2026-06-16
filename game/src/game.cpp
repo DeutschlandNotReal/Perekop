@@ -48,11 +48,11 @@ void make_body(Pose T, vec3 vel) {
     float Z = random() > .5 ? -1 : 1;
     model.metadata = vec4(Z==-1?0:1,0,Z==1?0:1,0);
 
-    bodies.push({model.id, vel, model.pose, Z});
+    bodies.push_back({model.id, vel, model.pose, Z});
 }
 
 void Perekop::on_step(double dt) {
-    const float pi = 3.14159265f;
+    constexpr float pi = 3.14159265f;
     Game::step::camera(dt);
 
     t += dt;

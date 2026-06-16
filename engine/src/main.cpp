@@ -74,7 +74,7 @@ int main() {
 
         std::this_thread::yield();
     }
-    (void)frame_timer.stop();
+    frame_timer.stop();
     frame_timer.begin();
 
     printf("on_exit() begin\n");

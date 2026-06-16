@@ -69,7 +69,7 @@ namespace pk {
 
     // view string, non owning
     class vstring {
-        const char* data{nullptr}; uint32_t len;
+        const char* data{nullptr}; uint32_t len{0};
 
         public:
             vstring() = default;

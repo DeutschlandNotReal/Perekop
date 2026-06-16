@@ -16,13 +16,15 @@ namespace pk {
         return static_cast<T&&>(t);
     }
 
+    #define rvalue_cast rvalue_cast // just to make it blue like the other casts
+    #define forward_cast forward_cast
+
     template <typename T> inline void move(T* dst, T* src) {
         if constexpr (std::is_move_constructible_v<T>)
             new (dst) T(rvalue_cast(*src));
-        else {
+        else
             new (dst) T(*src);
-            src->~T();
-        };
+        src->~T();
     }
 
     template <typename T = char> [[nodiscard]] inline T* alloc(uint32_t n) {

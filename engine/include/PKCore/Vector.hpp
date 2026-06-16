@@ -87,11 +87,11 @@ namespace pk {
                 else cur = data;
             }
 
-            void pop() {
+            void pop_back() {
                 if constexpr (!std::is_trivially_destructible_v<T>) (--cur)->~T(); else --cur;
             }
 
-            void popout(T* to) {
+            void popout_back(T* to) {
                 new (to) T(rvalue_cast(*--cur));
             }
 
@@ -99,39 +99,39 @@ namespace pk {
                 if (new_size > capacity()) resize(new_size);
             }
 
-            T& emplace() {
+            T& emplace_back() {
                 if (is_full()) grow();
                 new (cur) T();
                 return *(cur++);
             }
 
-            template <typename... A> T& emplace(A&&... args) {
+            template <typename... A> T& emplace_back(A&&... args) {
                 if (is_full()) grow();
                 new (cur) T(forward_cast<A>(args)...);
                 return *(cur++);
             }
 
             // at must be less than or equal to size
-            template <typename... A> T& emplace_at(uint32_t at, A&&... args) {
+            template <typename... A> T& emplace(uint32_t index, A&&... args) {
                 if (is_full()) grow();
-                if (at == size()) return emplace(forward_cast<A...>(args)...);
+                if (index == size()) return emplace_back(forward_cast<A>(args)...);
                 
-                pk::rshift(data + at, size() - at);
-                new (data + at) T(forward_cast<A>(args)...);
+                pk::rshift(data + index, size() - index);
+                new (data + index) T(forward_cast<A>(args)...);
                 ++cur;
-                return data[at];
+                return data[index];
             }
 
-            T& push(const T& item) {
+            T& push_back(const T& item) {
                 if (is_full()) grow();
                 new (cur) T(item);
                 return *(cur++);
             }
 
             // at must be less than or equal to size
-            T& push_at(uint32_t at, const T& item) {
+            T& push(uint32_t at, const T& item) {
                 if (is_full()) grow();
-                if (at == size()) return push(item);
+                if (at == size()) return push_back(item);
                 
                 pk::rshift(data + at, size() - at);
                 new (data + at) T(item);
@@ -139,7 +139,7 @@ namespace pk {
                 return data[at];
             }
 
-            void push(std::initializer_list<T> items) {
+            void push_back(std::initializer_list<T> items) {
                 if (size() + items.size() > capacity()) resize(size() + items.size());
 
                 pk::copy(cur, items.begin(), items.size());
@@ -152,7 +152,7 @@ namespace pk {
             }
     };
 
-    // refers to mutable chunk of memory, std::span substitute
+    // refers to MUTABLE chunk of memory, std::span substitute
     template <typename T> class span {
         T* data{nullptr}, *cap{nullptr};
         public:

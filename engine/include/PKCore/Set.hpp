@@ -35,14 +35,14 @@ namespace pk {
 
                 if (!free.is_empty()) {
                     I id;
-                    free.popout(&id);
+                    free.popout_back(&id);
                     new (&data[id-1]) T(forward_cast<A>(args)...);
                     data[id-1].id = id;
 
                     return data[id-1];
                 } else {
                     I id = data.size() + 1;
-                    data.emplace(forward_cast<A>(args)...).id = id;
+                    data.emplace_back(forward_cast<A>(args)...).id = id;
                     return data.back();
                 }
             }
@@ -57,14 +57,14 @@ namespace pk {
                         data[id - 1].~T();
 
                     data[id - 1].id = 0;
-                    free.emplace(id);
+                    free.push_back(id);
                 }
             }
 
             void removeout(I id, T* to) {
                 --items;
                 if (id == data.size()) { 
-                    data.popout(to); 
+                    data.popout_back(to); 
                 } else { 
                     new (to) T(rvalue_cast(data[id - 1]));
                 }
@@ -76,6 +76,5 @@ namespace pk {
 
             uint32_t size()     const { return items; }
             uint32_t capacity() const { return data.capacity(); }
-            uint32_t memsize()  const { return data.capacity() * sizeof(T) + free.capacity() * sizeof(I); }
     };
 }

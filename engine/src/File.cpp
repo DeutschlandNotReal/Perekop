@@ -43,36 +43,52 @@ void file::read_obj(vstring path, Mesh& mesh) {
     vector<vec3> pos{1000};
     vector<vec3> nor{1000};
     vector<vec2> tex{1000};
+    pos.emplace(0);
+    nor.emplace(0);
+    tex.emplace(0);
+
     char *cur = src.begin(), *end = src.end();
-    vector<uint64_t> pnt;
+    struct OBJVertex { 
+        uint64_t data; 
+        bool operator==(const OBJVertex& b) const { return (data >> 16) == (b.data >> 16); }
+        bool operator<(const OBJVertex& b) const { return (data >> 16) < (b.data >> 16); }
+        bool operator>(const OBJVertex& b) const { return (data >> 16) > (b.data >> 16); }
+
+        uint16_t* id()  const { return ((uint16_t*)&data); }
+        uint16_t* pos() const { return ((uint16_t*)&data) + 1; }
+        uint16_t* tex() const { return ((uint16_t*)&data) + 2; }
+        uint16_t* nor() const { return ((uint16_t*)&data) + 3; }
+        OBJVertex() = default;
+        OBJVertex(uint16_t p, uint16_t t, uint16_t n):
+            data((uint64_t)p<<16 | (uint64_t)t<<32 | (uint64_t)n<<48)
+        {}
+    };
+
+    vector<OBJVertex> vertex_ptn;
     auto &indices = mesh.indices;
     auto &vertices = mesh.vertices;
 
     indices.clear();
     vertices.clear();
 
-    int duplicates = 0;
     while (cur < end) {
         while (cur < end && isspace(*cur)) ++cur;
-
-        printf("\r%i vertices (duplicates %i), %i indices", pnt.size(), duplicates, indices.size());
-        fflush(stdout);
 
         switch (*(cur++)) {
             case 'v': {
                 switch (*cur) {
                     case 't': {
                         ++cur; // skip 't'
-                        tex.emplace( nextf32(&cur), nextf32(&cur) );
+                        tex.emplace_back( nextf32(&cur), nextf32(&cur) );
                         break;
                     }
                     case 'n': {
                         ++cur; // skip 'n'
-                        nor.emplace( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
+                        nor.emplace_back( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
                         break;
                     }
                     default: {
-                        pos.emplace( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
+                        pos.emplace_back( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
                     }
                 }
                 break;
@@ -85,18 +101,35 @@ void file::read_obj(vstring path, Mesh& mesh) {
                 char *line_end = find(cur, end, '\n') ?: end;
 
                 while (cur < line_end) {
-                    uint64_t vertex =  nextu32(&cur); 
-                    cur++;
-                    vertex = (vertex<<16) | nextu32(&cur); 
-                    cur++;
-                    vertex = (vertex<<16) | nextu32(&cur);
+                    uint64_t v_pos = nextu32(&cur), v_tex = 0, v_nor = 0;
+                    if (*cur == '/' && *(cur+1) == '/') {
+                        // case: p//n
+                        cur += 2;
+                        v_nor = nextu32(&cur);
+                    } else if (*cur == '/') {
+                        // case: p/t
+                        ++cur;
+                        v_tex = nextu32(&cur);
+                        if (*cur == '/') {
+                            // case: p/t/n
+                            ++cur;
+                            v_nor = nextu32(&cur);
+                        }
+                    }
+                    // case: p (do nothing more)
+
+                    OBJVertex v_ptn(v_pos, v_tex, v_nor);
                     
                     // duplicate vertex removal
-                    uint16_t i = alg::low_bound({pnt}, vertex) - pnt.begin();
-                    
-                    if (i == pnt.size() || pnt[i] != vertex)
-                        pnt.push_at(i, vertex);
-                    else ++duplicates;
+                    OBJVertex* match = lower_bound({vertex_ptn}, v_ptn);
+                    uint16_t i = vertex_ptn.size();
+
+                    if (match == vertex_ptn.end() ||  !(*match == v_ptn)) {
+                        *v_ptn.id() = i;
+                        vertex_ptn.push(match - vertex_ptn.begin(), v_ptn);
+                    } else {
+                        i = *match->id();
+                    }
 
                     v[n++] = i;
 
@@ -104,9 +137,9 @@ void file::read_obj(vstring path, Mesh& mesh) {
                 }
 
                 if (n == 3) 
-                    indices.push({v[0], v[1], v[2]});
+                    indices.push_back({v[0], v[1], v[2]});
                 else if (n == 4) {
-                    indices.push({
+                    indices.push_back({
                         v[0], v[1], v[2],
                         v[0], v[2], v[3]
                     });
@@ -119,15 +152,15 @@ void file::read_obj(vstring path, Mesh& mesh) {
 
         if (!cur) break; 
         else ++cur; // skips actual \n
-    }
+    } 
 
-    vertices.reserve(pnt.size());
-    for (uint64_t pnt_vertex : pnt) {
-        vertices.emplace(
-            pos[((pnt_vertex >> 32)) - 1],
-            nor[(pnt_vertex & 0xFFFF) - 1],
-            tex[((pnt_vertex >> 16) & 0xFFFF) - 1]
-        );
+    vertices.reserve(vertex_ptn.size());
+    for (OBJVertex& v_pnt : vertex_ptn) {
+        vertices.emplace_back(
+            pos[*v_pnt.pos()],
+            nor[*v_pnt.nor()],
+            tex[*v_pnt.tex()]
+        ); 
     }
 
     printf("\nFinished reading OBJ %s, produced %i vertices, %i triangles\n", path.begin(), vertices.size(), indices.size() / 3);

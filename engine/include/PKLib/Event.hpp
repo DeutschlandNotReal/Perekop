@@ -13,7 +13,7 @@ namespace pk {
             }
 
             void listen(callback callback) {
-                listeners.push(callback);
+                listeners.push_back(callback);
             }
     };
 }
