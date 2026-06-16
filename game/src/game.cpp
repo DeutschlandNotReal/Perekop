@@ -1,8 +1,4 @@
 #include "PKLib/Geometry.hpp"
-#define PK_DEBUG "game.cpp"
-#define PK_DEBUG_VEC   0
-#define PK_DEBUG_SET   0
-#define PK_DEBUG_MEM   0
 
 #include <Perekop.hpp>
 #include <cstdio>
@@ -67,10 +63,10 @@ void Perekop::on_step(double dt) {
     World::bgcol = {r, g, b};
 
     for (int i = 0; i < bodies.size(); i++) {
-        body& ibody = bodies[i];
+        body &ibody = bodies[i];
         if (i != bodies.size() - 1)
             for (int j = i + 1; j < bodies.size(); j++) {
-                body& jbody = bodies[j];
+                body &jbody = bodies[j];
                 vec3 disp = jbody.pos - ibody.pos;
                 float r2 = dot(disp, disp);
                 float r = sqrt(r2);
@@ -104,14 +100,14 @@ void Perekop::on_launch() {
 
     Texture chudtexture = Texture("game/assets/images/ourbrainsareshrinking.jpg");
 
-    chudshader.uniform(Uniform::u_float, "time", &t);
-    chudshader.uniform(Uniform::u_vec3, "f_bgcol", &World::bgcol);
+    chudshader.uniform(UniformType::u_float, "time", &t);
+    chudshader.uniform(UniformType::u_vec3, "f_bgcol", &World::bgcol);
 
-    Mesh& monkey = World::meshes.insert("game/assets/models/truemesh.obj");
+    Mesh& monkey = World::meshes.insert();
+    file::read_obj("game/assets/models/truemesh.obj", monkey);
+
     monkey.shader = &chudshader;
     monkey.texture = chudtexture;
-
-    monkey.load();
 
     for (int i = 0; i < 2000; i++) {
         make_body(random({-25, -25, -25}, {25, 25, 25}), {});

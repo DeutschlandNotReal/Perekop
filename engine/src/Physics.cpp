@@ -1,11 +1,11 @@
 #define PK_ENGINE_SRC
 
 #include <Internal.hpp>
-#include <PKLib/Body.hpp>
+#include <PKLib/physics.hpp>
 using namespace pk;
 using namespace glm;
 
-Body::Body(Model& root): rootid(root.id) {
+Body::Body(Model &root): rootid(root.id) {
     
 };
 
@@ -46,7 +46,7 @@ mat3 Body::inverse_inertia() {
 
 void Perekop::step_physics(float dt) {
     float hdt = dt * .5;
-    for (Body& body : World::bodies) {
+    for (Body &body : World::bodies) {
         body.pose += ( body.vel += body.force * ( dt / body.mass ) );
 
         body.pose.rot = normalize(body.pose.rot * quat(1,  

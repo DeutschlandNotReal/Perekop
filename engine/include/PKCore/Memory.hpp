@@ -3,54 +3,61 @@
 #include <type_traits>
 #include <cstdint>
 
-#if defined(PK_DEBUG_MEM) && PK_DEBUG_MEM != 0
-#include <PKCore/debug.hpp>
-// debug flags:
-// 0b0001: PKAlloc
-// 0b0010: PKFree
-// 0b0100: PKCopy
-// 0b1000: PKMove
-#endif
+namespace pk {
+    template <typename T> constexpr std::remove_reference_t<T>&& rvalue_cast(T&& v) noexcept {
+        return static_cast<std::remove_reference_t<T>&&>(v);
+    }
 
-template <typename T> [[nodiscard]] inline T* PKAlloc(uint32_t n) {
-    T* ptr = (T*)::operator new(sizeof(T) * n);
-    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0001)
-        printf("(%s) PKAlloc<%s>(%i) (%p)\n", PK_DEBUG, pk::classname<T>, n, ptr);
-    #endif
+    template <typename T> constexpr T&& forward_cast(std::remove_reference_t<T>& t) noexcept {
+        return static_cast<T&&>(t);
+    }
 
-    return ptr;
-}
+    template <typename T> constexpr T&& forward_cast(std::remove_reference_t<T>&& t) noexcept {
+        return static_cast<T&&>(t);
+    }
 
-template <typename T> inline void PKFree(T* ptr) { 
-    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0010)
-        printf("(%s) PKFree<%s> (%p)\n", PK_DEBUG, pk::classname<T>, ptr);
-    #endif
+    template <typename T> inline void move(T* dst, T* src) {
+        if constexpr (std::is_move_constructible_v<T>)
+            new (dst) T(rvalue_cast(*src));
+        else {
+            new (dst) T(*src);
+            src->~T();
+        };
+    }
 
-    ::operator delete(ptr); 
-}
+    template <typename T = char> [[nodiscard]] inline T* alloc(uint32_t n) {
+        if (!n) return nullptr;
+        
+        return (T*)::operator new(n * sizeof(T));
+    }
 
-template <typename T> inline void PKCopy(T* dst, const T* src, uint32_t n = 1) {
-    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b0100)
-        printf("(%s) PKCopy<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
-    #endif
+    inline void free(void* ptr) { ::operator delete(ptr); }
 
-    if (!dst || !src) return;
+    template <typename T> inline void copy(T* dst, const T* src, uint32_t n = 1) {
+        if (!dst || !src) return;
 
-    if constexpr (std::is_trivially_copyable_v<T>)
-        std::memcpy(dst, src, n * sizeof(T));
-    else for (int i = 0; i < n; i++)
-        new (dst + i) T(src[i]); 
-}
+        if constexpr (std::is_trivially_copyable_v<T>)
+            std::memcpy(dst, src, n * sizeof(T));
+        else for (int i = 0; i < n; i++)
+            new (dst + i) T(src[i]); 
+    }
 
-template <typename T> inline void PKMove(T* dst, T* src, uint32_t n = 1) {
-    #if defined(PK_DEBUG_MEM) && (PK_DEBUG_MEM & 0b1000)
-        printf("(%s) PKMove<%s>(%i) (%p -> %p)\n", PK_DEBUG, pk::classname<T>, n, src, dst);
-    #endif 
+    template <typename T> inline void move(T* dst, T* src, uint32_t n) {
+        if (!dst || !src) return;
 
-    if (!dst || !src) return;
+        if constexpr (std::is_trivially_copyable_v<T>)
+            std::memcpy(dst, src, n * sizeof(T));
+        else for (int i = 0; i < n; i++) 
+            move(dst+i, src+i);
+    }
 
-    if constexpr (std::is_trivially_copyable_v<T>)
-        std::memcpy(dst, src, n * sizeof(T));
-    else for (int i = 0; i < n; i++)
-        new (dst + i) T((T&&) src[i]); 
+    template <typename T> inline void rshift(T* src, uint32_t n) {
+        if (!src) return;
+        T* dst = src+1;
+
+        if constexpr(std::is_trivially_copyable_v<T>) {
+            std::memmove(dst, src, n * sizeof(T));
+        } else for (int i = n-1; i >= 0; i--)
+            move(dst+i, src+i);
+    }
 }

@@ -1,6 +1,6 @@
 {
     "clangd.arguments": [
-        "--compile-commands-dir=${workspaceFolder}/build"
-    ],
-    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe"
+        "--compile-commands-dir=${workspaceFolder}/build",
+        "--query-driver=C:/msys64/mingw64/bin/g++.exe"
+    ]
 }

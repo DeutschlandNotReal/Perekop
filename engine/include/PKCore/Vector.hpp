@@ -1,199 +1,175 @@
 #pragma once
 #include <PKCore/memory.hpp>
-#include <cstddef>
 #include <initializer_list>
 #include <type_traits>
 
-#if defined(PK_DEBUG_VEC) && PK_DEBUG_VEC != 0
-#include <PKCore/debug.hpp>
-// debug flags:
-// 0b0001: vector index OOB
-// 0b0010: vector growth
-// 0b0100: vector reserve ignored
-#endif
-
 namespace pk {
-
     // dynamic array std::vector substitute
     template <typename T> class vector {
-        T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
+          T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
-        void resize(uint32_t ncap) {
-            if (!data) { data = cur = PKAlloc<T>(ncap); cap = data + ncap; return; }
-
-            #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
-                printf("(%s) vector<%s> resize (%u -> %u)\n", PK_DEBUG, classname<T>, capacity(), ncap);
-            #endif
+        void resize(uint32_t newcap) {
+            if (!data) { 
+                data = cur = pk::alloc<T>(newcap); 
+                cap = data + newcap; 
+                return; 
+            }
 
             uint32_t len = size();
             T* ldata = data;
-            data = PKAlloc<T>(ncap);
-            PKMove(data, ldata, len);
+            data = pk::alloc<T>(newcap);
+            pk::move(data, ldata, len);
+            pk::free(ldata);
+            cap = data + newcap;
             cur = data + len;
-            cap = data + ncap;
-            PKFree(ldata);
-        }
-
-        T* next() {
-            if (!data || cur == cap) grow();
-            return cur++;
         }
 
         public:
-            void grow() { resize(capacity() * 1.5 + 8); }
-
             vector() = default;
-            vector(uint32_t len): data(PKAlloc<T>(len)) { cap = data + len; cur = data; }
-
-            vector(std::initializer_list<T> items): data(PKAlloc<T>(items.size())) {
+            vector(uint32_t len): data(pk::alloc<T>(len)) { cap = data + len; cur = data; }
+            vector(const vector &b): 
+                data(pk::alloc<T>(b.size())) {
+                cap = cur = data + b.size();
+                pk::copy(data, b.data, b.size());
+            }
+            vector(vector &&b): 
+                data(b.data), cap(b.cap), cur(b.cur) { 
+                b.data = b.cap = b.cur = nullptr; 
+            }
+            vector(std::initializer_list<T> items): data(pk::alloc<T>(items.size())) {
                 cap = cur = data + items.size();
-                PKCopy(data, items.begin(), items.size());
+                pk::copy(data, items.begin(), items.size());
             }
-
-            template <uint32_t L> vector(const T (&items)[L]): data(PKAlloc<T>(L)) { 
+            template <uint32_t L> vector(const T (&items)[L]): data(pk::alloc<T>(L)) { 
                 cap = cur = data + L; 
-                PKCopy(data, items, L); 
+                pk::copy(data, items, L); 
             }
-            
-            [[nodiscard]] explicit operator bool() const { return data != nullptr; }
-            [[nodiscard]] bool operator!() const { return data == nullptr; }
 
-            T& operator[](uint32_t i) const {
-                #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0010) 
-                    if (!data)
-                        printf("\033[31m(%s) ERROR: vector<%s> empty [%i]\n\033[0m", PK_DEBUG, classname<T>, i);
-                    else if (i >= size())
-                        printf("\033[31m(%s) ERROR: vector<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, size());
-                #endif
-                return data[i]; 
-            }
+            explicit operator bool() const { return data != nullptr; }
+            bool operator!()         const { return data == nullptr; }
+
+            T& operator[](uint32_t i) const { return data[i]; }
 
             T& back()  const { return *(cur-1); }
-
             T* begin() const { return data; }
             T* end()   const { return cur; }
 
-            [[nodiscard]] bool empty() const { return cur == data; }
-            [[nodiscard]] bool full()  const { return cap == cur; }
+            bool is_empty() const { return cur == data; }
+            bool is_full()  const { return cap == cur; }
+            bool in_range(T* ptr) const { return ptr >= data && ptr < cap; }
             
             uint32_t size()     const { return cur - data; }
             uint32_t capacity() const { return cap - data; }
             uint32_t bytesize() const { return size() * sizeof(T); }
 
-            vector(vector&& b): data(b.data), cap(b.cap), cur(b.cur) { b.data = b.cap = b.cur = nullptr; }
-            vector& operator=(vector&& b) {
-                if (&b == this) return *this;
-                if (data) { clear(); PKFree(data); }
-                data = b.data; cap = b.cap; cur = b.cur;
-                b.data = b.cap = b.cur = nullptr;
-
-                return *this;
-            }
-
-            vector(const vector& b): data(PKAlloc<T>(b.size())) {
-                cap = cur = data + b.size();
-                PKCopy(data, b.data, b.size());
-            }
-            
-            vector& operator=(const vector& b) { *this;
+            vector& operator=(const vector &b) {
                 if (&b == this) return *this;
 
-                if (data) {
-                    clear();
-                    if (size() < b.size()) { 
-                        PKFree(data); 
-                        data = PKAlloc<T>(b.size()); 
-                        cap = cur = data + b.size(); 
-                    }
-                } else { data = PKAlloc<T>(b.size()); cap = data + b.size(); }
+                if (!data || size() < b.size()) {
+                    if (data) { clear(); pk::free(data); }
+                    data = pk::alloc<T>(b.size()); 
+                    cap = data + b.size(); 
+                };
 
-                PKCopy(data, b.data, b.size());
+                pk::copy(data, b.data, b.size());
                 cur = data + b.size();
 
                 return *this;
             }
 
+            void grow() { 
+                resize(capacity() * 1.5 + 8); 
+            }
+
             void clear() { 
                 if constexpr (!std::is_trivially_destructible_v<T>)
-                    for (T* i = cur-1; i >= data; i--) i->~T();
-                cur = data; 
+                    while (cur > data) (--cur)->~T();
+                else cur = data;
             }
 
             void pop() {
-                if constexpr (!std::is_trivially_destructible_v<T>) {
-                    (--cur)->~T();
-                } else { --cur; }
-            }
-
-            template <typename f, typename b> T* lfind(f comparator, b& ref) {
-                if (data) for (T* i = data; i < cur; i++) {
-                    if (comparator(*i, ref)) return i;
-                }
-                return nullptr;
+                if constexpr (!std::is_trivially_destructible_v<T>) (--cur)->~T(); else --cur;
             }
 
             void popout(T* to) {
-                new (to) T((T&&) *--cur); // move out
+                new (to) T(rvalue_cast(*--cur));
             }
 
             void reserve(uint32_t new_size) {
                 if (new_size > capacity()) resize(new_size);
-                #if defined(PK_DEBUG_VEC) && (PK_DEBUG_VEC & 0b0100) 
-                    else printf("(%s) vector<%s> reserve ignored [%u/%u]\n", PK_DEBUG, classname<T>, new_size, size());
-                #endif
+            }
+
+            T& emplace() {
+                if (is_full()) grow();
+                new (cur) T();
+                return *(cur++);
             }
 
             template <typename... A> T& emplace(A&&... args) {
-                new (next()) T(args...);
-                return back(); 
+                if (is_full()) grow();
+                new (cur) T(forward_cast<A>(args)...);
+                return *(cur++);
             }
 
-            // unsafe emplace
-            template <typename... A> T& u_emplace(A&&... args) {
-                new (cur++) T(args...);
-                return back();
+            // at must be less than or equal to size
+            template <typename... A> T& emplace_at(uint32_t at, A&&... args) {
+                if (is_full()) grow();
+                if (at == size()) return emplace(forward_cast<A...>(args)...);
+                
+                pk::rshift(data + at, size() - at);
+                new (data + at) T(forward_cast<A>(args)...);
+                ++cur;
+                return data[at];
             }
 
-            T& push(const T& item) { 
-                PKCopy(next(), &item);
-                return back();
+            T& push(const T& item) {
+                if (is_full()) grow();
+                new (cur) T(item);
+                return *(cur++);
             }
 
-            // unsafe push
-            T& u_push(const T& item) {
-                PKCopy(cur++, &item);
-                return back();
+            // at must be less than or equal to size
+            T& push_at(uint32_t at, const T& item) {
+                if (is_full()) grow();
+                if (at == size()) return push(item);
+                
+                pk::rshift(data + at, size() - at);
+                new (data + at) T(item);
+                ++cur;
+                return data[at];
             }
 
             void push(std::initializer_list<T> items) {
-                if (size() + items.size() > capacity()) grow();
+                if (size() + items.size() > capacity()) resize(size() + items.size());
 
-                PKCopy(cur, items.begin(), items.size());
+                pk::copy(cur, items.begin(), items.size());
                 cur += items.size();
             }
 
-            
-
             ~vector() {
-                if (!data) return;
-                clear();
-                PKFree(data);
+                if (data) { clear(); pk::free(data); }
+                data = cur = cap = nullptr;
             }
     };
 
-    // reference to vector content without copy, and generalises for other arrays
-    template <typename T> class vecspan {
-        T *data{nullptr}, *cap{nullptr};
+    // refers to mutable chunk of memory, std::span substitute
+    template <typename T> class span {
+        T* data{nullptr}, *cap{nullptr};
         public:
             T* begin() const { return data; }
             T* end()   const { return cap; }
-            T& operator[](uint32_t i) const { return data[i]; }
             uint32_t size() const { return cap - data; }
 
-            vecspan(const T&) = delete;
-            vecspan(T& i): data(&i), cap(&i+1) {}
-            vecspan(const vector<T>& a): data(a.begin()), cap(a.end()) {}
+            T& operator[](uint32_t i) const { return data[i]; }
 
-            template <uint32_t L> vecspan(T (&items)[L]): data(items), cap(items+L) {}
+            span(T* single): data(single), cap(single+1) {}
+            span(T* first, T* end): data(first), cap(end) {}
+            span(T* first, uint32_t n): data(first), cap(first + n) {}
+            span(vector<T> &vec): data(vec.begin()), cap(vec.end()) {}
+
+            template <uint32_t L> span(T (&items)[L]): data(items), cap(items+L) {}
+
+            explicit operator bool() const { return data != nullptr; }
+            bool operator!()         const { return data == nullptr; }
     };
 }

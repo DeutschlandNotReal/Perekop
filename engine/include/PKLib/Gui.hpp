@@ -1,6 +1,6 @@
 #pragma once
-#include <PKLib/Math.hpp>
-#include <PKLib/Event.hpp>
+#include <PKLib/math_alias.hpp>
+#include <PKLib/event.hpp>
 
 namespace pk {
     struct GUIObject {

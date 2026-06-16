@@ -1,10 +1,14 @@
 #pragma once
-#include <PKLib/Math.hpp>
-#include <PKLib/Pose.hpp>
-#include <PKLib/Graphics.hpp>
+#include <PKLib/math_alias.hpp>
+#include <PKLib/pose.hpp>
+#include <PKLib/graphics.hpp>
+#include <PKCore/set.hpp>
 
 namespace pk {
+    class Model;
     class Mesh {
+        friend set<Mesh>;
+        friend Model;
         #ifdef PK_INTERNAL
         friend void Perekop::render(bool);
         #endif
@@ -13,27 +17,39 @@ namespace pk {
         mat3 inertia{0};
         vec3 lbound, hbound;
 
+        void load();
+        void unload();
+
         public:
-            Mesh() = default;
-            Mesh(rstring obj_path); // file.cpp
-
             struct alignas(32) Vertex { vec3 p, n; vec2 uv; };
-            uint16_t id{0};
-
-            Texture texture;
+            Texture texture; 
             Shader* shader{nullptr};
             
             vector<Vertex> vertices;
             vector<uint16_t> indices;
 
-            void load();
-            void unload();
+            uint16_t id;
+            bool is_loaded() const { return VBO != 0; }
+
+            Mesh() = default;
+            Mesh(const Mesh&) = delete;
+            Mesh& operator=(const Mesh&) = delete;
+            Mesh(Mesh&&) = default;
+            Mesh& operator=(Mesh&&) = default;
+
+            ~Mesh();
     };
 
-    struct Model { 
-        uint16_t id{0}, mesh{0}, body{0};
-        Pose pose;
-        vec4 metadata;
+    class Model {
+        friend set<Model>;
+        #ifdef PK_INTERNAL
+        friend void Perekop::render(bool);
+        #endif
+
+        public:
+            uint16_t id{0}, mesh{0}, body{0};
+            Pose pose;
+            vec4 metadata;
     };
 
     struct Camera { 

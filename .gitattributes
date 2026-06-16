@@ -1,3 +1,9 @@
-.vscode/** linguist-vendored
-pkengine/lib/** linguist-vendored
-pkengine/lib/** -diff
+.vscode/** linguist-documentation
+engine/lib/** linguist-vendored
+engine/lib/** -diff
+
+engine/assets/** linguist-vendored
+engine/assets/** -diff
+
+game/assets/** linguist-vendored
+game/assets/** -diff

@@ -6,8 +6,8 @@
 #include <GLFW/glfw3.h>
 
 #include <Internal.hpp>
-#include <PKLib/Time.hpp>
-#include <PKLib/File.hpp>
+#include <PKLib/time.hpp>
+#include <PKLib/file.hpp>
 using namespace pk;
 using namespace glm;
 using namespace Perekop;
@@ -29,7 +29,7 @@ int main() {
     init_render();
     init_window();
 
-    Time::Tracker<double, 2> frame_timer;
+    time::Tracker<double, 2> frame_timer;
     frame_timer.begin();
     printf("on_launch() begin\n");
     on_launch();

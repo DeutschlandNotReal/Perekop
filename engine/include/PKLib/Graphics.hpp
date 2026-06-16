@@ -3,10 +3,10 @@
 
 #include <PKCore/vector.hpp>
 #include <PKCore/string.hpp>
-#include <PKLib/Math.hpp>
+#include <PKLib/math_alias.hpp>
 
 namespace pk {
-    enum class Uniform {
+    enum class UniformType {
         u_int, u_float, u_vec2, u_vec3, u_vec4, u_mat3, u_mat4
     };
 
@@ -15,16 +15,16 @@ namespace pk {
         friend void Perekop::render(bool);
         #endif
 
-        struct LUniform { int layout; Uniform type; const void* data; };
+        struct Uniform { int layout; UniformType type; const void* data; };
         uint32_t program{0}, layoutP{0}, layoutV{0}, layoutT{0};
-        vector<LUniform> uniforms;
+        vector<Uniform> uniforms;
         void use(const mat4& V, const mat4& P) const;
         
         public:
             Shader() = default;
-            Shader(rstring title, rstring vspath, rstring fspath);
+            Shader(vstring title, vstring vspath, vstring fspath);
 
-            void uniform(Uniform type, rstring title, const void* data);
+            void uniform(UniformType type, vstring title, const void* data);
     };
 
     class Texture {
@@ -35,6 +35,6 @@ namespace pk {
         void use(uint32_t layout) const;
         public:
             Texture() = default;
-            Texture(rstring path);
+            Texture(vstring path);
     };
 }

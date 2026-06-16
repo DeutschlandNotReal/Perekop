@@ -1,6 +1,6 @@
 #pragma once
 #include <PKCore/set.hpp>
-#include <PKLib/Geometry.hpp>
+#include <PKLib/geometry.hpp>
 
 #ifdef PK_INTERNAL
 namespace Perekop { void render(bool); void step_physics(float dt); }
@@ -17,7 +17,7 @@ namespace pk {
         mat3 I{1}, invI{1};
         float mass{0};
         bool dirty{false};
-        short rootid{0}; // root model
+        uint16_t rootid{0}; // root model
 
         vec3 force{0}, torque{0};
         mat3 inverse_inertia();
@@ -26,7 +26,7 @@ namespace pk {
         public:
             Pose pose;
             vec3 vel{0}, angvel{0};
-            short id;
+            uint16_t id;
 
             void add_model(Model& model, float mass);
 

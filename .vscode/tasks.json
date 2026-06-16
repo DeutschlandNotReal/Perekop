@@ -4,8 +4,7 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "cmake --build build -- -j4",
-            "problemMatcher": []
+            "command": "cmake --build build --parallel"
         },
         {
             "label": "run",
@@ -15,7 +14,7 @@
         {
             "label": "config",
             "type": "shell",
-            "command": "rm -r build; cmake -B build -DCMAKE_BUILD_TYPE=Release"
+            "command": "cmake -B build -DCMAKE_BUILD_TYPE=Release"
         }
     ]
 }

@@ -2,7 +2,7 @@
 #include <chrono>
 #include <thread>
 
-namespace pk::Time {
+namespace pk::time {
     template <typename U> U now() {
         return std::chrono::duration<U>(std::chrono::steady_clock::now().time_since_epoch()).count();
     }

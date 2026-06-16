@@ -1,18 +1,14 @@
+#pragma once
 #include <PKCore/vector.hpp>
 #include <type_traits>
-
-#if defined(PK_DEBUG_SET) && PK_DEBUG_SET != 0
-#include <PKCore/debug.hpp>
-// debug flags:
-// 0b0001: index
-// 0b0010: insert
-// 0b0100: remove
-#endif
 
 namespace pk {
     template <typename T> class set {
         using I = decltype(T::id);
-        vector<T> data; vector<I> free; uint16_t items{0};
+
+        vector<T> data; 
+        vector<I> free; 
+        I items{0};
 
         struct set_iterator {
             T *cur{nullptr}, *end{nullptr};
@@ -27,14 +23,8 @@ namespace pk {
         };
 
         public:
-            T& operator[](I i) const { 
-                // index is 1 based so 0 can represent empty
-
-                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0001)
-                    if (i > data.size()) printf("\033[31m(%s) ERROR: set<%s> OOB [%i/%u]\n\033[0m", PK_DEBUG, classname<T>, i, data.size());
-                #endif
-
-                return data[i - 1]; 
+            T& operator[](uint16_t i) const { 
+                return data[i - 1]; // 1-index, 0 is for null
             }
 
             set_iterator begin() const { return {.cur = data.begin(), .end = data.end()}; }
@@ -42,27 +32,18 @@ namespace pk {
             
             template <typename... A> T& insert(A&&... args) {
                 ++items;
-                I id;
 
-                if (!free.empty()) {
+                if (!free.is_empty()) {
+                    I id;
                     free.popout(&id);
-                    new (&data[id - 1]) T(args...);
-                    data[id - 1].id = id;
+                    new (&data[id-1]) T(forward_cast<A>(args)...);
+                    data[id-1].id = id;
 
-                    #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0010)
-                        printf("(%s) set<%s> insert empty (id %i)\n", PK_DEBUG, classname<T>, id);
-                    #endif
-
-                    return data[id - 1];
+                    return data[id-1];
                 } else {
-                    id = data.size() + 1;
-                    data.emplace(args...).id = id;
-
-                    #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0010)
-                        printf("(%s) set<%s> insert back (id %i)\n", PK_DEBUG, classname<T>, id);
-                    #endif
-
-                    return data[id - 1];
+                    I id = data.size() + 1;
+                    data.emplace(forward_cast<A>(args)...).id = id;
+                    return data.back();
                 }
             }
 
@@ -70,6 +51,7 @@ namespace pk {
                 --items;
                 if (id == data.back()) {
                     data.pop();
+                    data[data.size()].id = 0;
                 } else {
                     if constexpr(!std::is_trivially_destructible_v<T>)
                         data[id - 1].~T();
@@ -77,10 +59,6 @@ namespace pk {
                     data[id - 1].id = 0;
                     free.emplace(id);
                 }
-
-                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0100)
-                    printf("(%s) set<%s> remove (id %i)\n", PK_DEBUG, classname<T>, id);
-                #endif
             }
 
             void removeout(I id, T* to) {
@@ -88,16 +66,16 @@ namespace pk {
                 if (id == data.size()) { 
                     data.popout(to); 
                 } else { 
-                    new (to) T((T&&) data[id - 1]);
+                    new (to) T(rvalue_cast(data[id - 1]));
                 }
-
-                #if defined(PK_DEBUG_SET) && (PK_DEBUG_SET & 0b0100)
-                    printf("(%s) set<%s> removeout (id %i)\n", PK_DEBUG, classname<T>, id);
-                #endif
             }
 
-            uint32_t size() const { return items; }
+            bool valid(I id) {
+                return !(id <= 0 || id > data.size() || !data[id-1].id);
+            }
+
+            uint32_t size()     const { return items; }
             uint32_t capacity() const { return data.capacity(); }
-            uint32_t memsize() const { return data.capacity() * sizeof(T) + free.capacity() * sizeof(I); }
+            uint32_t memsize()  const { return data.capacity() * sizeof(T) + free.capacity() * sizeof(I); }
     };
 }

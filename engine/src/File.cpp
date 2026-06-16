@@ -1,15 +1,12 @@
-#include <winscard.h>
 #define PK_ENGINE_SRC
-#define PK_PRINT_OBJ
-
 #include <Internal.hpp>
-
 #include <cstdio>
-#include <PKLib/File.hpp>
-#include <PKLib/Geometry.hpp>
+#include <cctype>
+#include <PKLib/file.hpp>
+#include <PKCore/algorithm.hpp>
 using namespace pk;
 
-string File::read(rstring path) {
+string file::read_src(vstring path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path.begin());
@@ -18,130 +15,120 @@ string File::read(rstring path) {
 
     fseek(f, 0, SEEK_END);
     uint32_t len = ftell(f); rewind(f);
-    string str{len};
+    string str{len};  
 
     fread(str.begin(), 1, len, f);   
     fclose(f);
     return {(string&&) str};
 }
 
-Mesh::Mesh(rstring path) {
-    string src = File::read(path);
-    if (!src) return;
+// first occurance of char between cur and end
+char* find(char* cur, char* end, char c) {
+    return (char*)std::memchr(cur, c, end - cur);
+}
 
+uint32_t nextu32(char **cur) {
+    return std::strtoul(*cur, cur, 10);
+}
+
+float nextf32(char **cur) {
+    return std::strtof(*cur, cur);
+}
+
+void file::read_obj(vstring path, Mesh& mesh) {
+    string src = file::read_src(path);
+    if (!src) return;
     printf("Reading OBJ %s\n", path.begin());
     
-    rstring reader{src};
+    vector<vec3> pos{1000};
+    vector<vec3> nor{1000};
+    vector<vec2> tex{1000};
+    char *cur = src.begin(), *end = src.end();
+    vector<uint64_t> pnt;
+    auto &indices = mesh.indices;
+    auto &vertices = mesh.vertices;
 
-    vector<vec3> pos{16};
-    vector<vec3> nor{16};
-    vector<vec2> tex{16};
+    indices.clear();
+    vertices.clear();
 
-    // sort of a map, BLOAT!
-    struct entry { 
-        uint16_t id; 
-        vector<entry> leaf;
-    };
-    vector<entry> vertex_map;
+    int duplicates = 0;
+    while (cur < end) {
+        while (cur < end && isspace(*cur)) ++cur;
 
-    auto id_search = [](const entry& e, uint16_t id){ return e.id == id; };
+        printf("\r%i vertices (duplicates %i), %i indices", pnt.size(), duplicates, indices.size());
+        fflush(stdout);
 
-    while (true) {
-        reader.skip_whitespace();
-
-        switch (reader.consume()) {
+        switch (*(cur++)) {
             case 'v': {
-                switch (reader[0]) {
-                    case 't': { // uv
-                        tex.emplace(
-                            reader.nextf32(),
-                            reader.nextf32()
-                        );
-
-                        reader.advance(); break;
+                switch (*cur) {
+                    case 't': {
+                        ++cur; // skip 't'
+                        tex.emplace( nextf32(&cur), nextf32(&cur) );
+                        break;
                     }
-                    case 'n': { // normal
-                        nor.emplace(
-                            reader.nextf32(),
-                            reader.nextf32(),
-                            reader.nextf32()
-                        );
-
-                        reader.advance(); break;
+                    case 'n': {
+                        ++cur; // skip 'n'
+                        nor.emplace( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
+                        break;
                     }
-                    default: { // position
-                        pos.emplace(
-                            reader.nextf32(),
-                            reader.nextf32(),
-                            reader.nextf32()
-                        );
+                    default: {
+                        pos.emplace( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
                     }
                 }
                 break;
             }
 
             case 'f': {
-                uint16_t vids[4];
-                int vcount{0};
+                uint16_t v[4];
+                uint8_t  n = 0;
 
-                auto* nline = reader.find('\n');
-                nline = (nline ? nline : reader.end());
+                char *line_end = find(cur, end, '\n') ?: end;
 
-                while (reader.begin() < nline) {
-                    uint16_t p = reader.nexti64();
-                    reader.advance();
-                    uint16_t t = reader.nexti64();
-                    reader.advance();
-                    uint16_t n = reader.nexti64();
-
-                    uint16_t v = vertices.size();
-
-                    // i should probably make a map class soon
-                    entry* p_find = vertex_map.lfind(id_search, p);
-                    if (p_find) {
-                        entry* t_find = p_find->leaf.lfind(id_search, t);
-                        if (t_find) {
-                            entry* n_find = t_find->leaf.lfind(id_search, n);
-                            if (n_find) { v = *(uint16_t*)((char*)&n_find->leaf + 8); } else {
-                                entry& n_vec = t_find->leaf.emplace(n, vector<entry>());
-                                *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
-                            }
-                        } else {
-                            entry& t_vec = p_find->leaf.emplace(t, vector<entry>());
-                            entry& n_vec = t_vec.leaf.emplace(n, vector<entry>());
-                            *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
-                        }
-                    } else {
-                        entry& p_vec = vertex_map.emplace(p, vector<entry>());
-                        entry& t_vec = p_vec.leaf.emplace(t, vector<entry>());
-                        entry& n_vec = t_vec.leaf.emplace(n, vector<entry>());
-                        *(uint16_t*)((char*)&n_vec.leaf + 8) = v;
-                    }
+                while (cur < line_end) {
+                    uint64_t vertex =  nextu32(&cur); 
+                    cur++;
+                    vertex = (vertex<<16) | nextu32(&cur); 
+                    cur++;
+                    vertex = (vertex<<16) | nextu32(&cur);
                     
-                    vids[vcount++] = v;
-                    if (vcount >=4) break;
-                    if (v == vertices.size()) {
-                        vertices.emplace(pos[p], nor[n], tex[t]);
-                    }
+                    // duplicate vertex removal
+                    uint16_t i = alg::low_bound({pnt}, vertex) - pnt.begin();
+                    
+                    if (i == pnt.size() || pnt[i] != vertex)
+                        pnt.push_at(i, vertex);
+                    else ++duplicates;
+
+                    v[n++] = i;
+
+                    if (n > 3) break;
                 }
 
-                if (vcount == 3) {
-                    indices.push({vids[0], vids[1], vids[2]});
-                } else if (vcount == 4) {
+                if (n == 3) 
+                    indices.push({v[0], v[1], v[2]});
+                else if (n == 4) {
                     indices.push({
-                        vids[0], vids[1], vids[2],
-                        vids[0], vids[2], vids[3]
+                        v[0], v[1], v[2],
+                        v[0], v[2], v[3]
                     });
-                } else {
-                    printf("%i, what are we doing here?\n", vcount);
                 }
                 break;
             }
         }
 
-        auto* nline = reader.find('\n');
-        if (nline) { reader.point(nline); } else { break; }
+        cur = find(cur, end, '\n'); // next line
+
+        if (!cur) break; 
+        else ++cur; // skips actual \n
     }
 
-    printf("Finished reading OBJ %s, produced %i vertices, %i triangles\n", path.begin(), vertices.size(), indices.size() / 3);
+    vertices.reserve(pnt.size());
+    for (uint64_t pnt_vertex : pnt) {
+        vertices.emplace(
+            pos[((pnt_vertex >> 32)) - 1],
+            nor[(pnt_vertex & 0xFFFF) - 1],
+            tex[((pnt_vertex >> 16) & 0xFFFF) - 1]
+        );
+    }
+
+    printf("\nFinished reading OBJ %s, produced %i vertices, %i triangles\n", path.begin(), vertices.size(), indices.size() / 3);
 }

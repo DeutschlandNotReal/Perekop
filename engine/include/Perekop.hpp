@@ -1,9 +1,9 @@
 #pragma once
 #include <PKCore/string.hpp>
-#include <PKLib/Geometry.hpp>
-#include <PKLib/Gui.hpp>
-#include <PKLib/Body.hpp>
-#include <PKLib/Event.hpp>
+#include <PKLib/geometry.hpp>
+#include <PKLib/gui.hpp>
+#include <PKLib/physics.hpp>
+#include <PKLib/event.hpp>
 
 namespace Perekop {
     extern void on_launch();
@@ -38,7 +38,7 @@ namespace Perekop {
 
         extern vec2 get_size();
         extern void set_size(vec2 size);
-        extern void set_title(pk::rstring title);
+        extern void set_title(pk::vstring title);
 
         extern void maximize();
         extern void minimize();
