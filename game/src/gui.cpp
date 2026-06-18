@@ -1,11 +1,11 @@
 #include <Perekop.hpp>
-#include <game/gui.hpp>
+#include <PKGame/gui.hpp>
 
 using namespace pk;
 using namespace glm;
 using namespace Perekop;
 
-void Game::init::gui() {
+void pkgame::init::gui() {
     Gui::items = {
         {{.4, .6, .6, 1}, {.3, .3}, {.1, .1}, 1},
         {{.3, .3, .1, 1}, {.2, .2}, {0.2 , 0}, 2}

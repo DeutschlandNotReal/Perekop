@@ -2,6 +2,7 @@
 #include <PKCore/memory.hpp>
 
 namespace pk {
+    class vstring;
     class string {
         char* data{nullptr}; uint32_t len{0};
 
@@ -64,6 +65,8 @@ namespace pk {
             explicit operator bool() const { return data != nullptr; }
             bool operator !()        const { return data == nullptr; }
 
+            vstring& view() const { return *(vstring*)this; }
+
             ~string() { if (data) free(data); }  
     };
 
@@ -89,5 +92,20 @@ namespace pk {
             
             explicit operator bool() const { return data != nullptr; }
             bool operator !()        const { return data == nullptr; }
+
+            bool operator>(const vstring& b) const {
+                int n = b.len > len ? len : b.len;
+                return std::strncmp(data, b.data, n) > 0;
+            }
+
+            bool operator<(const vstring& b) const {
+                int n = b.len > len ? len : b.len;
+                return std::strncmp(data, b.data, n) < 0;
+            }
+            
+            bool operator==(const vstring& b) const {
+                int n = b.len > len ? len : b.len;
+                return std::strncmp(data, b.data, n) == 0;
+            }
     };
 }

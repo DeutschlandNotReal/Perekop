@@ -1,10 +1,8 @@
-#include "PKLib/Geometry.hpp"
-
 #include <Perekop.hpp>
 #include <cstdio>
 #include <PKLib/File.hpp>
-#include <game/camera.hpp>
-#include <game/gui.hpp>
+#include <PKGame/camera.hpp>
+#include <PKGame/gui.hpp>
 
 using namespace pk;
 using namespace glm;
@@ -53,7 +51,7 @@ void make_body(Pose T, vec3 vel) {
 
 void Perekop::on_step(double dt) {
     constexpr float pi = 3.14159265f;
-    Game::step::camera(dt);
+    pkgame::step::camera(dt);
 
     t += dt;
 
@@ -89,7 +87,7 @@ void Perekop::on_step(double dt) {
 }
 
 void Perekop::on_launch() {
-    Game::init::camera();
+    pkgame::init::camera();
 
     printf("Game begin\n");
 

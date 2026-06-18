@@ -1,6 +1,5 @@
 #include <Perekop.hpp>
-#include <game/camera.hpp>
-#include <GLFW/glfw3.h>
+#include <PKGame/camera.hpp>
 
 using namespace pk;
 using namespace Perekop;
@@ -8,7 +7,7 @@ using namespace glm;
 
 float _pitch{0}, _yaw{0};
 
-void Game::init::camera() {
+void pkgame::init::camera() {
     Mouse::on_scroll.listen([](auto d){
         World::camera.pose.pos += vec3(0,0,-d) * Mouse::matrix();
     });
@@ -37,7 +36,7 @@ void Game::init::camera() {
 
 }
 
-void Game::step::camera(float dt) {
+void pkgame::step::camera(float dt) {
     using Input::held;
     vec3 delta{0};
 
