@@ -1,9 +1,7 @@
 #pragma once
-#include <glm/matrix.hpp>
-
 #include <PKCore/vector.hpp>
 #include <PKCore/string.hpp>
-#include <PKLib/math_alias.hpp>
+#include <PKLib/math.hpp>
 
 namespace pk {
     enum class UniformType {
@@ -22,19 +20,8 @@ namespace pk {
         
         public:
             Shader() = default;
-            Shader(vstring title, vstring vspath, vstring fspath);
+            Shader(strview title, strview vspath, strview fspath);
 
-            void uniform(UniformType type, vstring title, const void* data);
-    };
-
-    class Texture {
-        #ifdef PK_INTERNAL
-        friend void Perekop::render(bool);
-        #endif
-        uint32_t id{0};
-        void use(uint32_t layout) const;
-        public:
-            Texture() = default;
-            Texture(vstring path);
+            void uniform(UniformType type, strview title, const void* data);
     };
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <PKCore/set.hpp>
-#include <PKLib/geometry.hpp>
+#include <PKLib/model.hpp>
 
 #ifdef PK_INTERNAL
 namespace Perekop { void render(bool); void step_physics(float dt); }

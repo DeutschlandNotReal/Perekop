@@ -43,4 +43,20 @@
 
         return vec.push(closest - vec.begin(), item);
     }
+
+    // vector copy-merge
+    template <typename T, typename... spans> vector<T> vec_cmerge(spans&&... arrays) {
+        uint64_t net_size = (arrays.size() + ...);
+        vector<T> merged(net_size);
+        uint64_t index = 0;
+
+        auto mergef = [&index, &merged](auto&& span){ 
+            pk::copy<T>(merged.begin() + index, span.begin(), span.size());
+            index += span.size();
+        };
+
+        (mergef(arrays), ...);
+
+        return merged;
+    }
 }

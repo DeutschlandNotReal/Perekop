@@ -1,17 +1,34 @@
 #pragma once
-#include <PKLib/math_alias.hpp>
+#include <PKCore/string.hpp>
+#include <PKLib/math.hpp>
 #include <PKLib/event.hpp>
+#include <PKLib/texture.hpp>
 
 namespace pk {
-    struct GUIObject {
-        bool intersect(const vec2& p) const {
-            return !(p.x < pos.x || p.y < pos.y || p.x > pos.x + size.x || p.y > pos.y + size.y);
+    enum class gui_type: char {
+        basic = 0,
+        text  = 1,
+        image = 2
+    };
+
+    struct gui_instance {
+        vec2 pos{0}, size{0};
+        bool entered{false};
+        float Z{0};
+        bool is_intersecting(const vec2& point) const {
+            return !(point.x < pos.x || point.y < pos.y || point.x > pos.x + size.x || point.y > pos.y + size.y);
         }
 
-        vec4 col;
-        vec2 size{0}, pos{0};
-        float Z{0};
-        int id{0};
-        bool entered{false};
+        gui_type type{gui_type::basic};
+        
+        union {
+            string text;
+            Texture image;
+            vec3 col;
+        };
+
+        ~gui_instance() {
+            if (type == gui_type::text) delete text;
+        };
     };
 }

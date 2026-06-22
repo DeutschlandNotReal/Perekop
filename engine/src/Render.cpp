@@ -2,10 +2,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-
 #include <Internal.hpp>
-#include <PKLib/Time.hpp>
-#include <PKLib/File.hpp>
+#include <PKlib/file.hpp>
 
 using namespace glm;
 using namespace pk;
@@ -70,7 +68,7 @@ class glAttribute {
         }
 };
 
-GLuint load_shader(std::initializer_list<const char*> src, vstring title, GLenum T) {
+GLuint load_shader(std::initializer_list<const char*> src, strview title, GLenum T) {
     GLuint shader = glCreateShader(T);
     glShaderSource(shader, src.size(), src.begin(), 0);
     glCompileShader(shader);
@@ -110,11 +108,11 @@ void load_texture(GLuint* texture, const char* path) {
     stbi_image_free(data);
 }
 
-Texture::Texture(vstring path) {
+Texture::Texture(strview path) {
     load_texture(&id, path);
 };
 
-Shader::Shader(vstring title, vstring vpath, vstring fpath) {
+Shader::Shader(strview title, strview vpath, strview fpath) {
     string vsrc = file::read_src(vpath), fsrc = file::read_src(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
@@ -126,7 +124,7 @@ Shader::Shader(vstring title, vstring vpath, vstring fpath) {
     layoutT = glGetUniformLocation(program, "f_image");
 }
 
-void Shader::uniform(UniformType type, vstring title, const void* data) {
+void Shader::uniform(UniformType type, strview title, const void* data) {
     uniforms.push_back({
         glGetUniformLocation(program, title),
         type,
@@ -254,14 +252,14 @@ void Perekop::render(bool recollect) {
         cache::gui.clear();
         float minz{0}, maxz{1};
 
-        for (const GUIObject &gui : Gui::items) {
+        for (const gui_instance &gui : Gui::items) {
             maxz = max(maxz, gui.Z); 
             minz = min(minz, gui.Z);
         }
 
         float iZR = 1.f / (maxz - minz);
-        for (const GUIObject &gui : Gui::items)
-            cache::gui.emplace_back( (gui.Z - minz) * iZR, gui.pos, gui.size, gui.col );
+        for (const gui_instance &gui : Gui::items)
+            cache::gui.emplace_back( (gui.Z - minz) * iZR, gui.pos, gui.size, vec4(gui.col, 0) );
         
         glAttribute(gui_VAO)
             .data<GuiData>(gui_IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, cache::gui)

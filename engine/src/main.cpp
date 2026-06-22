@@ -1,5 +1,4 @@
 #define PK_ENGINE_SRC
-
 #include <format>
 #include <thread>
 #include <glad/glad.h>

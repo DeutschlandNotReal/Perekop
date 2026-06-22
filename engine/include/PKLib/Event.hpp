@@ -8,7 +8,7 @@ namespace pk {
 
         public:
             void fire(const T&... items) {
-                if (listeners) for (callback call : listeners)
+                for (callback call : listeners)
                     call(items...);
             }
 

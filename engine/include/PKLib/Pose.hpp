@@ -1,6 +1,5 @@
 #pragma once
-#include "glm/ext/quaternion_common.hpp"
-#include <PKLib/math_alias.hpp>
+#include <PKLib/math.hpp>
 
 namespace pk {
     struct Pose {

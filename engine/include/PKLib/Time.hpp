@@ -12,8 +12,8 @@ namespace pk::time {
     }
 
     template <typename U> class Stopwatch {
-        U* result; U start;
-        Stopwatch(U* result): result(result), start(now<U>()) {};
+        U start, *result;
+        Stopwatch(U *result): result(result), start(now<U>()) {};
         ~Stopwatch() { *result = now<U>() - start; }
     };
 

@@ -6,7 +6,7 @@
 #include <PKCore/algorithm.hpp>
 using namespace pk;
 
-string file::read_src(vstring path) {
+string file::read_src(strview path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%s'\n", path.begin());
@@ -35,7 +35,7 @@ float nextf32(char **cur) {
     return std::strtof(*cur, cur);
 }
 
-void file::read_obj(vstring path, Mesh& mesh) {
+void file::read_obj(strview path, Mesh& mesh) {
     string src = file::read_src(path);
     if (!src) return;
     printf("Reading OBJ %s\n", path.begin());
@@ -48,23 +48,14 @@ void file::read_obj(vstring path, Mesh& mesh) {
     tex.emplace(0);
 
     char *cur = src.begin(), *end = src.end();
-    struct OBJVertex { 
-        uint64_t data; 
-        bool operator==(const OBJVertex& b) const { return (data >> 16) == (b.data >> 16); }
-        bool operator<(const OBJVertex& b) const { return (data >> 16) < (b.data >> 16); }
-        bool operator>(const OBJVertex& b) const { return (data >> 16) > (b.data >> 16); }
-
-        uint16_t* id()  const { return ((uint16_t*)&data); }
-        uint16_t* pos() const { return ((uint16_t*)&data) + 1; }
-        uint16_t* tex() const { return ((uint16_t*)&data) + 2; }
-        uint16_t* nor() const { return ((uint16_t*)&data) + 3; }
-        OBJVertex() = default;
-        OBJVertex(uint16_t p, uint16_t t, uint16_t n):
-            data((uint64_t)p<<16 | (uint64_t)t<<32 | (uint64_t)n<<48)
-        {}
+    struct OBJVertex {
+        uint16_t pos, tex, nor;
+        bool operator==(const OBJVertex& b) const { 
+            return *(uint32_t*)&pos == *(uint32_t*)&b.pos && nor == b.nor;
+        }
     };
 
-    vector<OBJVertex> vertex_ptn;
+    vector<OBJVertex> ptn_vec;
     auto &indices = mesh.indices;
     auto &vertices = mesh.vertices;
 
@@ -72,25 +63,23 @@ void file::read_obj(vstring path, Mesh& mesh) {
     vertices.clear();
 
     while (cur < end) {
-        while (cur < end && isspace(*cur)) ++cur;
+        while (cur != end && isspace(*cur)) ++cur;
 
         switch (*(cur++)) {
             case 'v': {
                 switch (*cur) {
-                    case 't': {
+                    case 't': 
                         ++cur; // skip 't'
                         tex.emplace_back( nextf32(&cur), nextf32(&cur) );
                         break;
-                    }
-                    case 'n': {
+                    case 'n': 
                         ++cur; // skip 'n'
                         nor.emplace_back( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
                         break;
-                    }
-                    default: {
+                    default: 
                         pos.emplace_back( nextf32(&cur), nextf32(&cur), nextf32(&cur) );
-                    }
                 }
+
                 break;
             }
 
@@ -102,36 +91,29 @@ void file::read_obj(vstring path, Mesh& mesh) {
 
                 while (cur < line_end) {
                     uint64_t v_pos = nextu32(&cur), v_tex = 0, v_nor = 0;
-                    if (*cur == '/' && *(cur+1) == '/') {
-                        // case: p//n
-                        cur += 2;
-                        v_nor = nextu32(&cur);
-                    } else if (*cur == '/') {
-                        // case: p/t
-                        ++cur;
-                        v_tex = nextu32(&cur);
-                        if (*cur == '/') {
-                            // case: p/t/n
-                            ++cur;
+                    if (*cur == '/') {
+                        if (*(cur+1) == '/') {
+                            // case: p//n
+                            cur += 2;
                             v_nor = nextu32(&cur);
+                        } else {
+                            // case: p/t
+                            ++cur;
+                            v_tex = nextu32(&cur);
+                            if (*cur == '/') {
+                                // case: p/t/n
+                                ++cur;
+                                v_nor = nextu32(&cur);
+                            }
                         }
                     }
-                    // case: p (do nothing more)
 
-                    OBJVertex v_ptn(v_pos, v_tex, v_nor);
+                    OBJVertex ptn(v_pos, v_tex, v_nor);
+
+                    // naive duplication search (linear!!)
+                    OBJVertex* ptr = lsearch(ptn_vec.span(), ptn) ?: &ptn_vec.emplace_back(ptn);
                     
-                    // duplicate vertex removal
-                    OBJVertex* match = lower_bound({vertex_ptn}, v_ptn);
-                    uint16_t i = vertex_ptn.size();
-
-                    if (match == vertex_ptn.end() ||  !(*match == v_ptn)) {
-                        *v_ptn.id() = i;
-                        vertex_ptn.push(match - vertex_ptn.begin(), v_ptn);
-                    } else {
-                        i = *match->id();
-                    }
-
-                    v[n++] = i;
+                    v[n++] = ptr - ptn_vec.begin();
 
                     if (n > 3) break;
                 }
@@ -154,13 +136,13 @@ void file::read_obj(vstring path, Mesh& mesh) {
         else ++cur; // skips actual \n
     } 
 
-    vertices.reserve(vertex_ptn.size());
-    for (OBJVertex& v_pnt : vertex_ptn) {
+    vertices.reserve(ptn_vec.size());
+    for (OBJVertex& v_pnt : ptn_vec) {
         vertices.emplace_back(
-            pos[*v_pnt.pos()],
-            nor[*v_pnt.nor()],
-            tex[*v_pnt.tex()]
-        ); 
+            pos[v_pnt.pos],
+            nor[v_pnt.nor],
+            tex[v_pnt.tex]
+        );
     }
 
     printf("\nFinished reading OBJ %s, produced %i vertices, %i triangles\n", path.begin(), vertices.size(), indices.size() / 3);

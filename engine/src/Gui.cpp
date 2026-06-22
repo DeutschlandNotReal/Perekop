@@ -1,7 +1,5 @@
 #define PK_ENGINE_SRC
-
 #include <Internal.hpp>
-#include <PKLib/gui.hpp>
 
 using namespace pk;
 using namespace glm;
@@ -9,8 +7,8 @@ using namespace glm;
 void Perekop::query_gui() {
     Gui::top = nullptr;
 
-    for (GUIObject &gui : Gui::items) {
-        gui.entered = gui.intersect(Mouse::pos);
+    for (gui_instance &gui : Gui::items) {
+        gui.entered = gui.is_intersecting(Mouse::pos);
         if (gui.entered && (!Gui::top || Gui::top->Z > gui.Z))
             Gui::top = &gui; 
     }

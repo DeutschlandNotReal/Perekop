@@ -1,8 +1,11 @@
-#include <Perekop.hpp>
+#include <PKLib/math.hpp>
+#include <PKLib/file.hpp>
+#include <Perekop/callbacks.hpp>
+#include <Perekop/world.hpp>
+
 #include <cstdio>
-#include <PKLib/File.hpp>
 #include <PKGame/camera.hpp>
-#include <PKGame/gui.hpp>
+#include <PKGame/json.hpp>
 
 using namespace pk;
 using namespace glm;
@@ -87,9 +90,8 @@ void Perekop::on_step(double dt) {
 }
 
 void Perekop::on_launch() {
-    pkgame::init::camera();
-
     printf("Game begin\n");
+    pkgame::init::camera();
 
     Shader& chudshader = *new Shader("chudshader",
         "game/assets/shaders/vert.glsl",
@@ -102,6 +104,7 @@ void Perekop::on_launch() {
     chudshader.uniform(UniformType::u_vec3, "f_bgcol", &World::bgcol);
 
     Mesh& monkey = World::meshes.insert();
+    monkey_id = monkey.id;
     file::read_obj("game/assets/models/truemesh.obj", monkey);
 
     monkey.shader = &chudshader;

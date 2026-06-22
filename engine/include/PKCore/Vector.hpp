@@ -4,6 +4,8 @@
 #include <type_traits>
 
 namespace pk {
+    template <typename T> class span;
+
     // dynamic array std::vector substitute
     template <typename T> class vector {
           T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
@@ -91,8 +93,8 @@ namespace pk {
                 if constexpr (!std::is_trivially_destructible_v<T>) (--cur)->~T(); else --cur;
             }
 
-            void popout_back(T* to) {
-                new (to) T(rvalue_cast(*--cur));
+            [[nodiscard]] T&& popout_back() {
+                return rvalue_cast(*--cur);
             }
 
             void reserve(uint32_t new_size) {
@@ -128,6 +130,12 @@ namespace pk {
                 return *(cur++);
             }
 
+            T& push_back(T&& item) {
+                if (is_full()) grow();
+                new (cur) T(rvalue_cast(item));
+                return *(cur++);
+            }
+
             // at must be less than or equal to size
             T& push(uint32_t at, const T& item) {
                 if (is_full()) grow();
@@ -150,6 +158,11 @@ namespace pk {
                 if (data) { clear(); pk::free(data); }
                 data = cur = cap = nullptr;
             }
+
+            const span<T>& span() const {
+                // REINTERPRET CAST! must be const
+                return *(pk::span<T>*)this;
+            }
     };
 
     // refers to MUTABLE chunk of memory, std::span substitute
@@ -165,11 +178,16 @@ namespace pk {
             span(T* single): data(single), cap(single+1) {}
             span(T* first, T* end): data(first), cap(end) {}
             span(T* first, uint32_t n): data(first), cap(first + n) {}
-            span(vector<T> &vec): data(vec.begin()), cap(vec.end()) {}
 
             template <uint32_t L> span(T (&items)[L]): data(items), cap(items+L) {}
 
             explicit operator bool() const { return data != nullptr; }
             bool operator!()         const { return data == nullptr; }
+
+            // can't work for pk::set
+            template <typename C> span(C& container): 
+                data((T*)container.begin()), 
+                cap ((T*)container.end()) 
+            {}
     };
 }

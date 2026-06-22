@@ -61,7 +61,7 @@ namespace Perekop::Window {
     }
 
     void set_size(glm::vec2 size) { glfwSetWindowSize(glfw_window, size.x, size.y); }
-    void set_title(vstring title) { glfwSetWindowTitle(glfw_window, title); }
+    void set_title(strview title) { glfwSetWindowTitle(glfw_window, title); }
 
     void minimize() { glfwIconifyWindow(glfw_window); }
     void maximize() { glfwMaximizeWindow(glfw_window); }

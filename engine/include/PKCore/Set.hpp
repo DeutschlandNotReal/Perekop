@@ -6,16 +6,41 @@ namespace pk {
     template <typename T> class set {
         using I = decltype(T::id);
 
-        vector<T> data; 
-        vector<I> free; 
+        struct slot {
+            union {
+                // so that v's destructor isn't called when item is destroyed
+                T v;
+            };
+ 
+            template <typename... A> slot(I id, A... args) {
+                new (&v) T(forward_cast<A>(args)...);
+                v.id = id;
+            }
+
+            slot(slot&& b): v(rvalue_cast(b.v)) {}
+
+            void nullify() {
+                if constexpr (!std::is_trivially_destructible_v<T>)
+                    if (v.id) v.~T(); 
+                v.id = 0;
+            }
+
+            ~slot() { nullify(); }
+
+            operator T&() { return v; }
+        };
+
+        vector<slot> data; 
+        vector<I> free;
+        // I assumed as unsigned type (u16, u32)
         I items{0};
 
         struct set_iterator {
             T *cur{nullptr}, *end{nullptr};
 
             void operator++() {
-                while (++cur < end && cur->id == 0);
-            }
+                while (++cur < end && !cur->id);
+            }        
 
             bool operator!=(const set_iterator&) const { return cur != end; }
 
@@ -23,55 +48,42 @@ namespace pk {
         };
 
         public:
-            T& operator[](uint16_t i) const { 
+            T& operator[](I i) const { 
                 return data[i - 1]; // 1-index, 0 is for null
             }
 
-            set_iterator begin() const { return {.cur = data.begin(), .end = data.end()}; }
-            set_iterator end()   const { return {}; }
+            set_iterator begin() const { 
+                T *cur = (T*)data.begin();
+                while (cur != (T*)data.end() && !cur->id) ++cur;
+
+                return {cur, (T*)data.end()}; 
+            }
+
+            set_iterator end() const { return {}; }
             
             template <typename... A> T& insert(A&&... args) {
                 ++items;
 
                 if (!free.is_empty()) {
-                    I id;
-                    free.popout_back(&id);
-                    new (&data[id-1]) T(forward_cast<A>(args)...);
-                    data[id-1].id = id;
+                    I id = free.popout_back();
+                    new (&data[id-1]) slot(id, forward_cast<A>(args)...);
 
-                    return data[id-1];
+                    return data[id-1].v;
                 } else {
-                    I id = data.size() + 1;
-                    data.emplace_back(forward_cast<A>(args)...).id = id;
-                    return data.back();
+                    return data.emplace_back(data.size() + 1, forward_cast<A>(args)...);
                 }
             }
 
             void remove(I id) {
                 --items;
-                if (id == data.back()) {
-                    data.pop();
-                    data[data.size()].id = 0;
-                } else {
-                    if constexpr(!std::is_trivially_destructible_v<T>)
-                        data[id - 1].~T();
+                if (id == data.size()) data.pop_back();
+                else free.push_back(id);
 
-                    data[id - 1].id = 0;
-                    free.push_back(id);
-                }
-            }
-
-            void removeout(I id, T* to) {
-                --items;
-                if (id == data.size()) { 
-                    data.popout_back(to); 
-                } else { 
-                    new (to) T(rvalue_cast(data[id - 1]));
-                }
+                data[id-1].nullify();
             }
 
             bool valid(I id) {
-                return !(id <= 0 || id > data.size() || !data[id-1].id);
+                return !(id-1 > data.size() || !data[id-1].v.id);
             }
 
             uint32_t size()     const { return items; }

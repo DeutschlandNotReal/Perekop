@@ -5,7 +5,7 @@
 namespace pk { class Mesh; }
 
 namespace pk::file {
-    string read_src(vstring path);
+    string read_src(strview path);
 
-    void read_obj(vstring path, Mesh& mesh);
+    void read_obj(strview path, Mesh& mesh);
 }

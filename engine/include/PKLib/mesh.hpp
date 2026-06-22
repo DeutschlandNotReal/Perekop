@@ -1,8 +1,9 @@
 #pragma once
-#include <PKLib/math_alias.hpp>
-#include <PKLib/pose.hpp>
-#include <PKLib/graphics.hpp>
 #include <PKCore/set.hpp>
+#include <PKLib/math.hpp>
+#include <PKLib/pose.hpp>
+#include <PKLib/texture.hpp>
+#include <PKLib/shader.hpp>
 
 namespace pk {
     class Model;
@@ -38,30 +39,5 @@ namespace pk {
             Mesh& operator=(Mesh&&) = default;
 
             ~Mesh();
-    };
-
-    class Model {
-        friend set<Model>;
-        #ifdef PK_INTERNAL
-        friend void Perekop::render(bool);
-        #endif
-
-        public:
-            uint16_t id{0}, mesh{0}, body{0};
-            Pose pose;
-            vec4 metadata;
-    };
-
-    struct Camera { 
-        float min{.01}, max{200}, fov{glm::radians(70.f)}; 
-        Pose pose;
-
-        mat4 view() const { 
-            return glm::inverse(pose.mat4()); 
-        }
-
-        mat4 proj(float aspect) const { 
-            return glm::perspectiveZO(fov, aspect, min, max); 
-        }
     };
 }

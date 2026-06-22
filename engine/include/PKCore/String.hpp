@@ -2,7 +2,7 @@
 #include <PKCore/memory.hpp>
 
 namespace pk {
-    class vstring;
+    class strview;
     class string {
         char* data{nullptr}; uint32_t len{0};
 
@@ -65,23 +65,40 @@ namespace pk {
             explicit operator bool() const { return data != nullptr; }
             bool operator !()        const { return data == nullptr; }
 
-            vstring& view() const { return *(vstring*)this; }
+            bool operator>(const string& b) const {
+                int n = b.len > len ? len : b.len;
+                return std::strncmp(data, b.data, n) > 0;
+            }
+
+            bool operator<(const string& b) const {
+                int n = b.len > len ? len : b.len;
+                return std::strncmp(data, b.data, n) < 0;
+            }
+            
+            bool operator==(const string& b) const {
+                return !(b.len != len || strncmp(data, b.data, len));
+            }
+
+            const strview& view() const { 
+                // REINTERPRET CAST! must be const
+                return *(strview*)this; 
+            }
 
             ~string() { if (data) free(data); }  
     };
 
     // view string, non owning
-    class vstring {
+    class strview {
         const char* data{nullptr}; uint32_t len{0};
 
         public:
-            vstring() = default;
-            vstring(const string &str): data(str.begin()), len(str.size()) {}
-            vstring(const char* str): data(str), len(strlen(str)) {}
-            vstring(const char* str, const char* end): data(str), len(end - data) {}
-            vstring(const char* str, uint32_t len): data(str), len(len) {}
+            strview() = default;
+            strview(const string &str): data(str.begin()), len(str.size()) {}
+            strview(const char* str): data(str), len(strlen(str)) {}
+            strview(const char* str, const char* end): data(str), len(end - data) {}
+            strview(const char* str, uint32_t len): data(str), len(len) {}
 
-            template <uint32_t L> vstring(const char (&str)[L]): data(str), len(L-1) {}
+            template <uint32_t L> strview(const char (&str)[L]): data(str), len(L-1) {}
 
             operator const char*() const { return data; }
             char operator[](uint32_t i) const { return data[i]; } 
@@ -93,19 +110,24 @@ namespace pk {
             explicit operator bool() const { return data != nullptr; }
             bool operator !()        const { return data == nullptr; }
 
-            bool operator>(const vstring& b) const {
+            bool operator>(const strview& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            bool operator<(const vstring& b) const {
+            bool operator<(const strview& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            bool operator==(const vstring& b) const {
-                int n = b.len > len ? len : b.len;
-                return std::strncmp(data, b.data, n) == 0;
+            bool operator==(const strview& b) const {
+                return !(b.len != len || strncmp(data, b.data, len));
+            }
+
+            string allocate() const {
+                string str{len};
+                pk::copy(str.begin(), data, len);
+                return str;
             }
     };
 }

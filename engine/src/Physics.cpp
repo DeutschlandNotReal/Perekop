@@ -1,7 +1,6 @@
 #define PK_ENGINE_SRC
 
 #include <Internal.hpp>
-#include <PKLib/physics.hpp>
 using namespace pk;
 using namespace glm;
 

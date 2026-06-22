@@ -2,7 +2,11 @@
 #ifdef PK_ENGINE_SRC
 namespace Perekop { void render(bool recollect); }
 #define PK_INTERNAL
-#include <Perekop.hpp>
+#include <Perekop/callbacks.hpp>
+#include <Perekop/gui.hpp>
+#include <Perekop/input.hpp>
+#include <Perekop/window.hpp>
+#include <Perekop/world.hpp>
 
 class GLFWwindow;
 namespace pk {
@@ -45,5 +49,4 @@ namespace Perekop {
     extern glm::mat3 to_inertia(glm::vec3 localpoint);
 }
 
-#undef PK_INTERNAL
 #endif
