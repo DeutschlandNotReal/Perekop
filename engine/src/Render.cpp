@@ -113,7 +113,7 @@ Texture::Texture(strview path) {
 };
 
 Shader::Shader(strview title, strview vpath, strview fpath) {
-    string vsrc = file::read_src(vpath), fsrc = file::read_src(fpath);
+    string vsrc = read_file(vpath), fsrc = read_file(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
         load_shader({Perekop::preamble_f, fsrc}, title, GL_FRAGMENT_SHADER)
@@ -278,8 +278,8 @@ Mesh::~Mesh() {
 }
 
 void Perekop::init_render() {
-    preamble_v = file::read_src("engine/assets/shaders/pre_vsrc.glsl");
-    preamble_f = file::read_src("engine/assets/shaders/pre_fsrc.glsl");
+    preamble_v = read_file("engine/assets/shaders/pre_vsrc.glsl");
+    preamble_f = read_file("engine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)
         // vertex (pos, norm, uv)
         .item<vec3, vec3, vec2>()
@@ -293,7 +293,7 @@ void Perekop::init_render() {
         .item_instanced<float, vec2, vec2, vec4>()
         .data<vec2>(gui_VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, gui_V);
     
-    string vsrc = file::read_src("engine/assets/shaders/gui_vert.glsl");
+    string vsrc = read_file("engine/assets/shaders/gui_vert.glsl");
     gui_PROG = load_program({
         load_shader({vsrc}, "gui", GL_VERTEX_SHADER),
         load_shader({"#version 430\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui", GL_FRAGMENT_SHADER)
