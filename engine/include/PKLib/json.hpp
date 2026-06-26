@@ -1,12 +1,12 @@
 #pragma once
 #include <PKCore/string.hpp>
-#include <PKLib/mesh.hpp>
 
 namespace pk::json {
-    enum type: char {_empty = 0, _bool, _str, _int, _flt, _arr = '[', _arr_end = ']', _obj = '{', _obj_end = '}', };
+    enum type: char {_empty = 0, _null, _bool, _str, _int, _flt, _arr = '[', _arr_end = ']', _obj = '{', _obj_end = '}', };
     struct token {
-        type type{_empty};
         strview key;
+        type type{_empty};
+
         union {
             strview value_str;
             int value_int;
@@ -17,5 +17,6 @@ namespace pk::json {
         bool operator!() const { return !type; }
     };
 
-    extern void parse(strview src, bool (*consumer)(token token));
+
+    extern void parse(strview src, void(*callback)(const token&, void*), void* userdata = nullptr);
 }

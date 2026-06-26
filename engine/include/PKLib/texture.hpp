@@ -1,7 +1,7 @@
 #pragma once
 #include <PKCore/vector.hpp>
 #include <PKCore/string.hpp>
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 
 namespace pk {
     class Texture {
@@ -9,8 +9,8 @@ namespace pk {
         friend void Perekop::render(bool);
         #endif
 
-        uint32_t id{0};
-        void use(uint32_t layout) const;
+        u32 id{0};
+        void use(u32 layout) const;
         public:
             Texture() = default;
             Texture(strview path);

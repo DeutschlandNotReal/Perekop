@@ -1,6 +1,6 @@
 #pragma once
 #include <PKCore/string.hpp>
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 #include <PKLib/event.hpp>
 #include <PKLib/texture.hpp>
 
@@ -14,7 +14,7 @@ namespace pk {
     struct gui_instance {
         vec2 pos{0}, size{0};
         bool entered{false};
-        float Z{0};
+        f32 Z{0};
         bool is_intersecting(const vec2& point) const {
             return !(point.x < pos.x || point.y < pos.y || point.x > pos.x + size.x || point.y > pos.y + size.y);
         }

@@ -1,7 +1,7 @@
 #pragma once
 #include <PKCore/string.hpp>
 #include <PKLib/event.hpp>
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 
 namespace Perekop::Window {
         inline pk::Event<vec2> on_resize;

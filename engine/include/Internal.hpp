@@ -12,8 +12,8 @@ class GLFWwindow;
 namespace pk {
     struct GuiData { 
         float Z; 
-        glm::vec2 p, s; 
-        glm::vec4 RGBA;
+        vec2 p, s; 
+        vec4 RGBA;
     };
 
     struct ModelData { 
@@ -37,7 +37,7 @@ namespace Perekop {
     void step_window();
     void step_physics(float dt);
 
-    inline uint32_t
+    inline u32
         mesh_VAO{0},
         gui_VAO{0}, 
         gui_VBO{0}, 

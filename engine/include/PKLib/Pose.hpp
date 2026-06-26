@@ -1,5 +1,5 @@
 #pragma once
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 
 namespace pk {
     struct Pose {

@@ -1,5 +1,5 @@
 #pragma once
-#include <PKlib/gui.hpp>
+#include <PKLib/gui.hpp>
 
 namespace Perekop::Gui {
     inline pk::gui_instance* top{nullptr};

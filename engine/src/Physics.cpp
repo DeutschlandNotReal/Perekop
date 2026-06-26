@@ -2,7 +2,6 @@
 
 #include <Internal.hpp>
 using namespace pk;
-using namespace glm;
 
 Body::Body(Model &root): rootid(root.id) {
     

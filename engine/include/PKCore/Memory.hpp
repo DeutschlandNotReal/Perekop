@@ -1,7 +1,7 @@
 #pragma once
 #include <cstring>
 #include <type_traits>
-#include <cstdint>
+#include <PKMath/number.hpp>
 
 namespace pk {
     template <typename T> constexpr std::remove_reference_t<T>&& rvalue_cast(T&& v) noexcept {
@@ -27,7 +27,7 @@ namespace pk {
         src->~T();
     }
 
-    template <typename T = char> [[nodiscard]] inline T* alloc(uint32_t n) {
+    template <typename T = char> [[nodiscard]] inline T* alloc(u32 n) {
         if (!n) return nullptr;
         
         return (T*)::operator new(n * sizeof(T));
@@ -35,7 +35,7 @@ namespace pk {
 
     inline void free(void* ptr) { ::operator delete(ptr); }
 
-    template <typename T> inline void copy(T* dst, const T* src, uint32_t n = 1) {
+    template <typename T> inline void copy(T* dst, const T* src, u32 n = 1) {
         if (!dst || !src) return;
 
         if constexpr (std::is_trivially_copyable_v<T>)
@@ -44,7 +44,7 @@ namespace pk {
             new (dst + i) T(src[i]); 
     }
 
-    template <typename T> inline void move(T* dst, T* src, uint32_t n) {
+    template <typename T> inline void move(T* dst, T* src, u32 n) {
         if (!dst || !src) return;
 
         if constexpr (std::is_trivially_copyable_v<T>)
@@ -53,7 +53,7 @@ namespace pk {
             move(dst+i, src+i);
     }
 
-    template <typename T> inline void rshift(T* src, uint32_t n) {
+    template <typename T> inline void rshift(T* src, u32 n) {
         if (!src) return;
         T* dst = src+1;
 

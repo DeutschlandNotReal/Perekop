@@ -1,7 +1,7 @@
 #pragma once
 #include <PKCore/vector.hpp>
 #include <PKCore/string.hpp>
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 
 namespace pk {
     enum class UniformType {
@@ -14,7 +14,7 @@ namespace pk {
         #endif
 
         struct Uniform { int layout; UniformType type; const void* data; };
-        uint32_t program{0}, layoutP{0}, layoutV{0}, layoutT{0};
+        u32 program{0}, layoutP{0}, layoutV{0}, layoutT{0};
         vector<Uniform> uniforms;
         void use(const mat4& V, const mat4& P) const;
         

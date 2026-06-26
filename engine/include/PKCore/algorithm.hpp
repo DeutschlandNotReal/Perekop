@@ -13,10 +13,10 @@
 
     // gets pointer where ref would be if sorted
     template <typename T> T* lower_bound(span<T> array, const T &ref) {
-        uint32_t l = 0, h = array.size();
+        u32 l = 0, h = array.size();
 
         while (l != h) {
-            uint32_t m = (l + h) >> 1;
+            u32 m = (l + h) >> 1;
             if (array[m] < ref) l = m+1; else h = m;
         }
 
@@ -44,11 +44,9 @@
         return vec.push(closest - vec.begin(), item);
     }
 
-    // vector copy-merge
-    template <typename T, typename... spans> vector<T> vec_cmerge(spans&&... arrays) {
-        uint64_t net_size = (arrays.size() + ...);
+    template <typename T, typename... spans> vector<T> merge(spans&&... arrays) {
+        u64 net_size = (arrays.size() + ...), index = 0;
         vector<T> merged(net_size);
-        uint64_t index = 0;
 
         auto mergef = [&index, &merged](auto&& span){ 
             pk::copy<T>(merged.begin() + index, span.begin(), span.size());

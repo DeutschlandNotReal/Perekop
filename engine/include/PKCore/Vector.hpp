@@ -8,16 +8,16 @@ namespace pk {
 
     // dynamic array std::vector substitute
     template <typename T> class vector {
-          T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
+        T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
-        void resize(uint32_t newcap) {
+        void resize(u32 newcap) {
             if (!data) { 
                 data = cur = pk::alloc<T>(newcap); 
                 cap = data + newcap; 
                 return; 
             }
 
-            uint32_t len = size();
+            u32 len = size();
             T* ldata = data;
             data = pk::alloc<T>(newcap);
             pk::move(data, ldata, len);
@@ -28,7 +28,7 @@ namespace pk {
 
         public:
             vector() = default;
-            vector(uint32_t len): data(pk::alloc<T>(len)) { cap = data + len; cur = data; }
+            vector(u32 len): data(pk::alloc<T>(len)) { cap = data + len; cur = data; }
             vector(const vector &b): 
                 data(pk::alloc<T>(b.size())) {
                 cap = cur = data + b.size();
@@ -42,7 +42,7 @@ namespace pk {
                 cap = cur = data + items.size();
                 pk::copy(data, items.begin(), items.size());
             }
-            template <uint32_t L> vector(const T (&items)[L]): data(pk::alloc<T>(L)) { 
+            template <u32 L> vector(const T (&items)[L]): data(pk::alloc<T>(L)) { 
                 cap = cur = data + L; 
                 pk::copy(data, items, L); 
             }
@@ -50,7 +50,7 @@ namespace pk {
             explicit operator bool() const { return data != nullptr; }
             bool operator!()         const { return data == nullptr; }
 
-            T& operator[](uint32_t i) const { return data[i]; }
+            T& operator[](u32 i) const { return data[i]; }
 
             T& back()  const { return *(cur-1); }
             T* begin() const { return data; }
@@ -60,9 +60,9 @@ namespace pk {
             bool is_full()  const { return cap == cur; }
             bool in_range(T* ptr) const { return ptr >= data && ptr < cap; }
             
-            uint32_t size()     const { return cur - data; }
-            uint32_t capacity() const { return cap - data; }
-            uint32_t bytesize() const { return size() * sizeof(T); }
+            u32 size()     const { return cur - data; }
+            u32 capacity() const { return cap - data; }
+            u32 bytesize() const { return size() * sizeof(T); }
 
             vector& operator=(const vector &b) {
                 if (&b == this) return *this;
@@ -97,7 +97,7 @@ namespace pk {
                 return rvalue_cast(*--cur);
             }
 
-            void reserve(uint32_t new_size) {
+            void reserve(u32 new_size) {
                 if (new_size > capacity()) resize(new_size);
             }
 
@@ -114,7 +114,7 @@ namespace pk {
             }
 
             // at must be less than or equal to size
-            template <typename... A> T& emplace(uint32_t index, A&&... args) {
+            template <typename... A> T& emplace(u32 index, A&&... args) {
                 if (is_full()) grow();
                 if (index == size()) return emplace_back(forward_cast<A>(args)...);
                 
@@ -137,7 +137,7 @@ namespace pk {
             }
 
             // at must be less than or equal to size
-            T& push(uint32_t at, const T& item) {
+            T& push(u32 at, const T& item) {
                 if (is_full()) grow();
                 if (at == size()) return push_back(item);
                 
@@ -171,15 +171,15 @@ namespace pk {
         public:
             T* begin() const { return data; }
             T* end()   const { return cap; }
-            uint32_t size() const { return cap - data; }
+            u32 size() const { return cap - data; }
 
-            T& operator[](uint32_t i) const { return data[i]; }
+            T& operator[](u32 i) const { return data[i]; }
 
             span(T* single): data(single), cap(single+1) {}
             span(T* first, T* end): data(first), cap(end) {}
-            span(T* first, uint32_t n): data(first), cap(first + n) {}
+            span(T* first, u32 n): data(first), cap(first + n) {}
 
-            template <uint32_t L> span(T (&items)[L]): data(items), cap(items+L) {}
+            template <u32 L> span(T (&items)[L]): data(items), cap(items+L) {}
 
             explicit operator bool() const { return data != nullptr; }
             bool operator!()         const { return data == nullptr; }

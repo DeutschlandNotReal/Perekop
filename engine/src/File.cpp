@@ -13,7 +13,7 @@ string pk::read_file(strview path) {
     }
 
     fseek(f, 0, SEEK_END);
-    uint32_t len = ftell(f); rewind(f);
+    u32 len = ftell(f); rewind(f);
     string text(len);
 
     fread(text.begin(), 1, len, f);   

@@ -115,3 +115,13 @@ void Perekop::init_window() {
         Window::on_resize.fire({w, h});
     });
 }
+
+void Perekop::query_gui() {
+    Gui::top = nullptr;
+
+    for (gui_instance &gui : Gui::items) {
+        gui.entered = gui.is_intersecting(Mouse::pos);
+        if (gui.entered && (!Gui::top || Gui::top->Z > gui.Z))
+            Gui::top = &gui; 
+    }
+}

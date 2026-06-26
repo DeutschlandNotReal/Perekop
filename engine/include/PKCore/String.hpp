@@ -4,19 +4,19 @@
 namespace pk {
     class strview;
     class string {
-        char* data{nullptr}; uint32_t len{0};
+        char* data{nullptr}; u32 len{0};
 
         public:
-            char& operator[](uint32_t i) const { return data[i]; }
+            char& operator[](u32 i) const { return data[i]; }
 
-            uint32_t size() const { return len; }
+            u32 size() const { return len; }
             char* begin() const { return data; }
             char* end()   const { return data + len; }
             string() = default;
-            string(uint32_t L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
-            string(char* data, uint32_t len): data(data), len(len) {} // string assumes ownership
+            string(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
+            string(char* data, u32 len): data(data), len(len) {} // string assumes ownership
 
-            template <uint32_t L> 
+            template <u32 L> 
             string(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
                 pk::copy(data, str, L);
             }
@@ -89,20 +89,19 @@ namespace pk {
 
     // view string, non owning
     class strview {
-        const char* data{nullptr}; uint32_t len{0};
+        const char* data{nullptr}; u32 len{0};
 
         public:
+            template <u32 L> constexpr strview(const char (&str)[L]): data(str), len(L-1) {}
             strview() = default;
             strview(const string &str): data(str.begin()), len(str.size()) {}
             strview(const char* str): data(str), len(strlen(str)) {}
-            strview(const char* str, const char* end): data(str), len(end - data) {}
-            strview(const char* str, uint32_t len): data(str), len(len) {}
-
-            template <uint32_t L> strview(const char (&str)[L]): data(str), len(L-1) {}
+            constexpr strview(const char* str, const char* end): data(str), len(end - data) {}
+            constexpr strview(const char* str, u32 len): data(str), len(len) {}
 
             operator const char*() const { return data; }
-            char operator[](uint32_t i) const { return data[i]; } 
-            uint32_t size() const { return len; }
+            char operator[](u32 i) const { return data[i]; } 
+            u32 size() const { return len; }
 
             const char* begin() const { return data; }
             const char* end()   const { return data + len; }
@@ -124,10 +123,19 @@ namespace pk {
                 return !(b.len != len || strncmp(data, b.data, len));
             }
 
+            const char* search(char c) const {
+                return (const char*)std::memchr(data, c, len);
+            }
+
             string allocate() const {
                 string str{len};
                 pk::copy(str.begin(), data, len);
                 return str;
             }
     };
+
+    constexpr strview operator ""_view(const char* str, size_t len) noexcept {
+        return {str, (u32)len};
+    }
+
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <PKLib/event.hpp>
-#include <PKLib/math.hpp>
+#include <PKAlias/math.hpp>
 
 namespace Perekop::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };

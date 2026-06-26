@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 #include <thread>
+#include <PKAlias/number.hpp>
 
 namespace pk::time {
     template <typename U> U now() {
@@ -17,8 +18,8 @@ namespace pk::time {
         ~Stopwatch() { *result = now<U>() - start; }
     };
 
-    template <typename U, unsigned short L = 1> class Tracker {
-        short ptr{-1}; U records[L];
+    template <typename U, u16 L = 1> class Tracker {
+        i16 ptr{-1}; U records[L];
         public:
             void begin(U offset = 0) { records[++ptr] = now<U>() + offset; }
             U stop() { return now<U>() - records[ptr--]; }

@@ -8,7 +8,6 @@
 #include <PKLib/time.hpp>
 #include <PKLib/file.hpp>
 using namespace pk;
-using namespace glm;
 using namespace Perekop;
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }

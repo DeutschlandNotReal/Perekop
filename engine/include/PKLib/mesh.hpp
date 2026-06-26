@@ -1,6 +1,6 @@
 #pragma once
-#include <PKCore/set.hpp>
-#include <PKLib/math.hpp>
+#include <PKCore/slot_map.hpp>
+#include <PKAlias/math.hpp>
 #include <PKLib/pose.hpp>
 #include <PKLib/texture.hpp>
 #include <PKLib/shader.hpp>
@@ -8,7 +8,7 @@
 namespace pk {
     class Model;
     class Mesh {
-        friend set<Mesh>;
+        friend slot_map<Mesh>;
         friend Model;
         #ifdef PK_INTERNAL
         friend void Perekop::render(bool);
@@ -27,9 +27,9 @@ namespace pk {
             Shader* shader{nullptr};
             
             vector<Vertex> vertices;
-            vector<uint16_t> indices;
+            vector<u16> indices;
 
-            uint16_t id;
+            u16 id;
             bool is_loaded() const { return VBO != 0; }
 
             Mesh() = default;
