@@ -6,6 +6,8 @@ set(CMAKE_BUILD_TYPE Release)
 
 set(engine ${CMAKE_SOURCE_DIR}/engine)
 set(game ${CMAKE_SOURCE_DIR}/game)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(${engine}/lib/glfw)
 
@@ -26,7 +28,7 @@ target_compile_features(perekop PRIVATE cxx_std_20)
 # put every compile flag under the sun
 # might break something soon but it is super super super fast
 target_compile_options(perekop PRIVATE
-    $<$<CONFIG:Release>:-O3; -DNDEBUG; -march=native; -flto; -ffast-math; -funroll-loops>
+    $<$<CONFIG:Release>:-O3; -DNDEBUG; -march=native; -flto; -ffast-math; -funroll-loops; -mfma>
 )
 
 set_target_properties(perekop PROPERTIES

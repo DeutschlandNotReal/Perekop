@@ -28,16 +28,20 @@ namespace pk {
             new (dst) T(rvalue_cast(*src));
         else
             new (dst) T(*src);
-        src->~T();
+        if constexpr (!std::is_trivially_destructible_v<T>)
+            src->~T();
     }
 
-    template <typename T = char> [[nodiscard]] inline T* alloc(u32 n) {
-        if (!n) return nullptr;
-        
-        return (T*)::operator new(n * sizeof(T));
+    template <typename T = char, u8 align = 0> [[nodiscard]] inline T* alloc(u32 n) {
+        if constexpr (align)
+            // sizeof(T) * n must be multiple!!
+            u32 bytes = (sizeof(T) * n + align - 1) & ~(align - 1);
+            return (T*)std::aligned_alloc(align, bytes);
+        else
+            return (T*)std::malloc(sizeof(T) * n);
     }
 
-    inline void free(void* ptr) { ::operator delete(ptr); }
+    inline void free(void* ptr) { std::free(ptr); }
 
     template <typename T> inline void copy(T* dst, const T* src, u32 n = 1) {
         if (!dst || !src) return;

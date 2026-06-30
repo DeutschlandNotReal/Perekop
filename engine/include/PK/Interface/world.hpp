@@ -6,9 +6,10 @@
 #include <PK/Graphics/camera.hpp>
 
 namespace Perekop::World {   
-    inline pk::set<pk::Model> models;
-    inline pk::set<pk::Mesh> meshes;
-    inline pk::set<pk::Body> bodies;
+    inline pk::Vec<pk::Model> model_set;
+    inline pk::Vec<pk::Mesh>   mesh_set;
+    inline pk::Vec<pk::Body>   body_set;
+
     inline glm::vec3 bgcol{0.2,0.2,0.2};
 
     inline double fps{60};

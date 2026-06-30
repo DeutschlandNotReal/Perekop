@@ -1,11 +1,9 @@
 #pragma once
-#include <PK/Core/set.hpp>
 #include <PK/Physics/pose.hpp>
 #include <glm/vec4.hpp>
 
 namespace pk {
     class Model {
-        friend set<Model>;
         #ifdef PK_INTERNAL
         friend void Perekop::render(bool);
         #endif
@@ -15,4 +13,4 @@ namespace pk {
             Pose pose;
             glm::vec4 metadata;
     };
-}
+} 

@@ -1,5 +1,4 @@
 #pragma once
-#include <PK/Core/set.hpp>
 #include <PK/Physics/model.hpp>
 
 #ifdef PK_INTERNAL
@@ -12,7 +11,6 @@ namespace pk {
         friend void Perekop::render(bool);
         friend void Perekop::step_physics(f32);
         #endif
-        friend set<Body>;
 
         glm::mat3 I{1}, invI{1};
         f32 mass{0};
@@ -21,7 +19,7 @@ namespace pk {
         vec3 force{0}, torque{0};
         mat3 inverse_inertia();
 
-        Body(Model& root); 
+        Body(); 
         public:
             Pose pose;
             vec3 vel{0}, angvel{0};

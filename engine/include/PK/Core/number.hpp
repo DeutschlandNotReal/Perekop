@@ -1,6 +1,6 @@
 #pragma once
 
-using i8  = char;
+using i8  = signed char;
 using u8  = unsigned char;
 using i16 = short;
 using u16 = unsigned short;

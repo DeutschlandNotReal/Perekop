@@ -5,19 +5,19 @@
 
 namespace pk {
     // dynamic array std::vector substitute
-    template <typename T> class Vec {
+    template <typename T, u32 align = 0> class Vec {
         T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
         void resize(u32 newcap) {
             if (!data) { 
-                data = cur = pk::alloc<T>(newcap); 
+                data = cur = pk::alloc<T, align>(newcap); 
                 cap = data + newcap; 
                 return; 
             }
 
             u32 len = size();
             T* ldata = data;
-            data = pk::alloc<T>(newcap);
+            data = pk::alloc<T, align>(newcap);
             pk::move(data, ldata, len);
             pk::free(ldata);
             cap = data + newcap;
@@ -26,9 +26,9 @@ namespace pk {
 
         public:
             Vec() = default;
-            Vec(u32 len): data(pk::alloc<T>(len)) { cap = data + len; cur = data; }
+            Vec(u32 len): data(pk::alloc<T, align>(len)) { cap = data + len; cur = data; }
             Vec(const Vec &b): 
-                data(pk::alloc<T>(b.size())) {
+                data(pk::alloc<T, align>(b.size())) {
                 cap = cur = data + b.size();
                 pk::copy(data, b.data, b.size());
             }
@@ -36,11 +36,11 @@ namespace pk {
                 data(b.data), cap(b.cap), cur(b.cur) { 
                 b.data = b.cap = b.cur = nullptr; 
             }
-            Vec(std::initializer_list<T> items): data(pk::alloc<T>(items.size())) {
+            Vec(std::initializer_list<T> items): data(pk::alloc<T, align>(items.size())) {
                 cap = cur = data + items.size();
                 pk::copy(data, items.begin(), items.size());
             }
-            template <u32 L> Vec(const T (&items)[L]): data(pk::alloc<T>(L)) { 
+            template <u32 L> Vec(const T (&items)[L]): data(pk::alloc<T, align>(L)) { 
                 cap = cur = data + L; 
                 pk::copy(data, items, L); 
             }
@@ -71,9 +71,9 @@ namespace pk {
 
                 if (!data || size() < b.size()) {
                     if (data) { clear(); pk::free(data); }
-                    data = pk::alloc<T>(b.size()); 
+                    data = pk::alloc<T, align>(b.size()); 
                     cap = data + b.size(); 
-                };
+                } else { clear(); };
 
                 pk::copy(data, b.data, b.size());
                 cur = data + b.size();
