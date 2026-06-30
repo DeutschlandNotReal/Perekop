@@ -1,13 +1,14 @@
-#define PK_ENGINE_SRC
+#define PK_INTERNAL
+#include <PK/Physics/body.hpp>
+#include <PK/Physics/model.hpp>
+#include <PK/Internal.hpp>
 
-#include <Internal.hpp>
 using namespace pk;
-
-Body::Body(Model &root): rootid(root.id) {
+Body::Body(Model &root) {
     
 };
 
-glm::mat3 Perekop::to_inertia(vec3 lp) {
+mat3 Perekop::to_inertia(vec3 lp) {
     const float &x = lp.x, &y = lp.y, &z = lp.z;
     return {
         y*y+z*z, -x*y, -x*z,
@@ -42,8 +43,8 @@ mat3 Body::inverse_inertia() {
     return invI;
 }
 
-void Perekop::step_physics(float dt) {
-    float hdt = dt * .5;
+void Perekop::step_physics(f32 dt) {
+    f32 hdt = dt * .5f;
     for (Body &body : World::bodies) {
         body.pose += ( body.vel += body.force * ( dt / body.mass ) );
 

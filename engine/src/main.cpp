@@ -1,12 +1,13 @@
-#define PK_ENGINE_SRC
+#define PK_INTERNAL
 #include <format>
 #include <thread>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <Internal.hpp>
-#include <PKLib/time.hpp>
-#include <PKLib/file.hpp>
+#include <PK/Internal.hpp>
+#include <PK/Util/time.hpp>
+#include <PK/Util/file.hpp>
+
 using namespace pk;
 using namespace Perekop;
 
@@ -27,7 +28,7 @@ int main() {
     init_render();
     init_window();
 
-    time::Tracker<double, 2> frame_timer;
+    time::Tracker<f64, 2> frame_timer;
     frame_timer.begin();
     printf("on_launch() begin\n");
     on_launch();

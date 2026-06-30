@@ -1,9 +1,7 @@
-#define PK_ENGINE_SRC
-
+#define PK_INTERNAL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
-#include <Internal.hpp>
+#include <PK/Internal.hpp>
 using namespace pk;
 using namespace glm;
 

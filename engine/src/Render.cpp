@@ -1,9 +1,9 @@
-#define PK_ENGINE_SRC
+#define PK_INTERNAL
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include <Internal.hpp>
-#include <PKlib/file.hpp>
+#include <PK/Internal.hpp>
+#include <PK/Util/file.hpp>
 
 using namespace glm;
 using namespace pk;
@@ -68,7 +68,7 @@ class glAttribute {
         }
 };
 
-GLuint load_shader(std::initializer_list<const char*> src, strview title, GLenum T) {
+GLuint load_shader(std::initializer_list<const char*> src, SView title, GLenum T) {
     GLuint shader = glCreateShader(T);
     glShaderSource(shader, src.size(), src.begin(), 0);
     glCompileShader(shader);
@@ -108,12 +108,12 @@ void load_texture(GLuint* texture, const char* path) {
     stbi_image_free(data);
 }
 
-Texture::Texture(strview path) {
+Texture::Texture(SView path) {
     load_texture(&id, path);
 };
 
-Shader::Shader(strview title, strview vpath, strview fpath) {
-    string vsrc = read_file(vpath), fsrc = read_file(fpath);
+Shader::Shader(SView title, SView vpath, SView fpath) {
+    String vsrc = read_file(vpath), fsrc = read_file(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
         load_shader({Perekop::preamble_f, fsrc}, title, GL_FRAGMENT_SHADER)
@@ -124,7 +124,7 @@ Shader::Shader(strview title, strview vpath, strview fpath) {
     layoutT = glGetUniformLocation(program, "f_image");
 }
 
-void Shader::uniform(UniformType type, strview title, const void* data) {
+void Shader::uniform(UniformType type, SView title, const void* data) {
     uniforms.push_back({
         glGetUniformLocation(program, title),
         type,
@@ -132,7 +132,7 @@ void Shader::uniform(UniformType type, strview title, const void* data) {
     });
 };
 
-void Texture::use(uint layoutT) const {
+void Texture::use(u32 layoutT) const {
     if (!id) return;
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, id);
@@ -202,7 +202,7 @@ void Perekop::render(bool recollect) {
     while (cache::T.size() < World::meshes.size())
         cache::T.emplace_back();
 
-    if (recollect) for (vector<ModelData> &modeldata : cache::T)
+    if (recollect) for (Vec<ModelData> &modeldata : cache::T)
         modeldata.clear();
 
     // transform collection
@@ -223,7 +223,7 @@ void Perekop::render(bool recollect) {
     // instanced draw
     for (Mesh& mesh : World::meshes) {
         if (mesh.id <= 0) continue;
-        vector<ModelData> &modeldata = cache::T[mesh.id-1];
+        Vec<ModelData> &modeldata = cache::T[mesh.id-1];
         if (modeldata.is_empty()) {
             if (mesh.is_loaded()) mesh.unload(); // lazy unload
             continue;
@@ -250,14 +250,14 @@ void Perekop::render(bool recollect) {
     if (!Gui::items.is_empty()) {
         cache::gui.reserve(Gui::items.size());
         cache::gui.clear();
-        float minz{0}, maxz{1};
+        f32 minz{0.f}, maxz{1.f};
 
         for (const gui_instance &gui : Gui::items) {
             maxz = max(maxz, gui.Z); 
             minz = min(minz, gui.Z);
         }
 
-        float iZR = 1.f / (maxz - minz);
+        f32 iZR = 1.f / (maxz - minz);
         for (const gui_instance &gui : Gui::items)
             cache::gui.emplace_back( (gui.Z - minz) * iZR, gui.pos, gui.size, vec4(gui.col, 0) );
         
@@ -273,7 +273,7 @@ void Perekop::render(bool recollect) {
 
 Mesh::~Mesh() {
     if (id) {
-        Perekop::cache::T[id-1].~vector<ModelData>();
+        Perekop::cache::T[id-1].~Vec<ModelData>();
     }
 }
 
