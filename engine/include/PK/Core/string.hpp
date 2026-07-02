@@ -6,34 +6,34 @@ namespace pk {
         char* data{nullptr}; u32 len{0};
 
         public:
-            char& operator[](u32 i) { return data[i]; }
-            char  operator[](u32 i) const { return data[i]; }
+            constexpr char& operator[](u32 i) { return data[i]; }
+            constexpr char  operator[](u32 i) const { return data[i]; }
 
-            char* begin() { return data; }
-            char* end()   { return data + len; }
-            const char* begin() const { return data; }
-            const char* end()   const { return data + len; }
-            u32 size() const { return len; }
+            constexpr char* begin() { return data; }
+            constexpr char* end()   { return data + len; }
+            constexpr const char* begin() const { return data; }
+            constexpr const char* end()   const { return data + len; }
+            constexpr u32 size() const { return len; }
 
-            String() = default;
-            String(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
+            constexpr String() = default;
+            constexpr String(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
 
-            template <u32 L> String(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
+            template <u32 L> constexpr String(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
                 pk::copy(data, str, L);
             }
 
-            String(const char* str) {
+            constexpr String(const char* str) {
                 len = strlen(str);
                 data = pk::alloc(len+1);
                 pk::copy(data, str, len+1);
             }
 
-            String(String &&str) {
+            constexpr String(String &&str) {
                 data = str.data; len = str.len;
                 str.data = nullptr; str.len = 0;
             }
 
-            String& operator=(String &&str) {
+            constexpr String& operator=(String &&str) {
                 if (&str == this) return *this;
                 if (data) pk::free(data);
 
@@ -42,13 +42,13 @@ namespace pk {
                 return *this;
             }
 
-            String(const String &str) {
+            constexpr String(const String &str) {
                 data = pk::alloc(str.len+1);
                 pk::copy(data, str.data, str.len + 1);
                 len = str.len;
             }
 
-            String& operator=(const String& str) {
+            constexpr String& operator=(const String& str) {
                 if (&str == this) return *this;
 
                 if (!data || len != str.len) {
@@ -56,32 +56,32 @@ namespace pk {
                     data = pk::alloc(str.len + 1);
                 }
 
-                pk::copy(data, str.data, str.len);
+                pk::copy(data, str.data, str.len + 1);
                 len = str.len;
                 return *this;
             }
 
-            operator char*() { return data; }
-            operator const char*() const { return data; }
+            constexpr operator char*() { return data; }
+            constexpr operator const char*() const { return data; }
 
-            explicit operator bool() const { return data != nullptr; }
-            bool operator !()        const { return data == nullptr; }
+            constexpr explicit operator bool() const { return data != nullptr; }
+            constexpr bool operator !()        const { return data == nullptr; }
 
-            bool operator>(const String& b) const {
+            constexpr bool operator>(const String& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            bool operator<(const String& b) const {
+            constexpr bool operator<(const String& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            bool operator==(const String& b) const {
+            constexpr bool operator==(const String& b) const {
                 return !(b.len != len || std::strncmp(data, b.data, len));
             }
 
-            ~String() { if (data) pk::free(data); }  
+            constexpr ~String() { if (data) pk::free(data); }  
     };
 
     // string view
@@ -90,43 +90,43 @@ namespace pk {
 
         public:
             template <u32 L> constexpr SView(const char (&str)[L]): data(str), len(L-1) {}
-            SView() = default;
-            SView(const String &str): data(str.begin()), len(str.size()) {}
-            SView(const char* str): data(str), len(strlen(str)) {}
+            constexpr SView() = default;
+            constexpr SView(const String &str): data(str.begin()), len(str.size()) {}
+            constexpr SView(const char* str): data(str), len(strlen(str)) {}
 
             constexpr SView(const char* str, const char* end): data(str), len(end - data) {}
             constexpr SView(const char* str, u32 len): data(str), len(len) {}
 
-            operator const char*() const { return data; }
-            char operator[](u32 i) const { return data[i]; } 
+            constexpr operator const char*() const { return data; }
+            constexpr char operator[](u32 i) const { return data[i]; } 
 
-            const char* begin() const { return data; }
-            const char* end()   const { return data + len; }
-            u32 size()          const { return len; }
+            constexpr const char* begin() const { return data; }
+            constexpr const char* end()   const { return data + len; }
+            constexpr u32 size()          const { return len; }
 
-            explicit operator bool() const { return data != nullptr; }
-            bool operator !()        const { return data == nullptr; }
+            constexpr explicit operator bool() const { return data != nullptr; }
+            constexpr bool operator !()        const { return data == nullptr; }
 
-            bool operator>(SView b) const {
+            constexpr bool operator>(SView b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            bool operator<(SView b) const {
+            constexpr bool operator<(SView b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            bool operator==(SView b) const {
+            constexpr bool operator==(SView b) const {
                 return !(b.len != len || strncmp(data, b.data, len));
             }
 
-            const char* find(char c) const {
+            constexpr const char* find(char c) const {
                 return (const char*)std::memchr(data, c, len);
             }
 
             // copies content as string (heap alloc!!)
-            explicit operator String() const {
+            constexpr explicit operator String() const {
                 String res{len};
                 pk::copy(res.begin(), data, len);
                 return res;

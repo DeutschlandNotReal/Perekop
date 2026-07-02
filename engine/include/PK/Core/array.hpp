@@ -1,22 +1,26 @@
 #pragma once
-#include <PK/Core/number.hpp>
+#include <PK/Math/number.hpp>
+#include <PK/Core/memory.hpp>
 
 namespace pk {
-    template <typename T, u32 L> class Arr {
+    template <typename T, u32 L, u32 align = alignof(T)> class alignas(align) array {
         T data[L];
         public:
-            Arr() = default;
-            Arr(const T (&arr)[L]): data(arr) {}
+            constexpr array() noexcept = default;
+            constexpr array(const T (&src)[L]) noexcept {
+                pk::copy(data, src, L);
+            }
 
-            const T* begin() const { return data; }
-            const T* end()   const { return data + L; }
-            T* begin() { return data; }
-            T* end()   { return data + L; }
+            constexpr const T* begin() const { return data; }
+            constexpr const T* end()   const { return data + L; }
+            constexpr T* begin() { return data; }
+            constexpr T* end()   { return data + L; }
+            constexpr u32 size() const noexcept { return L; }
 
-            const T& operator[](u32 i) const { return data[i]; }
-            T& operator[](u32 i) { return data[i]; }
+            constexpr const T& operator[](u32 i) const { return data[i]; }
+            constexpr T& operator[](u32 i) { return data[i]; }
 
-            operator const T*() const { return data; }
-            operator T*() { return data; }
+            constexpr operator const T*() const { return data; }
+            constexpr operator T*() { return data; }
     };
 }

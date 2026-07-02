@@ -28,7 +28,7 @@ target_compile_features(perekop PRIVATE cxx_std_20)
 # put every compile flag under the sun
 # might break something soon but it is super super super fast
 target_compile_options(perekop PRIVATE
-    $<$<CONFIG:Release>:-O3; -DNDEBUG; -march=native; -flto; -ffast-math; -funroll-loops; -mfma>
+    $<$<CONFIG:Release>:-O3;-march=native;-flto;-ffast-math;-funroll-loops;>
 )
 
 set_target_properties(perekop PROPERTIES

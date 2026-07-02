@@ -1,13 +1,8 @@
 #pragma once
-#define GLM_FORCE_INTRINSICS
-#define GLM_FORCE_XYZW_ONLY
+
 #include <PK/Core/number.hpp>
 #include <PK/Core/simd.hpp>
 #include <cmath>
-#include <glm/vec3.hpp>
-#include <glm/gtc/quaternion.hpp>
-
-using glm::vec3, glm::quat, glm::mat4, glm::vec2, glm::mat3;
 
 namespace pk {
     class Pose {
@@ -23,7 +18,7 @@ namespace pk {
         }
 
         static f32x4 conjugate(f32x4 q) noexcept {
-            static constexpr f32 fmask = bit_cast<f32>(0x80000000); 
+            static constexpr f32 fmask = bit_cast<f32>(0x80000000);
             static constexpr f32x4 mask = {fmask, fmask, fmask, 0.f};
             return q ^ mask;
         }
@@ -31,7 +26,7 @@ namespace pk {
         public:
             // SIMD!! (w in pos unused, only xyz)
             f32x4 pos{0, 0, 0, 0}, rot{0, 0, 0, 1};
-            
+           
             operator vec3() const noexcept { return *(vec3*) &pos; }
             operator quat() const noexcept { return *(quat*) &rot; }
 
@@ -46,12 +41,28 @@ namespace pk {
             Pose(f32x4 p, f32x4 r): pos(p), rot(r) {}
 
             mat4 mat4() const noexcept {
-                f32x4 dsqr = rot * rot * 2;
+                static constexpr f32x4 ntwo{-2.f};
+                static constexpr f32x4 addc0{-.5f, 0, 0, 0};
+                static constexpr f32x4 addc1{0, -.5f, 0, 0};
+                static constexpr f32x4 addc2{0, 0, -.5f, 0};
+
+                f32x4 x2y2z2 = rot * rot * f32x4::two();
+                f32x4 xwywzw = rot * rot.swizzle<3, 3, 3, 3>();
+                f32x4 xyxzyz = rot.swizzle<0, 0, 1, 1>() * rot.swizzle<1, 2, 2, 0>();
+
+                // col0 = -2 * [-0.5 + yy + zz, xy - yw, xy + yw, 0]
+                // col1 = -2 * [xy + zw, -0.5 + xx + zz, yz - xw, 0]
+                // col2 = -2 * [xy + yw, yz + xw, -0.5 + xx + yy, 0]
+                // col3 =      [pos.xyz, 0]
+
+                f32x4 col0 = ntwo *
+
+
 
                 return glm::translate(glm::mat4_cast(rot), pos);
             }
 
-            Pose operator+(vec3 b) const noexcept { 
+            Pose operator+(vec3 b) const noexcept {
                 return {pos + &b, rot};
             }
 
@@ -76,7 +87,7 @@ namespace pk {
             Pose operator*(quat q) const {
                 return {pos, glm::normalize(rot * q)};
             }
-                
+               
             Pose& operator*=(quat q) {
                 rot = glm::normalize(rot * q); return *this;
             }
@@ -101,14 +112,14 @@ namespace pk {
                 return glm::conjugate(rot) * (p - pos);
             }
 
-            vec3 fvec() const noexcept { 
+            vec3 fvec() const noexcept {
                 return rot * vec3{0, 0,-1};
             }
 
-            vec3 rvec() const { 
-                return rot * vec3{1, 0, 0}; 
+            vec3 rvec() const {
+                return rot * vec3{1, 0, 0};
             }
-            vec3 uvec() const { 
+            vec3 uvec() const {
                 return rot * vec3{0, 1, 0};
             }
 
@@ -126,9 +137,10 @@ namespace pk {
             vec3 delta_pos(Pose other) const {
                 return lspace_point(other.pos);
             }
-        
+       
             void normalise() {
                 rot = glm::normalize(rot);
             }
     };
 }
+
