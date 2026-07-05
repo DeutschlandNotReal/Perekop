@@ -2,7 +2,7 @@
 #include <PK/Core/memory.hpp>
 
 namespace pk {
-    class String {
+    class string {
         char* data{nullptr}; u32 len{0};
 
         public:
@@ -15,25 +15,25 @@ namespace pk {
             constexpr const char* end()   const { return data + len; }
             constexpr u32 size() const { return len; }
 
-            constexpr String() = default;
-            constexpr String(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
+            constexpr string() = default;
+            constexpr string(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
 
-            template <u32 L> constexpr String(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
+            template <u32 L> constexpr string(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
                 pk::copy(data, str, L);
             }
 
-            constexpr String(const char* str) {
+            constexpr string(const char* str) {
                 len = strlen(str);
                 data = pk::alloc(len+1);
                 pk::copy(data, str, len+1);
             }
 
-            constexpr String(String &&str) {
+            constexpr string(string &&str) {
                 data = str.data; len = str.len;
                 str.data = nullptr; str.len = 0;
             }
 
-            constexpr String& operator=(String &&str) {
+            constexpr string& operator=(string &&str) {
                 if (&str == this) return *this;
                 if (data) pk::free(data);
 
@@ -42,13 +42,13 @@ namespace pk {
                 return *this;
             }
 
-            constexpr String(const String &str) {
+            constexpr string(const string &str) {
                 data = pk::alloc(str.len+1);
                 pk::copy(data, str.data, str.len + 1);
                 len = str.len;
             }
 
-            constexpr String& operator=(const String& str) {
+            constexpr string& operator=(const string& str) {
                 if (&str == this) return *this;
 
                 if (!data || len != str.len) {
@@ -67,35 +67,35 @@ namespace pk {
             constexpr explicit operator bool() const { return data != nullptr; }
             constexpr bool operator !()        const { return data == nullptr; }
 
-            constexpr bool operator>(const String& b) const {
+            constexpr bool operator>(const string& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            constexpr bool operator<(const String& b) const {
+            constexpr bool operator<(const string& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            constexpr bool operator==(const String& b) const {
+            constexpr bool operator==(const string& b) const {
                 return !(b.len != len || std::strncmp(data, b.data, len));
             }
 
-            constexpr ~String() { if (data) pk::free(data); }  
+            constexpr ~string() { if (data) pk::free(data); }  
     };
 
     // string view
-    class SView {
+    class strview {
         const char* data{nullptr}; u32 len{0};
 
         public:
-            template <u32 L> constexpr SView(const char (&str)[L]): data(str), len(L-1) {}
-            constexpr SView() = default;
-            constexpr SView(const String &str): data(str.begin()), len(str.size()) {}
-            constexpr SView(const char* str): data(str), len(strlen(str)) {}
+            template <u32 L> constexpr strview(const char (&str)[L]): data(str), len(L-1) {}
+            constexpr strview() = default;
+            constexpr strview(const string &str): data(str.begin()), len(str.size()) {}
+            constexpr strview(const char* str): data(str), len(strlen(str)) {}
 
-            constexpr SView(const char* str, const char* end): data(str), len(end - data) {}
-            constexpr SView(const char* str, u32 len): data(str), len(len) {}
+            constexpr strview(const char* str, const char* end): data(str), len(end - data) {}
+            constexpr strview(const char* str, u32 len): data(str), len(len) {}
 
             constexpr operator const char*() const { return data; }
             constexpr char operator[](u32 i) const { return data[i]; } 
@@ -107,17 +107,17 @@ namespace pk {
             constexpr explicit operator bool() const { return data != nullptr; }
             constexpr bool operator !()        const { return data == nullptr; }
 
-            constexpr bool operator>(SView b) const {
+            constexpr bool operator>(strview b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            constexpr bool operator<(SView b) const {
+            constexpr bool operator<(strview b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            constexpr bool operator==(SView b) const {
+            constexpr bool operator==(strview b) const {
                 return !(b.len != len || strncmp(data, b.data, len));
             }
 
@@ -126,8 +126,8 @@ namespace pk {
             }
 
             // copies content as string (heap alloc!!)
-            constexpr explicit operator String() const {
-                String res{len};
+            constexpr explicit operator string() const {
+                string res{len};
                 pk::copy(res.begin(), data, len);
                 return res;
             }

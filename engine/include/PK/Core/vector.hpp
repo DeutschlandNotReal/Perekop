@@ -3,43 +3,48 @@
 #include <PK/Core/array.hpp>
 #include <cstddef>
 #include <initializer_list>
+#include <utility>
 
 namespace pk {
-    template <typename T, u32 align = 0> class vector {
+    template <typename T, u32 align = alignof(T)> class vector {
         T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
         void resize(u32 newcap) {
-            if (data) {
-                cur += pk::realloc<T, align>((T*)this, newcap);
-                cap = data + newcap;
-            } else {
+            if (data) 
+                cur += pk::realloc<T, align>(&data, newcap);
+            else
                 data = cur = pk::alloc<T, align>(newcap); 
-            }
+            
             cap = data + newcap;
         }
 
         T* next() {
-            if (cap == cur) 
-                resize((capacity() * 3 >> 1) + 8); // old * 1.5 + 8
+            // n * 1.5 + 8
+            if (cap == cur) resize((capacity() * 3 >> 1) + 8);
+
             return cur++;
         }
 
         public:
             vector() = default;
             vector(u32 len): data(pk::alloc<T, align>(len)) { cap = data + len; cur = data; }
-            vector(const vector &b): 
+            
+            template <u32 coalign> vector(const vector<T, coalign> &b): 
                 data(pk::alloc<T, align>(b.size())) {
                 cap = cur = data + b.size();
                 pk::copy(data, b.data, b.size());
             }
+
             vector(vector &&b): 
                 data(b.data), cap(b.cap), cur(b.cur) { 
                 b.data = b.cap = b.cur = nullptr; 
             }
+
             vector(std::initializer_list<T> items): data(pk::alloc<T, align>(items.size())) {
                 cap = cur = data + items.size();
                 pk::copy(data, items.begin(), items.size());
             }
+
             template <u32 L> vector(const pk::array<T, L> &items): data(pk::alloc<T, align>(L)) { 
                 cap = cur = data + L; 
                 pk::copy(data, items, L); 
@@ -66,13 +71,13 @@ namespace pk {
             u32 capacity() const { return cap - data; }
             u32 bytesize() const { return size() * sizeof(T); }
 
-            vector& operator=(const vector &b) {
+            template <u32 co_align> vector& operator=(const vector<T, co_align> &b) {
                 if (&b == this) return *this;
 
                 if (data) {
                     clear();
                     if (capacity() < b.size()) {
-                        pk::free(data);
+                        pk::free<align>(data);
                         data = pk::alloc<T, align>(b.size());
                         cap = data + b.size();
                     };
@@ -90,7 +95,7 @@ namespace pk {
             vector& operator=(vector &&b) {
                 if (&b == this) return *this;
 
-                if (data) { clear(); pk::free(data); }
+                if (data) { clear(); pk::free<align>(data); }
                 cur = b.cur; cap = b.cap; data = b.data;
                 b.cur = b.cap = b.data = nullptr;
 
@@ -147,13 +152,13 @@ namespace pk {
             }
 
             ~vector() {
-                if (data) { clear(); pk::free(data); }
+                if (data) { clear(); pk::free<align>(data); }
                 data = cur = cap = nullptr;
             }
     };
 
     // refers to MUTABLE chunk of memory, std::span substitute
-    template <typename T> class Span {
+    template <typename T> class span {
         T* data{nullptr}, *cap{nullptr};
         public:
             constexpr const T* begin() const { return data; }
@@ -166,16 +171,16 @@ namespace pk {
             constexpr T& operator[](u32 i) { return data[i]; }
             constexpr const T& operator[](u32 i) const { return data[i]; }
 
-            constexpr Span(T* single): data(single), cap(single+1) {}
-            constexpr Span(T* first, T* end): data(first), cap(end) {}
-            constexpr Span(T* first, u32 n): data(first), cap(first + n) {}
+            constexpr span(T* single): data(single), cap(single+1) {}
+            constexpr span(T* first, T* end): data(first), cap(end) {}
+            constexpr span(T* first, u32 n): data(first), cap(first + n) {}
 
-            template <u32 L> constexpr Span(T (&items)[L]): data(items), cap(items+L) {}
+            template <u32 L> constexpr span(T (&items)[L]): data(items), cap(items+L) {}
 
             constexpr explicit operator bool() const { return data != nullptr; }
             constexpr bool operator!()         const { return data == nullptr; }
 
-            template <typename C> constexpr Span(C& container): 
+            template <typename C> constexpr span(C& container): 
                 data((T*)container.begin()), 
                 cap ((T*)container.end()) 
             {}

@@ -12,6 +12,6 @@ namespace pk {
         void use(u32 layout) const;
         public:
             Texture() = default;
-            Texture(SView path);
+            Texture(strview path);
     };
 }

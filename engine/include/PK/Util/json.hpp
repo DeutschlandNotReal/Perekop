@@ -4,11 +4,11 @@
 namespace pk::json {
     enum type: char {_empty = 0, _null, _bool, _str, _int, _flt, _arr = '[', _arr_end = ']', _obj = '{', _obj_end = '}', };
     struct token {
-        SView key;
+        strview key;
         type type{_empty};
 
         union {
-            SView value_str;
+            strview value_str;
             i32 value_int;
             f32 value_flt;
         };

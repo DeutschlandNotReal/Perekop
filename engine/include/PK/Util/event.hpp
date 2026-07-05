@@ -3,11 +3,11 @@
 
 namespace pk {
     template <typename... T> class Event {
-        using callback = void(*)(constref<T>...);
-        Vec<callback> listeners;
+        using callback = void(*)(pass_t<T>...);
+        vector<callback> listeners;
 
         public:
-            void fire(constref<T>... items) {
+            void fire(pass_t<T>... items) {
                 for (callback call : listeners)
                     call(items...);
             }

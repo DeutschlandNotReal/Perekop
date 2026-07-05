@@ -68,7 +68,7 @@ class glAttribute {
         }
 };
 
-GLuint load_shader(std::initializer_list<const char*> src, SView title, GLenum T) {
+GLuint load_shader(std::initializer_list<const char*> src, strview title, GLenum T) {
     GLuint shader = glCreateShader(T);
     glShaderSource(shader, src.size(), src.begin(), 0);
     glCompileShader(shader);
@@ -108,11 +108,11 @@ void load_texture(GLuint* texture, const char* path) {
     stbi_image_free(data);
 }
 
-Texture::Texture(SView path) {
+Texture::Texture(strview path) {
     load_texture(&id, path);
 };
 
-Shader::Shader(SView title, SView vpath, SView fpath) {
+Shader::Shader(strview title, strview vpath, strview fpath) {
     String vsrc = read_file(vpath), fsrc = read_file(fpath);
     program = load_program({
         load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
@@ -124,7 +124,7 @@ Shader::Shader(SView title, SView vpath, SView fpath) {
     layoutT = glGetUniformLocation(program, "f_image");
 }
 
-void Shader::uniform(UniformType type, SView title, const void* data) {
+void Shader::uniform(UniformType type, strview title, const void* data) {
     uniforms.push_back({
         glGetUniformLocation(program, title),
         type,

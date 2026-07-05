@@ -2,27 +2,24 @@
 #include <cstring>
 #include <type_traits>
 #include <utility>
+#include <new>
 #include <PK/Math/number.hpp>
+#include <PK/Core/type.hpp>
 
 namespace pk {
-    template <typename T> 
-    constexpr inline void destruct(T* item) {
-        if constexpr (!std::is_trivially_destructible_v<T>) item->~T();
-    }
-
-    template <typename T, bool move_destruct = true> 
+    template <typename T, bool move_destruct = true>   
     constexpr inline void move(T* dst, T* src) {
         if constexpr (std::is_move_constructible_v<T>) {
             new (dst) T(std::move(*src));
-            if constexpr (move_destruct) destruct(src);
-        }else {
+            if constexpr (!move_destruct) return;
+        } else {
             new (dst) T(*src);
-            destruct(src);
-        }
+        };
+        src->~T();
     }
 
     template <typename T = char, u32 align = 0> 
-    [[nodiscard]] inline T* alloc(u32 n) {
+    [[nodiscard]] inline constexpr T* alloc(u32 n) {
         if constexpr (align) {
             // sizeof(T) * n must be multiple!!
             u32 bytes = (sizeof(T) * n + align - 1) & ~(align - 1);
@@ -32,10 +29,10 @@ namespace pk {
     }
 
     template <u32 align = 0>
-    inline void free(void *ptr) {
-        if constexpr (align) 
+    inline constexpr void free(void *ptr) {
+        if constexpr (align)
             ::operator delete(ptr, std::align_val_t(align));
-        else
+        else 
             ::operator delete(ptr);
     }
 

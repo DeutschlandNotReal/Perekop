@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
-project(Perekop LANGUAGES C CXX)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_C_COMPILER   C:/msys64/mingw64/bin/clang.exe   CACHE FILEPATH "" FORCE)
+set(CMAKE_CXX_COMPILER C:/msys64/mingw64/bin/clang++.exe CACHE FILEPATH "" FORCE)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(Perekop LANGUAGES C CXX)
 
 set(engine ${CMAKE_SOURCE_DIR}/engine)
 set(game ${CMAKE_SOURCE_DIR}/game)
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_subdirectory(${engine}/lib/glfw)
 
@@ -23,12 +23,13 @@ add_executable(perekop
     ${engine}/lib/glad/src/glad.c
 )
 
-target_compile_features(perekop PRIVATE cxx_std_20)
+target_compile_features(perekop PRIVATE cxx_std_23)
 
 # put every compile flag under the sun
 # might break something soon but it is super super super fast
+# -ffast-math;
 target_compile_options(perekop PRIVATE
-    $<$<CONFIG:Release>:-O3;-march=native;-flto;-ffast-math;-funroll-loops;>
+    $<$<CONFIG:Release>:-O3;-march=native;-flto;-funroll-loops;>
 )
 
 set_target_properties(perekop PROPERTIES
@@ -43,5 +44,7 @@ target_include_directories(perekop PRIVATE
     ${engine}/include
     ${game}/include
 )
+
+target_precompile_headers(perekop PRIVATE ${engine}/include/PK/pch.hpp)
 
 target_link_libraries(perekop PRIVATE glfw OpenGL::GL)

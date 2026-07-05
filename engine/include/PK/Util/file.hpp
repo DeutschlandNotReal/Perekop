@@ -3,5 +3,5 @@
 #include <PK/Core/vector.hpp>
 
 namespace pk {
-    extern String read_file(SView src);
+    extern string read_file(strview src);
 }

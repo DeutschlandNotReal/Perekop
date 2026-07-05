@@ -1,7 +1,7 @@
 #pragma once
 #include <chrono>
 #include <thread>
-#include <PK/Core/number.hpp>
+#include <PK/Math/number.hpp>
 
 namespace pk::time {
     template <typename U> U now() {

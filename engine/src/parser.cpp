@@ -17,7 +17,7 @@ bool is_space(u8 c) {
 namespace pk::json {
     // json parser assumes json is perfectly formatted, doesnt throw errors
     // new system next commit
-    void parse(SView src, void(*callback)(const token& t, void* userdata), void* userdata) {
+    void parse(strview src, void(*callback)(const token& t, void* userdata), void* userdata) {
         /*
         using enum pk::json::type;
         if (!src) return;
@@ -36,7 +36,7 @@ namespace pk::json {
             space_skip();
             if (*cur == ',') { ++cur; space_skip(); }
 
-            SView key;
+            strview key;
             token tok{};
             parse_begin:
             switch (*cur) {

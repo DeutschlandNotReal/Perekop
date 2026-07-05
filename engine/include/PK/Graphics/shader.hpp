@@ -20,8 +20,8 @@ namespace pk {
         
         public:
             Shader() = default;
-            Shader(SView title, SView vspath, SView fspath);
+            Shader(strview title, strview vspath, strview fspath);
 
-            void uniform(UniformType type, SView title, const void* data);
+            void uniform(UniformType type, strview title, const void* data);
     };
 }

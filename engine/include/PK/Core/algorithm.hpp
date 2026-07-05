@@ -4,7 +4,7 @@
 // searches, sorts and other algorithmns for array
  namespace pk {
     // linear search
-    template <typename T> T* lsearch(Span<T> array, const T& ref) {
+    template <typename T> T* lsearch(span<T> array, pass_t<T> ref) {
         if (array) for (T *i = array.begin(); i < array.end(); i++)
             if (*i == ref) return i;
 
@@ -12,7 +12,7 @@
     }
 
     // gets pointer where ref would be if sorted
-    template <typename T> T* lower_bound(Span<T> array, const T &ref) {
+    template <typename T> T* lower_bound(span<T> array, const T &ref) {
         u32 l = 0, h = array.size();
 
         while (l != h) {
@@ -24,7 +24,7 @@
     }
 
     // binary search
-    template <typename T> T* bsearch(Span<T> array, const T &ref, T** nearest = nullptr) {
+    template <typename T> T* bsearch(span<T> array, const T &ref, T** nearest = nullptr) {
         T* bound = lower_bound(array, ref);
 
         if (bound != array.end() && *bound == ref)
@@ -36,7 +36,7 @@
     }
 
     // Inserts item in order, assumes vec is already ordered
-    template <typename T> T& ordered_insert(Vec<T>& vec, const T &item) {
+    template <typename T> T& ordered_insert(vector<T>& vec, const T &item) {
         if (vec.is_full()) vec.grow();
 
         T* closest = lower_bound(vec, item);
@@ -49,9 +49,9 @@
         }
     }
 
-    template <typename T, typename... spans> Vec<T> merge(spans&&... arrays) {
+    template <typename T, typename... spans> vector<T> merge(spans&&... arrays) {
         u64 net_size = (arrays.size() + ...), index = 0;
-        Vec<T> merged(net_size);
+        vector<T> merged(net_size);
 
         auto mergef = [&index, &merged](auto &&span){ 
             pk::copy<T>(merged.begin() + index, span.begin(), span.size());
