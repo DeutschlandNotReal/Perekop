@@ -6,15 +6,17 @@
 #include <PK/Math/number.hpp>
 #include <PK/Core/type.hpp>
 
+#define pk_ainline [[gnu::always_inline]]
 namespace pk {
-    template <typename T, bool move_destruct = true>   
-    constexpr inline void move(T* dst, T* src) {
+    template <typename T, bool destructive = true>
+    pk_ainline constexpr void move(T* dst, T* src) {
         if constexpr (std::is_move_constructible_v<T>) {
             new (dst) T(std::move(*src));
-            if constexpr (!move_destruct) return;
+            if constexpr (!destructive) return;
         } else {
             new (dst) T(*src);
-        };
+        }
+
         src->~T();
     }
 
@@ -25,59 +27,68 @@ namespace pk {
             u32 bytes = (sizeof(T) * n + align - 1) & ~(align - 1);
             return (T*)::operator new(bytes, std::align_val_t(align));
         } else
-            return (T*)::operator new(sizeof(T) * n);
+            return (T*)::operator new(n * sizeof(T));
     }
 
     template <u32 align = 0>
     inline constexpr void free(void *ptr) {
         if constexpr (align)
             ::operator delete(ptr, std::align_val_t(align));
-        else 
+        else
             ::operator delete(ptr);
     }
 
     template <typename T> 
-    constexpr inline void copy(T* dst, const T* src, u32 n = 1) {
-        if (!dst || !src) return;
+    inline constexpr void copy(T* dst, const T* src, u32 n = 1) {
+        if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
+            T* end = src + n; 
+            i64 dif = (i64)dst - (i64)src;
 
-        if constexpr (std::is_trivially_copyable_v<T> && !std::is_constant_evaluated()) 
+            while (src < end)
+                new (((u8*)src + dif)) T(*src++); 
+
+        } else
             std::memcpy(dst, src, n * sizeof(T));
-        else for (int i = 0; i < n; i++)
-            new (dst + i) T(src[i]); 
     }
 
     template <typename T> 
-    constexpr inline void move(T* dst, T* src, u32 n) {
-        if (!dst || !src) return;
+    inline constexpr void move(T* dst, T* src, u32 n) {
+        if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
+            T* end = src + n; 
+            i64 dif = (i64)dst - (i64)src;
 
-        if constexpr (std::is_trivially_copyable_v<T> && !std::is_constant_evaluated())
-            std::memcpy(dst, src, n * sizeof(T));
-        else for (int i = 0; i < n; i++) 
-            move(dst+i, src+i);
-    }
-
-    template <typename T> 
-    constexpr inline void rshift(T* src, u32 n) {
-        if (!src) return;
-        T* dst = src+1;
-
-        if constexpr(std::is_trivially_copyable_v<T> && !std::is_constant_evaluated())
+            while (src < end)
+                new (((u8*)src + dif)) T(move(*src++));
+        } else
             std::memmove(dst, src, n * sizeof(T));
-        else for (int i = n-1; i >= 0; i--)
-            move(dst+i, src+i);
+    }
+
+    template <typename T> 
+    inline constexpr void rshift(T* src, T* end, u32 n) {
+        if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
+            u64 offset = n * sizeof(T);
+            while (--end >= src)
+                move((T*) ((u8*)end + offset));
+        } else 
+            std::memmove(src + n, src, end - src);
     }
 
     // returns pointer distance from src to dst
     template <typename T, u32 align>
-    constexpr inline size_t realloc(T** data, u32 n, u32 size) {
+    inline constexpr i64 realloc(T** data, u32 n, u32 size) {
         T* src = *data;
         T* dst = *data = pk::alloc<T, align>(size);
-        if constexpr(std::is_trivially_copyable_v<T> && !std::is_constant_evaluated())
+        i64 dif = (i64)dst - (i64)src;
+
+        if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
+            T* end = src + n;
+            while (src < end) move<T, false>((T*) ((char*)src + dif), src++);
+        } else {
             std::memmove(dst, src, n * sizeof(T));
-        else for (u32 i = 0; i < n; i++)
-            move<T, false>(dst+i, src+i);
+        }
+
         pk::free<align>(src);
 
-        return (size_t)dst - (size_t)src;
+        return dif;
     }
 }
