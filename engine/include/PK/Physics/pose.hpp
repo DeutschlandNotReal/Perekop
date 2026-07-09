@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PK/Core/number.hpp>
+#include <PK/Math/number.hpp>
 #include <PK/Core/simd.hpp>
 #include <cmath>
 

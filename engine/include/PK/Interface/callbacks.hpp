@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Core/number.hpp>
+#include <PK/Math/number.hpp>
 
 namespace Perekop {
     // defined by game

@@ -1,6 +1,8 @@
 #pragma once
 #ifdef PK_INTERNAL
 namespace Perekop { void render(bool recollect); }
+#include <PK/pch.hpp>
+
 #include <PK/Interface/callbacks.hpp>
 #include <PK/Interface/input.hpp>
 #include <PK/Interface/window.hpp>

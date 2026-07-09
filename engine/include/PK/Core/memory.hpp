@@ -7,7 +7,18 @@
 #include <PK/Core/type.hpp>
 
 #define pk_ainline [[gnu::always_inline]]
+
 namespace pk {
+    template <typename T> 
+    pk_ainline constexpr const T* ptr_add(const T* ptr, i64 bytes) noexcept {
+        return (T*)((const char*)ptr + bytes); 
+    }
+
+    template <typename T> 
+    pk_ainline constexpr i64 ptr_dif(const T* a, const T* b) noexcept {
+        return (i64)b - (i64)a;
+    }
+
     template <typename T, bool destructive = true>
     pk_ainline constexpr void move(T* dst, T* src) {
         if constexpr (std::is_move_constructible_v<T>) {
@@ -41,12 +52,9 @@ namespace pk {
     template <typename T> 
     inline constexpr void copy(T* dst, const T* src, u32 n = 1) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
-            T* end = src + n; 
-            i64 dif = (i64)dst - (i64)src;
+            const T* end = src + n; 
 
-            while (src < end)
-                new (((u8*)src + dif)) T(*src++); 
-
+            while (src < end) new (dst++) T(*src++); 
         } else
             std::memcpy(dst, src, n * sizeof(T));
     }
@@ -55,10 +63,9 @@ namespace pk {
     inline constexpr void move(T* dst, T* src, u32 n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* end = src + n; 
-            i64 dif = (i64)dst - (i64)src;
 
-            while (src < end)
-                new (((u8*)src + dif)) T(move(*src++));
+            while (src < end) move(dst++, src++);
+
         } else
             std::memmove(dst, src, n * sizeof(T));
     }
@@ -66,11 +73,11 @@ namespace pk {
     template <typename T> 
     inline constexpr void rshift(T* src, T* end, u32 n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
-            u64 offset = n * sizeof(T);
-            while (--end >= src)
-                move((T*) ((u8*)end + offset));
+            T* dstend = end + n;
+
+            while (end > src) move(--dstend, --end);
         } else 
-            std::memmove(src + n, src, end - src);
+            std::memmove(src + n, src, ptr_dif(src, end));
     }
 
     // returns pointer distance from src to dst
@@ -78,11 +85,10 @@ namespace pk {
     inline constexpr i64 realloc(T** data, u32 n, u32 size) {
         T* src = *data;
         T* dst = *data = pk::alloc<T, align>(size);
-        i64 dif = (i64)dst - (i64)src;
-
+        i64 dif = ptr_dif(src, dst);
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* end = src + n;
-            while (src < end) move<T, false>((T*) ((char*)src + dif), src++);
+            while (src < end) move<T, false>(dst++, src++);
         } else {
             std::memmove(dst, src, n * sizeof(T));
         }

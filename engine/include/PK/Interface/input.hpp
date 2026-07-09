@@ -1,21 +1,19 @@
 #pragma once
 #include <PK/Util/event.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-#include <glm/mat3x3.hpp>
+#include <PK/Math/transform.hpp>
 
 namespace Perekop::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };
-    inline vec2 pos{0,0};
-    void point_to(vec3);
+    inline pk::vec2 pos{0,0};
+    void point_to(pk::vec4);
 
     extern void lock(); 
     extern void unlock();
     extern bool is_locked();
 
-    extern vec3 fvec();
+    extern pk::vec4 fvec();
     extern mat3 matrix();
-    inline pk::Event<vec2> on_move;
+    inline pk::Event<pk::vec2> on_move;
     inline pk::Event<Button> on_down, on_up;
     inline pk::Event<i32> on_scroll;
     extern bool held(Button button);

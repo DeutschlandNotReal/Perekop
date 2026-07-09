@@ -10,8 +10,8 @@ namespace pk {
         T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
 
         void resize(u32 newcap) {
-            if (data) 
-                cur += pk::realloc<T, align>(&data, newcap);
+            if (data)
+                cur = ptr_add(cur, pk::realloc<T, align>(&data, size(), newcap));
             else
                 data = cur = pk::alloc<T, align>(newcap); 
             
@@ -115,7 +115,7 @@ namespace pk {
             }
 
             void pop(T* dst) {
-                pk::move(dst, *--cur);
+                pk::move(dst, --cur);
             }
 
             void reserve(u32 new_size) {
@@ -148,7 +148,7 @@ namespace pk {
 
             void shift(u32 i, u32 n) {
                 if (size() + n > capacity()) resize(size() + n);
-                pk::rshift(data + i, n);
+                pk::rshift(data + i, cur, n);
             }
 
             ~vector() {
