@@ -6,137 +6,180 @@
 #include <cmath>
 using std::bit_cast;
 
+#define constinl [[clang::always_inline]] constexpr
+#define F32BIT(op) [](f32 x, f32 y){ return bit_cast<f32>(bit_cast<u32>(x) op bit_cast<u32>(y)); }
+#define F32SCL(op) [](f32 x, f32 y){ return x op y; }
+
 namespace pk {
-    template <typename base>
-    struct alignas(16) f32x4 { 
+    static inline constexpr u32 signbit = 0x80000000;
+    // CRTP ( T : simdvec<T> )
+    template <typename T>
+    struct alignas(16) simdvec {
         public:
-        union { struct { f32 x, y, z, w; }; __m128 xyzw; };
-        private:
-        template <auto f, typename... A>
-        pk_ainline static constexpr f32x4 map(pass_t<A>... args) noexcept {
-            return { f(args.x...), f(args.y...), f(args.z...), f(args.w...) };
-        }
-
-        template <auto f, auto simd_f, typename... A>
-        pk_ainline static constexpr f32x4 cmap(pass_t<A>... args) noexcept {
-            return std::is_constant_evaluated() ? map<f>(args...) : simd_f(args.xyzw...);
-        }
-
-        public:
-        pk_ainline constexpr f32x4(f32 scl = 0.f) noexcept: x{scl}, y{scl}, z{scl}, w{scl} {};
-        pk_ainline constexpr f32x4(const pk::array<f32, 4> &arr) noexcept:
-            x{arr[0]}, y{arr[1]}, z{arr[2]}, w{arr[3]} {};
-
-        pk_ainline constexpr f32x4(const f32* ptr) noexcept: xyzw(_mm_loadu_ps(ptr)) {}
-        pk_ainline f32x4(const __m128 &xyzw) noexcept: xyzw(xyzw) {};
-        pk_ainline operator __m128() const noexcept { return xyzw; }
-
-        pk_ainline constexpr f32 operator[](u32 i) const noexcept { return *(&x + i); }
-        
-        pk_ainline constexpr f32& operator[](u32 i) noexcept { return *(&x + i); }
-
-        pk_ainline constexpr base operator/(const base &b) const noexcept { return cmap<[](f32 a, f32 b){return a/b;}, _mm_div_ps>(*this, b); }
-        pk_ainline constexpr base operator+(const base &b) const noexcept { return cmap<[](f32 a, f32 b){return a+b;}, _mm_add_ps>(*this, b); }
-        pk_ainline constexpr base operator-(const base &b) const noexcept { return cmap<[](f32 a, f32 b){return a-b;}, _mm_sub_ps>(*this, b); }
-        pk_ainline constexpr base operator&(const base &b) const noexcept { 
-            return cmap<[](f32 a, f32 b){
-                return bit_cast<f32>(bit_cast<u32>(a)&bit_cast<u32>(b));
-            }, _mm_and_ps>(*this, b); 
-        }
-        pk_ainline constexpr base operator^(const base &b) const noexcept { 
-            return cmap<[](f32 a, f32 b){
-                return bit_cast<f32>(bit_cast<u32>(a)^bit_cast<u32>(b));
-            }, _mm_xor_ps>(*this, b); 
-        }
-        pk_ainline constexpr base operator|(const base &b) const noexcept { 
-            return cmap<[](f32 a, f32 b){
-                return bit_cast<f32>(bit_cast<u32>(a)|bit_cast<u32>(b));
-            }, _mm_or_ps>(*this, b); 
-        }
-
-        pk_ainline constexpr base& operator/=(const base &b) noexcept { return *this = *this / b; }
-        pk_ainline constexpr base& operator+=(const base &b) noexcept { return *this = *this + b; }
-        pk_ainline constexpr base& operator-=(const base &b) noexcept { return *this = *this - b; }
-        pk_ainline constexpr base& operator&=(const base &b) noexcept { return *this = *this & b; }
-        pk_ainline constexpr base& operator^=(const base &b) noexcept { return *this = *this ^ b; }
-        pk_ainline constexpr base& operator|=(const base &b) noexcept { return *this = *this | b; }
-
-        #ifdef __FMA__
-        // for automatic FMA
-        class mulexpr {
-            friend f32x4;
-            base a, scl;
-            public:
-                pk_ainline constexpr operator f32x4() const noexcept { 
-                    return f32x4::cmap<[](f32 a, f32 b){return a*b;}, _mm_mul_ps>(a, scl);
-                }
-                pk_ainline constexpr operator base() const noexcept { 
-                    return f32x4::cmap<[](f32 a, f32 b){return a*b;}, _mm_mul_ps>(a, scl);
-                }
-                pk_ainline constexpr base operator+(const base &b) const noexcept { 
-                    return f32x4::cmap<[](f32 a, f32 b, f32 c){return a*b+c;}, _mm_fmadd_ps>(a, scl, b); 
-                }
-        };
-
-        pk_ainline constexpr mulexpr operator*(const base &b) const noexcept { return {xyzw, b.xyzw}; }
-        pk_ainline constexpr base operator+(const mulexpr &b) const noexcept { return b + *this; }
-        #else
-        pk_ainline constexpr base operator*(const base &b) const noexcept { return cmap<[](f32 a, f32 b){return a*b;}, _mm_mul_ps>(*this, b); }
-        #endif
-
-        pk_ainline constexpr base& operator*=(const base &b) noexcept { return *this = *this * b; }
-
-        pk_ainline constexpr base operator~() const noexcept {
-            static constexpr f32x4 xormask{bit_cast<f32>(~0)};
+            union { __m128 v; struct { f32 x, y, z, w; }; };
             
-            return *this ^ xormask;
-        }
+            constinl simdvec(__m128 v) noexcept: v(v) {}
+            
+            constinl operator __m128() const noexcept { return v; }
 
-        pk_ainline constexpr base dot(const base &b) const noexcept {
-            if (std::is_constant_evaluated()) {
-                base prod = *this * b;
-                f32 dprod = prod.x + prod.y + prod.z + prod.w;
-                return {dprod, dprod, dprod, dprod};
-            } else {
-                return _mm_dp_ps(xyzw, b, 0xFF);
+            [[nodiscard]] constinl simdvec(f32 scl = 0.f) noexcept {
+                if consteval { x = y = z = w = scl; } else { v = _mm_set1_ps(scl); }
             }
-        }
 
-        template <u8 i0, u8 i1, u8 i2, u8 i3> pk_ainline constexpr base shuffle(const base &b) const noexcept {
-            static_assert(i0 > 4 || i1 > 4 || i2 > 4 || i3 > 4, "no you don't.");
+            [[nodiscard]] constinl simdvec(f32 x, f32 y, f32 z, f32 w = 0.f) noexcept: x{x}, y{y}, z{z}, w{w} {}
 
-            if (std::is_constant_evaluated()) 
-                return {b[i0], b[i1], b[i2], b[i3]};
-            else 
-                return _mm_shuffle_ps(xyzw, b, _MM_SHUFFLE(i3, i2, i1, i0));
-        }
+            constinl operator T() const noexcept { return *this; }
 
-        template <u8 i0, u8 i1, u8 i2, u8 i3> pk_ainline constexpr base swizzle() const noexcept {
-            return shuffle<i0, i1, i2, i3>(*this);
-        }
+        protected:
+            template <auto rt, auto ct, typename... args>
+            [[nodiscard]] constinl T map(args... arg) const noexcept {
+                if consteval { 
+                    return {rt(x, arg.x...), rt(y, arg.y...), rt(z, arg.z...), rt(w, arg.w...)};
+                } else { 
+                    return ct(*this, arg...); 
+                }
+            }
 
-        pk_ainline constexpr base cross(const base &b) const noexcept {
-            // x = a.y * b.z - b.y * a.z
-            // y = a.z * b.x - b.z * a.x
-            // z = a.x * b.y - b.x * a.y
+            [[nodiscard]] constinl T rcp() const noexcept {
+                if consteval {
+                    return {1.f/x, 1.f/y, 1.f/z, 1.f/w};
+                } else {
+                    __m128 y = _mm_rcp_ps(v);
 
-            // [a.y * b.z, a.z * b.x, a.x * b.y] - [a.z * b.y, a.x * b.z, a.y * b.x]
+                    // first iteration
+                    y = y * (_mm_set1_ps(2.f) - v * y);
+                    return y;
+                }
+            }
 
-            base lhs = swizzle<1, 2, 0, 3>() * b.template swizzle<2, 0, 1, 3>();
-            base rhs = swizzle<2, 0, 1, 3>() * b.template swizzle<1, 2, 0, 3>();
+            [[nodiscard]] constinl T rsqrt() const noexcept {
+                if consteval {
+                    f32 res = 1.f / std::sqrtf(x);
+                    return {res, res, res, res};
+                } else {
+                    __m128 y = _mm_rsqrt_ps(v);
 
-            return lhs - rhs;
-        }
+                    // first iteration
+                    y = y * (_mm_set1_ps(1.5f) - _mm_set1_ps(.5f) * v * y * y);
+                    return y;
+                }
+            }
 
-        pk_ainline constexpr base sqrt() const noexcept { return cmap<std::sqrtf, _mm_sqrt_ps>(*this); }
-        pk_ainline constexpr base isqrt() const noexcept { return cmap<[](f32 a){return 1.f / std::sqrtf(a);}, _mm_rsqrt_ps>(*this); }
+            [[nodiscard]] constinl T sqrt() const noexcept {
+                return rsqrt() * *this;
+            }
 
-        pk_ainline constexpr base unit() const noexcept { return *this * dot(*this).isqrt(); }
-        pk_ainline constexpr base min(const base &b) const noexcept { return cmap<std::min, _mm_min_ps>(*this, b); }
-        pk_ainline constexpr base max(const base &b) const noexcept { return cmap<std::max, _mm_max_ps>(*this, b); }
-        pk_ainline constexpr base abs() const noexcept {
-            static constexpr f32x4 negmask{bit_cast<f32>(0x7FFFFFFF)};
-            return *this & negmask;
-        }
+            template <u8 X, u8 Y, u8 Z, u8 W> 
+            [[nodiscard]] constinl T shuffle(const T &b) const noexcept {
+                if consteval { 
+                    return {b[X], b[Y], b[Z], b[W]}; 
+                } else {
+                    return _mm_shuffle_ps(*this, b, _MM_SHUFFLE(W, Z, Y, X));
+                }
+            }
+
+            template <u8 X, u8 Y, u8 Z, u8 W> 
+            [[nodiscard]] constinl T swizzle() const noexcept {
+                return shuffle<X, Y, Z, W>(*this);
+            }
+
+            template <u32 X, u32 Y, u32 Z, u32 W> [[nodiscard]] constinl T andmask() const noexcept { 
+                return map<F32BIT(&), _mm_and_ps>(T{bit_cast<f32>(X), bit_cast<f32>(Y), bit_cast<f32>(Z), bit_cast<f32>(W)});
+            }
+
+            template <u32 X, u32 Y, u32 Z, u32 W> [[nodiscard]] constinl T xormask() const noexcept { 
+                return map<F32BIT(^), _mm_xor_ps>(T{bit_cast<f32>(X), bit_cast<f32>(Y), bit_cast<f32>(Z), bit_cast<f32>(W)});
+            }
+
+            template <bool X, bool Y, bool Z, bool W> [[nodiscard]] constinl T negate() const noexcept {
+                return xormask<X*signbit, Y*signbit, Z*signbit, W*signbit>();
+            }
+ 
+            template <u32 X, u32 Y, u32 Z, u32 W> [[nodiscard]] constinl T ormask() const noexcept { 
+                return map<F32BIT(|), _mm_or_ps>(T{bit_cast<f32>(X), bit_cast<f32>(Y), bit_cast<f32>(Z), bit_cast<f32>(W)});
+            }
+
+            template <u8 mode = 0xFF> 
+            [[nodiscard]] constinl T dot4(T b) const noexcept {
+                if consteval {
+                    f32 dp = 0;
+                    if constexpr (mode & 0x80) dp += x * b.x;
+                    if constexpr (mode & 0x40) dp += y * b.y;
+                    if constexpr (mode & 0x20) dp += z * b.z;
+                    if constexpr (mode & 0x10) dp += w * b.w;
+
+                    return simdvec{
+                        (mode & 8) ? dp : 0.f,
+                        (mode & 4) ? dp : 0.f,
+                        (mode & 2) ? dp : 0.f,
+                        (mode & 1) ? dp : 0.f
+                    };
+                } else {
+                    return _mm_dp_ps(*this, b, mode);
+                }
+            }
+
+            [[nodiscard]] constinl T len4() const noexcept { return dot4(*this).sqrt(); }
+            [[nodiscard]] constinl T rlen4() const noexcept { return dot4(*this).rsqrt(); }
+
+        public:
+            [[nodiscard]] constinl f32 operator[](u32 i) const noexcept { 
+                return (&x)[i]; 
+            }
+            
+            [[nodiscard]] constinl T operator+(T b) const noexcept { 
+                return map<F32SCL(+), _mm_add_ps>(b);
+            }
+
+            [[nodiscard]] constinl T operator-(T b) const noexcept { 
+               return map<F32SCL(-), _mm_sub_ps>(b);
+            }
+
+            [[nodiscard]] constinl T operator*(T b) const noexcept { 
+                return map<F32SCL(*), _mm_mul_ps>(b);
+            }
+            
+            [[nodiscard]] constinl T operator/(T b) const noexcept { 
+                return map<F32SCL(/), _mm_div_ps>(b);
+            }
+
+            [[nodiscard]] constinl T operator-() const noexcept {
+                return xormask<signbit, signbit, signbit, signbit>();
+            }
+
+            constinl T& operator*=(T b) noexcept { return *this = *this * b; }
+            constinl T& operator/=(T b) noexcept { return *this = *this / b; }
+            constinl T& operator+=(T b) noexcept { return *this = *this + b; }
+            constinl T& operator-=(T b) noexcept { return *this = *this - b; }
+
+            [[nodiscard]] constinl T cross(T b) const noexcept {
+                // x = a.y * b.z - b.y * a.z
+                // y = a.z * b.x - b.z * a.x
+                // z = a.x * b.y - b.x * a.y
+                // w = a.w * b.w - a.w * b.w = 0
+ 
+                // [a.y * b.z, a.z * b.x, a.x * b.y] - [a.z * b.y, a.x * b.z, a.y * b.x]
+
+                T lhs = swizzle<1, 2, 0, 3>() * b.template swizzle<2, 0, 1, 3>();
+                T rhs = swizzle<2, 0, 1, 3>() * b.template swizzle<1, 2, 0, 3>();
+
+                return lhs - rhs;
+            }
+
+            [[nodiscard]] constinl f32 dot(T b) const noexcept { return dot4(b).x; }
+            [[nodiscard]] constinl T unit() const noexcept { 
+                return *this * dot4(*this).rsqrt(); 
+            }
+
+            [[nodiscard]] constinl f32 len() const noexcept { return len4().x; }
+            [[nodiscard]] constinl f32 rlen() const noexcept { return rlen4().x; }
+
+            [[nodiscard]] constinl T min(T b) const noexcept { return map<std::min, _mm_min_ps>(b); }
+            [[nodiscard]] constinl T max(T b) const noexcept { return map<std::max, _mm_max_ps>(b); }
+            [[nodiscard]] constinl T abs() const noexcept { return andmask<~signbit, ~signbit, ~signbit, ~signbit>(); }
     };
 }
+
+#undef constinl
+#undef F32BIT
+#undef F32SCL
