@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.25)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_C_COMPILER   C:/msys64/mingw64/bin/clang.exe   CACHE FILEPATH "" FORCE)
-set(CMAKE_CXX_COMPILER C:/msys64/mingw64/bin/clang++.exe CACHE FILEPATH "" FORCE)
+
+set(LLVM_ROOT "C:/Program Files/LLVM")
+set(CMAKE_C_COMPILER   "${LLVM_ROOT}/bin/clang.exe"   CACHE FILEPATH "" FORCE)
+set(CMAKE_CXX_COMPILER "${LLVM_ROOT}/bin/clang++.exe" CACHE FILEPATH "" FORCE)
+set(CMAKE_LINKER       "${LLVM_ROOT}/bin/lld-link.exe" CACHE FILEPATH "" FORCE)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(Perekop LANGUAGES C CXX)
@@ -9,7 +12,7 @@ project(Perekop LANGUAGES C CXX)
 set(engine ${CMAKE_SOURCE_DIR}/engine)
 set(game ${CMAKE_SOURCE_DIR}/game)
 
-add_subdirectory(${engine}/lib/glfw)
+#add_subdirectory(${engine}/lib/glfw)
 
 find_package(OpenGL REQUIRED)
 

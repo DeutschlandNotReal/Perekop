@@ -1,8 +1,5 @@
 CompileFlags:
-  CompilationDatabase: build
-  Add: [-std=c++23, -xc++, -Iengine/include, -Iengine/lib/glfw/include, -Iengine/lib/glad/include, -Iengine/lib/glm, -Iengine/lib, -Igame/include]
   Remove: [-include-pch, -Xclang, -include]
+
 Completion:
   HeaderInsertion: Never
-Index:
-  StandardLibrary: Yes

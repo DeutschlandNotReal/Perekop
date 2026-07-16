@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "name": "Perekop",
+      "compilerPath": "C:/Program Files/LLVM/bin/clang++.exe",
+      "compileCommands": "${workspaceFolder}/build/compile_commands.json",
+      "intelliSenseMode": "windows-clang-x64",
+      "cppStandard": "c++23",
+      "cStandard": "c17",
+      "browse": {
+        "path": [
+          "${workspaceFolder}/engine/include",
+          "${workspaceFolder}/engine/lib/glfw/include",
+          "${workspaceFolder}/engine/lib/glad/include",
+          "${workspaceFolder}/engine/lib/glm",
+          "${workspaceFolder}/engine/lib",
+          "${workspaceFolder}/game/include"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ],
+  "version": 4
+}

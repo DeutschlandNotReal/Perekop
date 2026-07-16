@@ -1,6 +1,9 @@
 {
-    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe",
-    "clangd.arguments": ["--pch-storage=memory", "--compile-commands-dir=build"],
+    "clangd.path": "clangd",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build",
+        "--query-driver=**"
+    ],
     "C_Cpp.intelliSenseEngine": "disabled",
     "[cpp]": {
         "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
