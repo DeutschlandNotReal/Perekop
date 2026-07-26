@@ -4,35 +4,37 @@
 #include <utility>
 #include <new>
 #include <PK/Math/number.hpp>
-#include <PK/Core/type.hpp>
 
-#define pk_ainline [[gnu::always_inline]]
+#define constinl [[clang::always_inline]] constexpr
 
 namespace pk {
+    // trivial types < 16B faster to pass by value, not const-ref
     template <typename T> 
-    pk_ainline constexpr const T* ptr_add(const T* ptr, i64 bytes) noexcept {
+    using pass_t = std::conditional_t<(sizeof(T) > 16 || !std::is_trivially_copyable_v<T>), const T&, T>;
+
+    template <typename T> 
+    constinl const T* ptr_add(const T* ptr, i64 bytes) noexcept {
         return (T*)((const char*)ptr + bytes); 
     }
 
     template <typename T> 
-    pk_ainline constexpr i64 ptr_dif(const T* a, const T* b) noexcept {
+    constinl i64 ptr_dif(const T* a, const T* b) noexcept {
         return (i64)b - (i64)a;
     }
 
     template <typename T, bool destructive = true>
-    pk_ainline constexpr void move(T* dst, T* src) {
+    constinl void move(T* dst, T* src) {
         if constexpr (std::is_move_constructible_v<T>) {
             new (dst) T(std::move(*src));
             if constexpr (!destructive) return;
         } else {
             new (dst) T(*src);
         }
-
         src->~T();
     }
 
     template <typename T = char, u32 align = 0> 
-    [[nodiscard]] inline constexpr T* alloc(u32 n) {
+    [[nodiscard]] constinl T* alloc(u32 n) {
         if constexpr (align) {
             // sizeof(T) * n must be multiple!!
             u32 bytes = (sizeof(T) * n + align - 1) & ~(align - 1);
@@ -42,7 +44,7 @@ namespace pk {
     }
 
     template <u32 align = 0>
-    inline constexpr void free(void *ptr) {
+    constinl void free(void *ptr) {
         if constexpr (align)
             ::operator delete(ptr, std::align_val_t(align));
         else
@@ -50,7 +52,7 @@ namespace pk {
     }
 
     template <typename T> 
-    inline constexpr void copy(T* dst, const T* src, u32 n = 1) {
+    constinl void copy(T* dst, const T* src, u32 n = 1) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             const T* end = src + n; 
 
@@ -59,19 +61,19 @@ namespace pk {
             std::memcpy(dst, src, n * sizeof(T));
     }
 
-    template <typename T> 
-    inline constexpr void move(T* dst, T* src, u32 n) {
+    template <typename T, bool destructive = true> 
+    constinl void move(T* dst, T* src, u32 n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* end = src + n; 
 
-            while (src < end) move(dst++, src++);
+            while (src < end) move<destructive>(dst++, src++);
 
         } else
             std::memmove(dst, src, n * sizeof(T));
     }
 
     template <typename T> 
-    inline constexpr void rshift(T* src, T* end, u32 n) {
+    constinl void rshift(T* src, T* end, u32 n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* dstend = end + n;
 
@@ -82,7 +84,7 @@ namespace pk {
 
     // returns pointer distance from src to dst
     template <typename T, u32 align>
-    inline constexpr i64 realloc(T** data, u32 n, u32 size) {
+    constinl i64 realloc(T** data, u32 n, u32 size) {
         T* src = *data;
         T* dst = *data = pk::alloc<T, align>(size);
         i64 dif = ptr_dif(src, dst);

@@ -1,10 +1,7 @@
 #pragma once
-#include <PK/Core/string.hpp>
+#include <PK/pch.hpp>
 #include <PK/Util/event.hpp>
 #include <PK/Graphics/texture.hpp>
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
-using glm::vec2, glm::vec3;
 
 namespace pk {
     enum class gui_type: char {
@@ -24,13 +21,13 @@ namespace pk {
         gui_type type{gui_type::basic};
         
         union {
-            String text;
+            string text;
             Texture image;
             vec3 col;
         };
 
         ~gui_instance() {
-            if (type == gui_type::text) text.~String();
+            if (type == gui_type::text) text.~string();
         };
     };
 }

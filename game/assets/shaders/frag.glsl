@@ -1,3 +1,6 @@
+#version 430
+out vec4 fragColor;
+
 in vec4 f_colour;
 in vec2 f_uv;
 in float f_t;

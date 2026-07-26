@@ -13,7 +13,7 @@ using namespace Perekop;
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
-int main() {
+i32 main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -39,32 +39,30 @@ int main() {
         Perekop::render(false);
     });
 
-    double accumulator{0};
+    f64 accumulator{0};
 
+    f64 rfps = 1.0 / World::fps;
     while (!glfwWindowShouldClose(glfw_window)) {
         accumulator += frame_timer.delta();
-        double ifps = 1.0 / World::fps;
 
-        if (accumulator >= ifps) {
+        if (accumulator >= rfps) {
             glfwPollEvents();
-            int ticks = accumulator * World::fps;
-            double dt = ifps;
-
+            i32 ticks = accumulator * World::fps;
+    
             if (ticks > 4) {
                 // ticks dropped to not overload
-                dt *= (ticks * 0.5);
-                accumulator -= (ticks - 2) * ifps;
+                accumulator -= (ticks - 2) * rfps;
                 ticks = 2;
             }
 
             frame_timer.begin();
-            while (accumulator >= ifps) {
-                accumulator -= ifps;
-                step_physics(dt);
-                on_step(dt);
+            while (accumulator >= rfps) {
+                accumulator -= rfps;
+                step_physics(rfps);
+                on_step(rfps);
             }
 
-            double util = frame_timer.stop() * World::fps * 100;
+            f64 util = frame_timer.stop() * World::fps * 100;
 
             glfwSetWindowTitle(glfw_window, std::format("Perekop | UTIL {:2.3f}%", util).c_str());
 

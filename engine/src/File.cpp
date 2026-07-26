@@ -4,7 +4,7 @@
 #include <PK/Core/algorithm.hpp>
 using namespace pk;
 
-String pk::read_file(strview path) {
+string pk::read_file(strview path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
         printf("Can't find file: '%*s'\n", path.size(), path.begin());
@@ -13,7 +13,7 @@ String pk::read_file(strview path) {
 
     fseek(f, 0, SEEK_END);
     u32 len = ftell(f); rewind(f);
-    String text(len);
+    string text(len);
 
     fread(text.begin(), 1, len, f);   
     fclose(f);

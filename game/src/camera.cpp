@@ -6,8 +6,6 @@
 
 using namespace pk;
 using namespace Perekop;
-using namespace glm;
-
 float _pitch{0}, _yaw{0};
 
 void pkgame::init::camera() {

@@ -1,6 +1,7 @@
 #pragma once
+
 #ifdef PK_INTERNAL
-namespace Perekop { void render(bool recollect); }
+namespace Perekop { void render(bool); }
 #include <PK/pch.hpp>
 
 #include <PK/Interface/callbacks.hpp>
@@ -11,14 +12,14 @@ namespace Perekop { void render(bool recollect); }
 class GLFWwindow;
 namespace pk {
     struct GuiData { 
-        float Z; 
+        f32 Z; 
         vec2 p, s; 
         vec4 RGBA;
     };
 
     struct ModelData { 
-        glm::mat4 transform; 
-        glm::vec4 metadata; 
+        mat4 transform; 
+        vec4 metadata; 
     };
 };
 
@@ -27,15 +28,15 @@ namespace Perekop {
     inline GLFWwindow* glfw_window{nullptr};
 
     namespace cache {
-        inline pk::Vec<pk::Vec<pk::ModelData>> T;
-        inline pk::Vec<pk::GuiData> gui;
+        inline pk::vector<pk::vector<pk::ModelData>> T;
+        inline pk::vector<pk::GuiData> gui;
     }
 
     void init_render();
     void init_window();
 
     void step_window();
-    void step_physics(float dt);
+    void step_physics(f32 dt);
 
     inline u32
         mesh_VAO{0},
@@ -46,6 +47,6 @@ namespace Perekop {
 
     extern void query_gui();
 
-    extern glm::mat3 to_inertia(glm::vec3 localpoint);
+    //extern mat4 to_inertia(vec3 localpoint);
 }
 #endif

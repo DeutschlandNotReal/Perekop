@@ -4,12 +4,12 @@
 #include <PK/Math/transform.hpp>
 
 namespace Perekop::Window {
-        inline pk::Event<glm::vec2> on_resize;
+        inline pk::Event<pk::vec2> on_resize;
 
-        extern vec2 get_size();
-        extern void set_size(glm::vec2 size);
-        extern void set_title(pk::strview title);
+        extern pk::vec2 get_size() noexcept;
+        extern void set_size(pk::vec2 size) noexcept;
+        extern void set_title(pk::strview title) noexcept;
 
-        extern void maximize();
-        extern void minimize();
+        extern void maximize() noexcept;
+        extern void minimize() noexcept;
 }

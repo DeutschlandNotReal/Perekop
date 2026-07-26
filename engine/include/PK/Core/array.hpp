@@ -1,7 +1,6 @@
 #pragma once
 #include <PK/Math/number.hpp>
 #include <PK/Core/memory.hpp>
-#include <PK/Core/type.hpp>
 
 namespace pk {
     template <typename T, u32 n> 
@@ -12,6 +11,11 @@ namespace pk {
             constexpr array(const T (&src)[n]) noexcept {
                 pk::copy(data, src, n);
             }
+
+            template <typename... arg>
+            constexpr array(arg... args) noexcept requires(sizeof...(args) == n) : 
+                data{static_cast<T>(args)...} 
+            {}
 
             constexpr const T* begin() const { return data; }
             constexpr const T* end()   const { return data + n; }
@@ -25,4 +29,6 @@ namespace pk {
             constexpr operator const T*() const { return data; }
             constexpr operator T*() { return data; }
     };
+
+    template <typename T, u32 n> using pass_arr = std::conditional_t<sizeof(T) * n <= 16, T, const T&>;
 }

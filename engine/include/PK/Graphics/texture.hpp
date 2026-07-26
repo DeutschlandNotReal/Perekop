@@ -1,6 +1,5 @@
 #pragma once
-#include <PK/Core/vector.hpp>
-#include <PK/Core/string.hpp>
+#include <PK/pch.hpp>
 
 namespace pk {
     class Texture {

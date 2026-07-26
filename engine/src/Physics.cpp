@@ -4,6 +4,10 @@
 #include <PK/Internal.hpp>
 
 using namespace pk;
+
+
+
+/*
 Body::Body(Model &root) {
     
 };
@@ -53,3 +57,5 @@ void Perekop::step_physics(f32 dt) {
         ));
     }
 }
+
+*/

@@ -6,16 +6,16 @@ namespace pk {
         char* data{nullptr}; u32 len{0};
 
         public:
-            constexpr char& operator[](u32 i) { return data[i]; }
-            constexpr char  operator[](u32 i) const { return data[i]; }
+            constinl char& operator[](u32 i) { return data[i]; }
+            constinl char  operator[](u32 i) const { return data[i]; }
 
-            constexpr char* begin() { return data; }
-            constexpr char* end()   { return data + len; }
-            constexpr const char* begin() const { return data; }
-            constexpr const char* end()   const { return data + len; }
+            constinl char* begin() { return data; }
+            constinl char* end()   { return data + len; }
+            constinl const char* begin() const { return data; }
+            constinl const char* end()   const { return data + len; }
             constexpr u32 size() const { return len; }
 
-            constexpr string() = default;
+            constinl string() = default;
             constexpr string(u32 L): data(pk::alloc(L + 1)), len(L) { data[L] = '\0'; }
 
             template <u32 L> constexpr string(const char (&str)[L]): data(pk::alloc(L)), len(L - 1) { 
@@ -28,7 +28,7 @@ namespace pk {
                 pk::copy(data, str, len+1);
             }
 
-            constexpr string(string &&str) {
+            constinl string(string &&str) {
                 data = str.data; len = str.len;
                 str.data = nullptr; str.len = 0;
             }
@@ -61,23 +61,23 @@ namespace pk {
                 return *this;
             }
 
-            constexpr operator char*() { return data; }
-            constexpr operator const char*() const { return data; }
+            constinl operator char*() { return data; }
+            constinl operator const char*() const { return data; }
 
-            constexpr explicit operator bool() const { return data != nullptr; }
-            constexpr bool operator !()        const { return data == nullptr; }
+            constinl explicit operator bool() const { return data != nullptr; }
+            constinl bool operator !()        const { return data == nullptr; }
 
-            constexpr bool operator>(const string& b) const {
+            constinl bool operator>(const string& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) > 0;
             }
 
-            constexpr bool operator<(const string& b) const {
+            constinl bool operator<(const string& b) const {
                 int n = b.len > len ? len : b.len;
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            constexpr bool operator==(const string& b) const {
+            constinl bool operator==(const string& b) const {
                 return !(b.len != len || std::strncmp(data, b.data, len));
             }
 

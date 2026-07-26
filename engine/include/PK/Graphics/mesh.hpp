@@ -1,13 +1,12 @@
 #pragma once
-#include <PK/Core/set.hpp>
-#include <PK/Physics/pose.hpp>
+#include <PK/pch.hpp>
+
 #include <PK/Graphics/texture.hpp>
 #include <PK/Graphics/shader.hpp>
 
 namespace pk {
     class Model;
     class Mesh {
-        friend set<Mesh>;
         friend Model;
         #ifdef PK_INTERNAL
         friend void Perekop::render(bool);
@@ -22,8 +21,8 @@ namespace pk {
             Texture texture; 
             Shader* shader{nullptr};
             
-            Vec<Vertex> vertices;
-            Vec<u16> indices;
+            vector<Vertex> vertices;
+            vector<u16> indices;
 
             u16 id;
             bool is_loaded() const { return VBO != 0; }
