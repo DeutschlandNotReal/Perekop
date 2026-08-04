@@ -14,7 +14,7 @@ namespace pk {
         vec2 pos{0}, size{0};
         bool entered{false};
         f32 Z{0};
-        bool is_intersecting(vec2 point) const {
+        bool intersects(vec2 point) const {
             return !(point.x < pos.x || point.y < pos.y || point.x > pos.x + size.x || point.y > pos.y + size.y);
         }
 

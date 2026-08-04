@@ -3,27 +3,75 @@
 #include <PK/Core/array.hpp>
 using namespace pk;
 
+template <char... C> static inline constexpr u64 mask = ((1ull << C) | ...);
+inline constexpr u64 ws_mask = mask<'\n','\t','\r',' '>;
+
 const char* find(const char *cur, char val, const char *until) noexcept {
     return (const char*)std::memchr(cur, val, until - cur);
 }
 
-bool is_space(u8 c) {
-    // all space characters are below 64
-    static constexpr u64 lookup{1ull << ' ' | 1ull << '\n' | 1ull << '\r' | 1ull << '\t'};
-
-    return (lookup >> c) & 1;
+void skip_matches(u64 mask, const char* &cur, const char* end) noexcept {
+    while ((mask >> *cur) & ((*cur - 64) >> 31) & ((cur - end) >> 63)) ++cur;
 }
+
+void skip_nmatches(u64 mask, const char* &cur, const char* end) noexcept {
+    while (~((mask >> *cur) & ((*cur - 64) >> 31)) & ((cur - end) >> 63)) ++cur;
+}
+
+json::parser::parser(strview src) noexcept: scope_level{0}, cur(src.begin()), end(src.end()) {
+    skip_matches(ws_mask, cur, end);
+
+    scope_context = *cur == '[';
+}
+
+const char* json::parser::find(const char *from, const char *to, char val) const noexcept {
+    return (const char*)std::memchr(from, val, to - from);
+}
+
+char json::parser::get_scope() const noexcept {
+    return (']' - '}') & 1 - ((scope_context << scope_level) & 1);
+}
+
+void json::parser::set_scope(char scope) noexcept {
+    scope = (((scope - '{') >> 31) & 1) << ++scope_level;
+    scope_context |= scope;
+}
+
+void json::parser::pop_scope() noexcept {
+    scope_context &= ~('\1' << scope_level--);
+}
+
+bool json::parser::finished() const noexcept { return cur == end; }
+
+json::parser::parse_object json::parser::next() noexcept {
+    char scope = get_scope();
+
+    strview index;
+    if (scope == '{') {
+        const char *i_src = cur;
+        const char *i_end = find(i_src + 1, end, '"');
+        index = {i_src, i_end + 1};
+        cur = i_end;
+        skip_matches(ws_mask | mask<':'>, cur, end);
+    }
+    
+    const char *c_src = cur;
+    skip_nmatches(ws_mask | mask<','>);
+    const char *scope_end = find(cur, end, scope + 2);
+    const char *comma_end = find(cur, scope_end, ',');
+    const char *c_end = comma_end ? comma_end + 1 : scope_end;
+}
+
 
 namespace pk::json {
     // json parser assumes json is perfectly formatted, doesnt throw errors
     // new system next commit
     void parse(strview src, void(*callback)(const token& t, void* userdata), void* userdata) {
-        /*
         using enum pk::json::type;
         if (!src) return;
         const char *cur = src.begin(), *end = src.end();
 
-        auto space_skip = [&cur, &end](){
+        auto space_skip = [&cur, &end](){  b     
             while (cur != end && is_space(*cur)) ++cur;
         };
 

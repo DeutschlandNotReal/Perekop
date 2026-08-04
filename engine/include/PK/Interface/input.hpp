@@ -1,6 +1,6 @@
 #pragma once
-#include <PK/Util/event.hpp>
 #include <PK/Math/transform.hpp>
+#include <PK/Util/event.hpp>
 
 namespace Perekop::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };
@@ -11,7 +11,7 @@ namespace Perekop::Mouse {
     extern void unlock();
     extern bool is_locked();
 
-    extern pk::quat rotation() noexcept;
+    inline pk::transform transform;
 
     inline pk::Event<pk::vec2> on_move;
     inline pk::Event<Button> on_down, on_up;

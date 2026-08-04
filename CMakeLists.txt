@@ -45,6 +45,6 @@ target_include_directories(perekop PRIVATE
     ${game}/include
 )
 
-target_precompile_headers(perekop PRIVATE ${engine}/include/PK/pch.hpp)
+target_precompile_headers(perekop PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${engine}/include/PK/pch.hpp>)
 
 target_link_libraries(perekop PRIVATE glfw OpenGL::GL)

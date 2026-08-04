@@ -7,7 +7,6 @@
 #include <PK/Core/vector.hpp>
 
 #include <PK/Math/constants.hpp>
-#include <PK/Math/functional.hpp>
 #include <PK/Math/number.hpp>
 #include <PK/Math/simd.hpp>
 #include <PK/Math/transform.hpp>

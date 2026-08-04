@@ -7,19 +7,17 @@ using namespace pk;
 // Mouse::pos ranges from 0 to 1 where (1, 1) is the top-right corner
 // glfw does it in pixels and where (1, 1) is bottom-right corner...
 
-f64 mouse_lx, mouse_ly;
+vec2 lpos;
 namespace Perekop::Mouse {
-    quat rot() noexcept {
-        
-    }
+    extern const pk::transform t{};
 
     bool held(Button b) {
         return glfwGetMouseButton(glfw_window, b) == 1;
     }
 
     void point_to(vec2 p) {
-        mouse_lx = p.x; mouse_ly = p.y;
-        glfwSetCursorPos(glfw_window, mouse_lx, mouse_ly);
+        lpos = p;
+        glfwSetCursorPos(glfw_window, p.x, p.y);
     }
 
     void lock() { glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); }
@@ -50,57 +48,61 @@ void Perekop::init_window() {
     int winwidth, winheight;
     glfwGetWindowSize(glfw_window, &winwidth, &winheight);
 
-    glfwGetCursorPos(glfw_window, &mouse_lx, &mouse_ly);
-    Mouse::pos = vec2{mouse_lx, winheight - mouse_ly} / vec2{winwidth, winheight};
+    f64 mx, my;
+    glfwGetCursorPos(glfw_window, &mx, &my);
+    lpos = {mx, my};
+    Mouse::pos = vec2{lpos.x, winheight - lpos.y} / vec2{winwidth, winheight};
 
-    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, int k, int act, int){
+    glfwSetMouseButtonCallback(glfw_window, [](GLFWwindow*, i32 k, i32 act, i32){
         switch (act) {
-            case GLFW_PRESS: 
-                return Mouse::on_down.fire(Mouse::Button(k));
-            case GLFW_RELEASE: 
-                return Mouse::on_up.fire(Mouse::Button(k));
+            case GLFW_PRESS: return Mouse::on_down.fire(Mouse::Button(k));
+            case GLFW_RELEASE: return Mouse::on_up.fire(Mouse::Button(k));
         }
     }); 
 
-    glfwSetScrollCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        Mouse::on_scroll.fire(y);
+    glfwSetScrollCallback(glfw_window, [](GLFWwindow*, f64 x, f64 y){
+        Mouse::on_scroll.fire((i32)y);
     });
 
-    glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        if (x == mouse_lx && y == mouse_ly) return;
-        double dx = x - mouse_lx, dy = y - mouse_ly;
-        vec2 size = Window::get_size();
+    glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, f64 x, f64 y){
+        vec2 pos{x, y};
+        if (pos.x == lpos.x && pos.y == lpos.y) return;
 
-        vec2 delta = vec2{dx, dy} / size;
-        Perekop::query_gui();
+        vec2 rsize = 1.f / Window::get_size();
+        vec2 delta = (pos - lpos) * rsize; // [-1 -> 1]
+        //Perekop::query_gui();
 
-        mouse_lx = x; mouse_ly = y;
-        if (!Mouse::is_locked()) Mouse::pos -= delta;
+
+        lpos = pos;
+        if (!Mouse::is_locked()) {
+            Mouse::pos -= delta;
+            f32 anglek = (pk::pi<> / 180.f) * World::camera.fov;
+ 
+            Mouse::transform = World::camera.t * quat::axis_angle({0,1,0}, anglek * delta.x) * quat::axis_angle({1,0,0}, anglek * delta.y);
+        }
    
         Mouse::on_move.fire(delta);
     });
 
-    glfwSetKeyCallback(glfw_window, [](GLFWwindow*, int k, int, int act, int){
+    glfwSetKeyCallback(glfw_window, [](GLFWwindow*, i32 k, i32, i32 act, i32){
         switch (act) {
-            case GLFW_PRESS: 
-                return Input::on_down.fire(k);
-            case GLFW_RELEASE: 
-                return Input::on_up.fire(k); 
+            case GLFW_PRESS: return Input::on_down.fire(k);
+            case GLFW_RELEASE: return Input::on_up.fire(k); 
         }
     });
 
-    glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, int w, int h){
+    glfwSetWindowSizeCallback(glfw_window, [](GLFWwindow*, i32 w, i32 h){
         glViewport(0, 0, w, h);
         Window::on_resize.fire({w, h});
     });
 }
 
 void Perekop::query_gui() {
-    Gui::top = nullptr;
+    /*Gui::top = nullptr;
 
     for (gui_instance &gui : Gui::items) {
         gui.entered = gui.is_intersecting(Mouse::pos);
         if (gui.entered && (!Gui::top || Gui::top->Z > gui.Z))
             Gui::top = &gui; 
-    }
+    */
 }

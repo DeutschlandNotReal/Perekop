@@ -1,5 +1,6 @@
 #pragma once 
 #include <PK/Math/vec.hpp>
+#include <PK/Math/mat.hpp>
 
 namespace pk {
     struct quat {
@@ -19,18 +20,23 @@ namespace pk {
             // z = w0*z1 + x0*y1 - y0*x1 + z0*w1
             // w = w0*w1 - x0*x1 - y0*y1 - z0*z1
 
-            f32x4 xprod = val.swizzle<0, 0, 0, 0>().negate<0, 1, 0, 1>() * b.val.swizzle<3, 2, 1, 0>(); 
-            f32x4 yprod = val.swizzle<1, 1, 1, 1>().negate<0, 0, 1, 1>() * b.val.swizzle<2, 3, 0, 1>();
-            f32x4 zprod = val.swizzle<2, 2, 2, 2>().negate<1, 0, 0, 1>() * b.val.swizzle<1, 0, 3, 2>();
-            f32x4 wprod = val.swizzle<3, 3, 3, 3>() * b.val;
+            f32x4 res = val.swizzle<0, 0, 0, 0>().negate<0, 1, 0, 1>() * b.val.swizzle<3, 2, 1, 0>(); 
+            res += val.swizzle<1, 1, 1, 1>().negate<0, 0, 1, 1>() * b.val.swizzle<2, 3, 0, 1>();
+            res += val.swizzle<2, 2, 2, 2>().negate<1, 0, 0, 1>() * b.val.swizzle<1, 0, 3, 2>();
+            res += val.swizzle<3, 3, 3, 3>() * b.val;
 
-            return *this = xprod + yprod + zprod + wprod;
+            return *this = res;
         }
 
         // axis must be unit!!
         [[nodiscard]] constinl static quat axis_angle(vec3 axis, f32 angle) noexcept {
-            f32 sinA, cosA;
-            sincosf(angle * .5f, &sinA, &cosA);
+            f32 sinA, cosA; angle *= .5f;
+            if consteval {
+                sinA = std::sin(angle); 
+                cosA = std::cos(angle); 
+            } else {
+                sincosf(angle, &sinA, &cosA);
+            }
             return {axis.x * sinA, axis.y * sinA, axis.z * sinA, cosA};
         }
 
@@ -42,6 +48,19 @@ namespace pk {
             // q' / |q|^2
             return val.negate<1, 1, 1, 0>() * val.dot().rcp();
         }
+
+        [[nodiscard]] constinl operator mat3() const noexcept {
+            f32 xx = x*x, yy = y*y, zz = z*z;
+            f32 xy = x*y, xz = x*z, yz = y*z;
+            f32 wx = w*x, wy = w*y, wz = w*z;
+
+            return {
+                1 - 2*(yy+zz), 2*(xy+wz), 2*(xz-wy),
+                2*(xy-wz), 1 - 2*(xx+zz), 2*(yz+wx),
+                2*(xz+wy), 2*(yz-wx), 1 - 2*(xx+yy)
+            };
+        }
+        
     };
 
     constinl quat operator+(quat a, quat b) noexcept { return a+=b; }
@@ -56,6 +75,6 @@ namespace pk {
 
         f32x4 t = 2.f * ( q_yzxw * v.val.swizzle<2, 0, 1, 3>() - q_zxyw *  v.val.swizzle<1, 2, 0, 3>());
         
-        return v + t * q.val.swizzle<3, 3, 3, 3>() + ( q_yzxw * t.swizzle<2, 0, 1, 3>() - q_zxyw * t.swizzle<1, 2, 0, 3>());
+        return v + vec4(t * q.val.swizzle<3, 3, 3, 3>() + ( q_yzxw * t.swizzle<2, 0, 1, 3>() - q_zxyw * t.swizzle<1, 2, 0, 3>()));
     }
 }

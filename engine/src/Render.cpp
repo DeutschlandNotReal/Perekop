@@ -111,17 +111,16 @@ void load_texture(GLuint* texture, const char* path) {
 }
 
 Texture::Texture(strview path) {
-    load_texture(&id, path);
+    load_texture(&txtid, path);
 };
 
 Shader::Shader(strview title, strview vpath, strview fpath) {
     string vsrc = read_file(vpath), fsrc = read_file(fpath);
     program = load_program({
-        load_shader({Perekop::preamble_v, vsrc}, title, GL_VERTEX_SHADER), 
-        load_shader({Perekop::preamble_f, fsrc}, title, GL_FRAGMENT_SHADER)
+        load_shader({vsrc}, title, GL_VERTEX_SHADER), 
+        load_shader({fsrc}, title, GL_FRAGMENT_SHADER)
     });
   
-    
     layoutP = glGetUniformLocation(program, "proj");
     layoutV = glGetUniformLocation(program, "view");
     layoutT = glGetUniformLocation(program, "f_image");
@@ -129,20 +128,21 @@ Shader::Shader(strview title, strview vpath, strview fpath) {
 
 void Shader::uniform(UniformType type, strview title, const void* data) {
     uniforms.push({
-        glGetUniformLocation(program, title),
+        (u16) glGetUniformLocation(program, title),
         type,
         data
     });
 };
 
-void Texture::use(u32 layoutT) const {
-    if (!id) return;
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, id);
-    glUniform1i(layoutT, 0);
+void Texture::use(u32 layoutT) const noexcept {
+    if (txtid) {
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, txtid);
+        glUniform1i(layoutT, 0);
+    }
 }
 
-void Shader::use() const {
+void Shader::use(const mat4 &V, const mat4 &P) const noexcept {
     if (!program) return;
     glUseProgram(program);
     glUniformMatrix4fv(layoutV, 1,GL_FALSE, (float*)&V);
@@ -182,55 +182,50 @@ void Mesh::unload() {
     VBO = EBO = IBO = 0;
 }
 
+// recollect: gather all model transforms, convert to mat4 for shader
 void Perekop::render(bool recollect) {
     using namespace World;
     vec2 wsize = Window::get_size();
-    if (wsize.y == 0.f) return; // aspect ratio of inf (bad)
+
+    if (wsize.y * wsize.x == 0.f) return;
 
     glClearColor(bgcol.x, bgcol.y, bgcol.z, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    mat4 view = camera.view(), proj = camera.proj(wsize.x / wsize.y);
+    mat4 view = camera.view(), proj = camera.proj(wsize.x, wsize.y);
     glBindVertexArray(Perekop::mesh_VAO);
 
     // transform prealloc
+    cache::T.reserve(World::meshes.size());
+
     while (cache::T.size() < World::meshes.size())
         cache::T.emplace();
-
-    if (recollect) for (vector<ModelData> &modeldata : cache::T)
-        modeldata.clear();
-
-    // transform collection
-    if (recollect) for (const Model &model : World::models) {
-        // model.mesh value of 0 means no mesh assigned
-        if (!model.mesh || model.mesh > cache::T.size()) continue;
-        // if mesh is part of body & isn't root part, mesh pose is treated as relative to root pose
  
+    if (recollect) {
+        // old transform dispose
+        for (auto &modeldata : cache::T) modeldata.clear();
 
-        if (model.body) {
-            const Body& mbody = World::bodies[model.body];
-            if (model.id != mbody.rootid) transform *= mbody.pose.mat4();
+        // transform collection
+        for (const Model &model : World::models) {
+            cache::T[model.mesh].emplace(model.t.matrix(), model.metadata);
         }
-
-        cache::T[model.mesh-1].emplace(transform, model.metadata);
-     }
+    }
 
     // instanced draw
-    for (Mesh& mesh : World::meshes) {
-        if (mesh.id <= 0) continue;
-        vector<ModelData> &modeldata = cache::T[mesh.id-1];
+    for (u16 meshid = 0; meshid < World::meshes.size(); meshid++) {
+        vector<ModelData> &modeldata = cache::T[meshid];
+        Mesh& mesh = World::meshes[meshid];
 
-        if (modeldata.is_empty()) {
-            if (mesh.is_loaded()) mesh.unload(); // lazy unload
-            continue;
-        } else if (!mesh.is_loaded()) {
-            mesh.load(); // lazy load
+        if (modeldata.is_empty() && mesh.loaded()) {
+            mesh.unload(); continue; // lazy unload
+        } else {
+            if (!mesh.loaded()) mesh.load(); // lazy load
         }
 
         if (!mesh.shader) continue;
 
         mesh.shader->use(view, proj);
-        mesh.texture.use(mesh.shader->layoutT);        
+        mesh.texture->use(mesh.shader->layoutT);
 
         glAttribute(Perekop::mesh_VAO)
             .bind_elements(mesh.EBO)
@@ -243,6 +238,7 @@ void Perekop::render(bool recollect) {
     glUseProgram(gui_PROG);
 
     // gui instanced draw
+    /*
     if (!Gui::items.is_empty()) {
         cache::gui.reserve(Gui::items.size());
         cache::gui.clear();
@@ -263,19 +259,12 @@ void Perekop::render(bool recollect) {
             .vbuffer<GuiData>(1, gui_IBO)
             .idraw_array(6, cache::gui.size());
     }
+    */
 
     glfwSwapBuffers(glfw_window);
 }
 
-Mesh::~Mesh() {
-    if (id) {
-        Perekop::cache::T[id-1].~Vec<ModelData>();
-    }
-}
-
 void Perekop::init_render() {
-    preamble_v = read_file("engine/assets/shaders/pre_vsrc.glsl");
-    preamble_f = read_file("engine/assets/shaders/pre_fsrc.glsl");
     glAttribute(&mesh_VAO)
         // vertex (pos, norm, uv)
         .item<vec3, vec3, vec2>()
@@ -289,7 +278,7 @@ void Perekop::init_render() {
         .item_instanced<float, vec2, vec2, vec4>()
         .data<vec2>(gui_VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, gui_V);
     
-    string vsrc = read_file("engine/assets/shaders/gui_vert.glsl");
+    string vsrc = read_file("engine/assets/shaders/vertexgui.glsl");
     gui_PROG = load_program({
         load_shader({vsrc}, "gui", GL_VERTEX_SHADER),
         load_shader({"#version 430\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui", GL_FRAGMENT_SHADER)

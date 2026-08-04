@@ -6,154 +6,167 @@
 #include <utility>
 
 namespace pk {
-    template <typename T, u32 align = alignof(T)> class vector {
-        T *data{nullptr}, *cur{nullptr}, *cap{nullptr};
+    template <typename T> class vector {
+        T *data{nullptr}; u32 cap{0}, cur{0}; 
 
-        void resize(u32 newcap) {
-            if (data)
-                cur = ptr_add(cur, pk::realloc<T, align>(&data, size(), newcap));
-            else
-                data = cur = pk::alloc<T, align>(newcap); 
-            
-            cap = data + newcap;
+        constexpr void resize(u32 newcap) {
+            T* newdata = pk::alloc<T>(newcap);
+
+            [[likely]] if (data) {
+                pk::move<T, false>(newdata, data, cur);
+                pk::free(data);
+            }
+
+            cap = newcap;
+            data = newdata;
         }
 
-        T* next() {
-            // n * 1.5 + 8
-            if (cap == cur) resize((capacity() * 3 >> 1) + 8);
+        constinl T* next() {
+            [[unlikely]] if (cap == cur) {
+                // n * 3/2 + 1
+                resize(((capacity() * 3) << 1) + 1);
+            }
 
-            return cur++;
+            return data + cur++;
         }
 
         public:
-            vector() = default;
-            vector(u32 len): data(pk::alloc<T, align>(len)) { cap = data + len; cur = data; }
-            
-            template <u32 coalign> vector(const vector<T, coalign> &b): 
-                data(pk::alloc<T, align>(b.size())) {
-                cap = cur = data + b.size();
+            constinl vector() = default;
+
+            constexpr vector(u32 len): 
+                data(pk::alloc<T>(len)), cap(len), cur(0) 
+            {}
+
+            constexpr vector(const  vector &b) {
+                data = pk::alloc<T>(b.size());
+                cap = cur = b.size();
                 pk::copy(data, b.data, b.size());
             }
 
-            vector(vector &&b): 
-                data(b.data), cap(b.cap), cur(b.cur) { 
-                b.data = b.cap = b.cur = nullptr; 
+            constinl vector(vector &&b) noexcept: 
+                data(b.data), cap(b.cap), cur(b.cur) {
+                b.cap = b.cur = 0; b.data = nullptr;
             }
 
-            vector(std::initializer_list<T> items): data(pk::alloc<T, align>(items.size())) {
-                cap = cur = data + items.size();
+            constexpr vector(std::initializer_list<T> items) {
+                data = pk::alloc<T>(items.size());
+                cap = cur = items.size();
                 pk::copy(data, items.begin(), items.size());
             }
 
-            template <u32 L> vector(const pk::array<T, L> &items): data(pk::alloc<T, align>(L)) { 
-                cap = cur = data + L; 
-                pk::copy(data, items, L); 
+            template <u32 n> 
+            constexpr vector(const pk::array<T, n> &items) {  
+                data = pk::alloc<T>(n);
+                cap = cur = n;
+                pk::copy(data, items, n);
             }
 
-            explicit operator bool() const { return data != nullptr; }
-            bool operator!()         const { return data == nullptr; }
+            constinl explicit operator bool() const noexcept { return data != nullptr; }
+            constinl bool operator!()         const noexcept { return data == nullptr; }
 
-            T& operator[](u32 i) { return data[i]; }
-            const T& operator[](u32 i) const { return data[i]; }
+            constinl T& operator[](u32 i) noexcept { return data[i]; }
+            constinl const T& operator[](u32 i) const noexcept { return data[i]; }
 
-            T& back() { return *(cur-1); }
-            const T& back() const { return *(cur-1); }
-            T* begin() { return data; }
-            const T* begin() const { return data; }
-            T* end() { return cur; }
-            const T* end() const { return cur; }
+            constinl T& back() noexcept { return *(data + cur - 1); }
+            constinl const T& back() const noexcept { return *(data + cur - 1); }
+            constinl T* begin() noexcept { return data; }
+            constinl const T* begin() const noexcept { return data; }
+            constinl T* end() noexcept { return data + cur; }
+            constinl const T* end() const noexcept { return data + cur; }
 
-            bool is_empty() const { return cur == data; }
-            bool is_full()  const { return cap == cur; }
-            bool in_range(T* ptr) const { return (size_t)ptr - (size_t)data < size() * sizeof(T); }
+            constinl bool is_empty() const noexcept { return cur == 0; }
+            constinl bool is_full()  const noexcept { return cap == cur; }
             
-            u32 size()     const { return cur - data; }
-            u32 capacity() const { return cap - data; }
-            u32 bytesize() const { return size() * sizeof(T); }
+            constinl u32 size()     const noexcept { return cur; }
+            constinl u32 capacity() const noexcept { return cap; }
+            constinl u32 bytesize() const noexcept { return size() * sizeof(T); }
 
-            template <u32 co_align> vector& operator=(const vector<T, co_align> &b) {
+            constinl bool in_range(T* ptr) const noexcept { return (size_t)ptr - (size_t)data < bytesize(); }
+
+            constexpr vector& operator=(const vector &b) {
                 if (&b == this) return *this;
 
                 if (data) {
                     clear();
                     if (capacity() < b.size()) {
-                        pk::free<align>(data);
-                        data = pk::alloc<T, align>(b.size());
-                        cap = data + b.size();
-                    };
+                        pk::free(data);
+                        data = pk::alloc<T>(b.size());
+                        cap = b.size();
+                    }
                 } else {
-                    data = pk::alloc<T, align>(b.size());
-                    cap = data + b.size();
-                };
+                    data = pk::alloc<T>(b.size());
+                    cap = b.size();
+                }
 
-                cur = data + b.size();
+                cur = b.size();
                 pk::copy(data, b.data, b.size());
 
                 return *this;
             }
 
-            vector& operator=(vector &&b) {
+            constexpr vector& operator=(vector &&b) noexcept {
                 if (&b == this) return *this;
 
-                if (data) { clear(); pk::free<align>(data); }
+                if (data) { clear(); pk::free(data); }
                 cur = b.cur; cap = b.cap; data = b.data;
-                b.cur = b.cap = b.data = nullptr;
+                b.cur = b.cap = 0; b.data = nullptr;
 
                 return *this;
             }
 
-            void clear() { 
-                if constexpr (!std::is_trivially_destructible_v<T>)
-                    while (cur > data) (--cur)->~T();
-                else cur = data;
+            constexpr void clear() { 
+                if constexpr (!std::is_trivially_destructible_v<T>) {
+                    T* i = data + cur;
+                    while (i >= data) (i--)->~T();
+                } else { cur = 0; }
             }
 
-            void pop() {
+            constexpr void pop() {
                 if constexpr (!std::is_trivially_destructible_v<T>) 
-                    (--cur)->~T(); 
+                    (data + cur--)->~T(); 
                 else --cur;
             }
 
-            void pop(T* dst) {
+            constexpr void pop(T* dst) {
                 pk::move(dst, --cur);
             }
 
-            void reserve(u32 new_size) {
+            constexpr void reserve(u32 new_size) {
                 if (new_size > capacity()) resize(new_size);
             }
 
-            template <typename... A> T& emplace(A&&... args) {
-                new (next()) T(std::forward<A>(args)...);
+            template <typename... arg> 
+            constexpr T& emplace(arg&&... args) {
+                new (next()) T(std::forward<arg>(args)...);
                 return back();
             }
 
-            T& push(const T& item) {
+            constexpr T& push(const T& item) {
                 new (next()) T(item);
                 return back();
             }
 
-            T& push(T&& item) {
+            constexpr T& push(T&& item) {
                 new (next()) T(std::move(item));
                 return back();
             }
 
-            T& push(std::initializer_list<T> items) {
+            constexpr T& push(std::initializer_list<T> items) {
                 if (size() + items.size() > capacity()) resize(size() + items.size());
 
-                pk::copy(cur, items.begin(), items.size());
-                T* first = cur;
-                cur += items.size();
-                return *first;
+                pk::copy(data + cur, items.begin(), items.size());
+    
+                return data + cur += items.size() - items.size();
             }
 
-            void shift(u32 i, u32 n) {
+            constexpr void shift(u32 i, u32 n) {
                 if (size() + n > capacity()) resize(size() + n);
-                pk::rshift(data + i, cur, n);
+                pk::rshift(data + i, data + cur, n);
             }
 
-            ~vector() {
-                if (data) { clear(); pk::free<align>(data); }
-                data = cur = cap = nullptr;
+            constexpr ~vector() {
+                if (data) { clear(); pk::free<>(data); }
+                cap = cur = 0; data = nullptr;
             }
     };
 
@@ -161,28 +174,34 @@ namespace pk {
     template <typename T> class span {
         T* data{nullptr}, *cap{nullptr};
         public:
-            constexpr const T* begin() const { return data; }
-            constexpr const T* end()   const { return cap; }
-            constexpr T* begin() { return data; }
-            constexpr T* end()   { return cap; }
+            constinl const T* begin() const noexcept { return data; }
+            constinl const T* end()   const noexcept { return cap; }
+            constinl T* begin() noexcept { return data; }
+            constinl T* end()   noexcept { return cap; }
 
-            constexpr u32 size() const { return cap - data; }
+            constinl u32 size() const noexcept { return cap - data; }
 
-            constexpr T& operator[](u32 i) { return data[i]; }
-            constexpr const T& operator[](u32 i) const { return data[i]; }
+            constinl T& operator[](u32 i) noexcept { return data[i]; }
+            constinl const T& operator[](u32 i) const noexcept { return data[i]; }
 
-            constexpr span(T* single): data(single), cap(single+1) {}
-            constexpr span(T* first, T* end): data(first), cap(end) {}
-            constexpr span(T* first, u32 n): data(first), cap(first + n) {}
+            constinl span(T* single): data(single), cap(single+1) {}
+            constinl span(T* first, T* end): data(first), cap(end) {}
+            constinl span(T* first, u32 n): data(first), cap(first + n) {}
 
-            template <u32 L> constexpr span(T (&items)[L]): data(items), cap(items+L) {}
+            template <u32 L> constinl span(T (&items)[L]): data(items), cap(items+L) {}
 
-            constexpr explicit operator bool() const { return data != nullptr; }
-            constexpr bool operator!()         const { return data == nullptr; }
+            constinl explicit operator bool() const noexcept { return data != nullptr; }
+            constinl bool operator!()         const noexcept { return data == nullptr; }
 
-            template <typename C> constexpr span(C& container): 
+            template <typename C> 
+            constexpr span(C& container): 
                 data((T*)container.begin()), 
                 cap ((T*)container.end()) 
             {}
+
+            template <typename f, typename... A> void map(A... args, T* result) const noexcept {
+                for (u32 i = 0; i < size(); i++) 
+                    result[i] = f(data[i], std::forward(args...));
+            }
     };
 }

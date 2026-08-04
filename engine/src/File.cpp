@@ -7,7 +7,7 @@ using namespace pk;
 string pk::read_file(strview path) {
     FILE* f = fopen(path, "rb");
     if (!f) {
-        printf("Can't find file: '%*s'\n", path.size(), path.begin());
+        printf("\033[31mCouldn't find file: %*s \033[0m\n", path.size(), path.begin());
         return {};
     }
 

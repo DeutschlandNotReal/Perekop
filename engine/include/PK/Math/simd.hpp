@@ -29,6 +29,14 @@ namespace pk {
 
         [[nodiscard]] constinl f32x4(f32 x, f32 y, f32 z, f32 w) noexcept: x{x}, y{y}, z{z}, w{w} {}
 
+        constinl void store(f32* ptr) noexcept {
+            if consteval {
+                *ptr++ = x; *ptr++ = y; *ptr++ = z; *ptr = w;
+            } else {
+                _mm_storeu_ps(ptr, v);
+            }
+        }
+
         template <typename X, typename Y, typename Z, typename W>
         [[nodiscard]] constinl static f32x4 from_bit(X x, Y y, Z z, W w) noexcept {
             return {bit_cast<f32>(x), bit_cast<f32>(y), bit_cast<f32>(z), bit_cast<f32>(w)};
@@ -72,7 +80,7 @@ namespace pk {
         template <u8 X, u8 Y, u8 Z, u8 W> 
         [[nodiscard]] constinl f32x4 shuffle(const f32x4 &b) const noexcept {
             if consteval { 
-                return {b[X], b[Y], b[Z], b[W]}; 
+                return {(*this)[X], (*this)[Y], b[Z], b[W]}; 
             } else {
                 return _mm_shuffle_ps(*this, b, _MM_SHUFFLE(W, Z, Y, X));
             }
@@ -122,6 +130,17 @@ namespace pk {
         template <u8 mode = 0xFF>
         [[nodiscard]] constinl f32x4 dot() const noexcept { return dot<mode>(*this); }
 
+        [[nodiscard]] constinl f32 scl_dot(f32x4 b) const noexcept {
+            if consteval { return x*b.x + y*b.y + z*b.z + w*b.w; } else {
+                b *= *this;
+                b += b.swizzle<2, 3, 0, 0>(); // (xx + zz, yy + ww, ...,  ...)
+                b += b.swizzle<1, 0, 0, 0>(); // (xx + zz + yy + ww)
+                return b.x;
+            }
+        }
+
+        [[nodiscard]] constinl f32 scl_dot() const noexcept { return scl_dot(*this); }
+
         [[nodiscard]] constinl f32 operator[](u32 i) const noexcept { 
             return (&x)[i]; 
         }
@@ -162,7 +181,7 @@ namespace pk {
         }
 
         //[[nodiscard]] constinl f32x4 min(f32x4 b) const noexcept { return map<std::min, _mm_min_ps>(b); }
-        //[[nodiscard]] constinl f32x4 max(f32x4 b) const noexcept { return map<std::max, _mm_max_ps>(b); }
+        //[[nodiscard]] constinl f32x4 max(f32x4 b) const noexcept { return map<std::max, _mm_max_ps>(b); } 
         [[nodiscard]] constinl f32x4 abs() const noexcept { return andmask<~signbit>(); }
     };
 
@@ -174,6 +193,7 @@ namespace pk {
     [[nodiscard]] constinl f32x4 operator-(f32x4 a, f32x4 b) noexcept { return a -= b; }
     [[nodiscard]] constinl f32x4 operator*(f32x4 a, f32x4 b) noexcept { return a *= b; }
     [[nodiscard]] constinl f32x4 operator/(f32x4 a, f32x4 b) noexcept { return a /= b; }
+
 }
 
 #undef F32BIT

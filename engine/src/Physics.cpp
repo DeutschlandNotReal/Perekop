@@ -47,7 +47,9 @@ mat3 Body::inverse_inertia() {
     return invI;
 }
 
+*/
 void Perekop::step_physics(f32 dt) {
+    /*
     f32 hdt = dt * .5f;
     for (Body &body : World::bodies) {
         body.pose += ( body.vel += body.force * ( dt / body.mass ) );
@@ -56,6 +58,6 @@ void Perekop::step_physics(f32 dt) {
             hdt * ( body.angvel += dt * body.inverse_inertia() * body.torque )
         ));
     }
+    */
 }
 
-*/

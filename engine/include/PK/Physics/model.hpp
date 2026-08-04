@@ -7,6 +7,7 @@ namespace pk {
             transform t;
             u16 id{0}, mesh{0}, body{0};
 
+            // for shaders
             vec4 metadata;
     };
 } 

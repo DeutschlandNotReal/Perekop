@@ -2,21 +2,23 @@
 #include <PK/Core/string.hpp>
 
 namespace pk::json {
-    enum type: char {_empty = 0, _null, _bool, _str, _int, _flt, _arr = '[', _arr_end = ']', _obj = '{', _obj_end = '}', };
-    struct token {
-        strview key;
-        type type{_empty};
+    class parser {
+        const char *cur, *end;
+        u64 scope_context; // bitmap, [ = 1, { = 0
+        u8  scope_level;
 
-        union {
-            strview value_str;
-            i32 value_int;
-            f32 value_flt;
-        };
+        char get_scope() const noexcept; // returns ] or }
+        void set_scope(char) noexcept; // requires [ or {
+        void pop_scope() noexcept;
 
-        explicit operator bool() const { return type; }
-        bool operator!() const { return !type; }
+        const char* find(const char* from, const char* to, char val) const noexcept;
+
+        public:
+            parser(strview src) noexcept;
+
+            struct parse_object { strview index, content; };
+
+            bool finished() const noexcept;
+            parse_object next() noexcept;
     };
-
-
-    extern void parse(strview src, void(*callback)(const token&, void*), void* userdata = nullptr);
 }

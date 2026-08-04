@@ -117,13 +117,25 @@ namespace pk {
                 return std::strncmp(data, b.data, n) < 0;
             }
             
-            constexpr bool operator==(strview b) const {
+            constinl bool operator==(strview b) const {
                 return !(b.len != len || strncmp(data, b.data, len));
             }
 
             constexpr const char* find(char c) const {
                 return (const char*)std::memchr(data, c, len);
             }
+
+            constexpr strview split_pre(char c) const noexcept {
+                const char* pivot = find(c);
+                return !pivot ? *this : strview{data, pivot};
+            }
+
+            constexpr strview split_post(char c) const noexcept {
+                const char* pivot = find(c);
+                return !pivot ? *this : strview{pivot, len};
+            }
+
+            constexpr strview& advance(u32 adv) noexcept { data += adv; return *this; }
 
             // copies content as string (heap alloc!!)
             constexpr explicit operator string() const {
