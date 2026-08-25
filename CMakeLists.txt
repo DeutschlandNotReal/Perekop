@@ -1,50 +1,53 @@
 cmake_minimum_required(VERSION 3.25)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_C_COMPILER   C:/msys64/mingw64/bin/clang.exe   CACHE FILEPATH "" FORCE)
 set(CMAKE_CXX_COMPILER C:/msys64/mingw64/bin/clang++.exe CACHE FILEPATH "" FORCE)
+
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 project(Perekop LANGUAGES C CXX)
 
-set(engine ${CMAKE_SOURCE_DIR}/engine)
-set(game ${CMAKE_SOURCE_DIR}/game)
+set(ENGINE ${CMAKE_SOURCE_DIR}/engine)
+set(GAME ${CMAKE_SOURCE_DIR}/game)
 
-add_subdirectory(${engine}/lib/glfw)
+add_subdirectory(${ENGINE}/lib/glfw)
+add_subdirectory(${ENGINE}/lib/freetype)
 
 find_package(OpenGL REQUIRED)
 
-file(GLOB_RECURSE src CONFIGURE_DEPENDS
-    ${engine}/src/*.cpp
-    ${game}/src/*.cpp
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
+    ${ENGINE}/src/*.cpp
+    ${GAME}/src/*.cpp
 )
 
 add_executable(perekop
-    ${src}
-    ${engine}/lib/glad/src/glad.c
+    ${SOURCES}
+    ${ENGINE}/lib/glad/src/glad.c
 )
 
-target_compile_features(perekop PRIVATE cxx_std_23)
+target_include_directories(perekop PRIVATE
+    ${ENGINE}/lib/glad/include
+    ${ENGINE}/lib/glm
+    ${ENGINE}/lib
+    ${ENGINE}/lib/freetype/include
+    ${ENGINE}/include
+    ${GAME}/include
+)
 
-# put every compile flag under the sun
-# might break something soon but it is super super super fast
-# -ffast-math;
 target_compile_options(perekop PRIVATE
-    $<$<CONFIG:Release>:-O3;-march=native;-flto;-funroll-loops;>
+    $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic>
+    $<$<CONFIG:Release>:-O3;-march=native;-flto;-funroll-loops>
+)
+
+target_link_libraries(perekop PRIVATE
+    glfw
+    freetype
+    OpenGL::GL
 )
 
 set_target_properties(perekop PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 )
-
-target_include_directories(perekop PRIVATE
-    ${engine}/lib/glfw/include
-    ${engine}/lib/glad/include
-    ${engine}/lib/glm
-    ${engine}/lib
-    ${engine}/include
-    ${game}/include
-)
-
-target_precompile_headers(perekop PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${engine}/include/PK/pch.hpp>)
-
-target_link_libraries(perekop PRIVATE glfw OpenGL::GL)

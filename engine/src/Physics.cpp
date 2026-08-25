@@ -1,7 +1,7 @@
 #define PK_INTERNAL
-#include <PK/Physics/body.hpp>
-#include <PK/Physics/model.hpp>
-#include <PK/Internal.hpp>
+#include <PKINT/internal.hpp>
+#include <PK/body.hpp>
+#include <PK/model.hpp>
 
 using namespace pk;
 

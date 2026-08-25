@@ -1,6 +1,6 @@
-#include <PK/Interface/world.hpp>
-#include <PK/Interface/input.hpp>
-#include <PK/Interface/window.hpp>
+#include <PK/world.hpp>
+#include <PK/userinput.hpp>
+#include <PK/window.hpp>
 #include <PKGame/camera.hpp>
 
 using namespace pk;
@@ -9,7 +9,7 @@ f32 _pitch{0}, _yaw{0};
 
 void pkgame::init::camera() {
     Mouse::on_scroll.listen([](auto d){
-        World::camera.t += vec4{0, 0, -d, 0} * Mouse::transform.rot;
+        World::camera.pose += vec3{0, 0, -d} * World::camera.pose.rot;
     });
 
     Mouse::on_move.listen([](vec2 delta){
@@ -20,7 +20,7 @@ void pkgame::init::camera() {
             _pitch = std::clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
             _yaw -= delta.x * World::camera.fov;
 
-            World::camera.t.rot = quat::axis_angle(vec3{0, 1, 0}, _yaw) * quat::axis_angle(vec3{1, 0, 0}, _pitch);
+            World::camera.pose.rot = angleAxis(_yaw, vec3{0, 1, 0}) * angleAxis(_pitch, vec3{1, 0, 0});
         }
     });
 
@@ -38,12 +38,12 @@ void pkgame::step::camera(f32 dt) {
     using Input::held;
     vec3 delta{0};
 
-    if (held('S')) delta += {0,0,1};
-    if (held('W')) delta -= {0,0,1};
-    if (held('D')) delta += {1,0,0};
-    if (held('A')) delta -= {1,0,0};
-    if (held('E')) delta += {0,1,0};
-    if (held('Q')) delta -= {0,1,0};
+    if (held('S')) delta += vec3{0,0,1};
+    if (held('W')) delta -= vec3{0,0,1};
+    if (held('D')) delta += vec3{1,0,0};
+    if (held('A')) delta -= vec3{1,0,0};
+    if (held('E')) delta += vec3{0,1,0};
+    if (held('Q')) delta -= vec3{0,1,0};
 
-    World::camera.t += Mouse::transform * (delta * (int)3);
+    World::camera.pose += Mouse::pose.rot * (3.f * delta);
 };

@@ -4,16 +4,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <PK/Internal.hpp>
-#include <PK/Util/time.hpp>
-#include <PK/Util/file.hpp>
+#include <PKINT/internal.hpp>
+#include <PK/time.hpp>
+#include <PK/file.hpp>
 
 using namespace pk;
 using namespace Perekop;
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
-i32 main() {
+int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -28,7 +28,7 @@ i32 main() {
     init_render();
     init_window();
 
-    time::Tracker<f64, 2> frame_timer;
+    time::Tracker<double, 2> frame_timer;
     frame_timer.begin();
     printf("on_launch() begin\n");
     on_launch();
@@ -39,15 +39,15 @@ i32 main() {
         Perekop::render(false);
     });
 
-    f64 accumulator{0};
+    double accumulator{0};
 
-    f64 rfps = 1.0 / World::fps;
+    double rfps = 1.0 / World::fps;
     while (!glfwWindowShouldClose(glfw_window)) {
         accumulator += frame_timer.delta();
 
         if (accumulator >= rfps) {
             glfwPollEvents();
-            i32 ticks = accumulator * World::fps;
+            int ticks = accumulator * World::fps;
     
             if (ticks > 4) {
                 // ticks dropped to not overload
@@ -62,7 +62,7 @@ i32 main() {
                 on_step(rfps);
             }
 
-            f64 util = frame_timer.stop() * World::fps * 100;
+            double util = frame_timer.stop() * World::fps * 100;
 
             glfwSetWindowTitle(glfw_window, std::format("Perekop | UTIL {:2.3f}%", util).c_str());
 
