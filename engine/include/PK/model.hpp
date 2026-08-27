@@ -3,8 +3,8 @@
 
 namespace pk {
     struct Model {
-        pose pose;
-        unsigned short id, mesh_id{0}, body_id{0};
+        pose pose; vec3 scale{1};
+        unsigned short id{0}, mesh_id{0}, body_id{0};
 
         vec4 metadata; // shader metadata
     };

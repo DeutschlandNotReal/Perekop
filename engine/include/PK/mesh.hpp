@@ -18,7 +18,10 @@ namespace pk {
         void unload();
 
         public:
-            struct alignas(32) Vertex { vec3 p, n; vec2 uv; };
+            struct alignas(32) Vertex { 
+                vec3 p{0.f}, n{0.f}; vec2 uv{0.f};
+            };
+
             unsigned short id{0};
   
             vector<Vertex> vertices;
@@ -26,15 +29,19 @@ namespace pk {
 
             [[nodiscard]] bool loaded() const noexcept { return VBO != 0; }
 
-            Mesh() = default;
+            void refresh() { if (loaded()) load();  }
+            Mesh() noexcept = default;
             Mesh(Mesh&& b) noexcept: vertices(std::move(b.vertices)), indices(std::move(b.indices)) {
                 VBO = b.VBO; EBO = b.EBO; IBO = b.IBO;
                 b.EBO = b.IBO = b.VBO = 0;
             }
 
-            Mesh(vector<Vertex>&& vertices, vector<unsigned short>&& indices) noexcept: vertices(std::move(vertices)), indices(std::move(indices)) {}
+            Mesh(decltype(Mesh::vertices)&& vertices, decltype(Mesh::indices)&& indices) noexcept: 
+                vertices(std::move(vertices)), indices(std::move(indices))
+            {}
 
-            Shader* shader; Texture* texture; // naive pointer may maybe change later maybe
+            Shader* shader{nullptr}; 
+            Texture* texture{nullptr};
 
             Mesh& operator=(Mesh&& b) noexcept {
                 if (this == &b) return *this;

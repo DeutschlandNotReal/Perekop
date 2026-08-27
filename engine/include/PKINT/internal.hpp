@@ -18,6 +18,7 @@ namespace pk {
 
     struct ModelData { 
         mat4 transform; 
+        vec3 scale;
         vec4 metadata; 
     };
 };

@@ -4,7 +4,8 @@ layout(location = 1) in vec3 v_nor;
 layout(location = 2) in vec2 v_uv;
 
 layout(location = 3) in mat4 model;
-layout(location = 7) in vec4 metadata;
+layout(location = 7) in vec3 scale;
+layout(location = 8) in vec4 metadata;
 
 uniform mat4 view;
 uniform mat4 proj;
@@ -15,7 +16,7 @@ out vec2 f_uv;
 out float f_t;
 
 void main() {
-    vec4 viewspace = view * model * vec4(v_pos, 1.0);
+    vec4 viewspace = view * model * vec4(v_pos * scale, 1.0);
     gl_Position = proj * viewspace;
     float depth = -viewspace.z;
 

@@ -1,11 +1,13 @@
 #define PK_INTERNAL
+#define CGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
 
 #include <PKINT/internal.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include <stl_reader.h>
+#include <cgltf.h>
 #include <iostream>
 
 #include <PK/file.hpp>
@@ -75,7 +77,7 @@ class glAttribute {
 };
 
 
-GLuint load_shader(const string& src, string_view title, GLenum T) {
+GLuint load_shader(const string& src, GLenum T) {
     GLuint shader = glCreateShader(T);
     const char* data = src.data();
     int size = src.size();
@@ -88,7 +90,7 @@ GLuint load_shader(const string& src, string_view title, GLenum T) {
     if (!ok) {
         char log[4096];
         glGetShaderInfoLog(shader, 4096, nullptr, log);
-        printf("\033[31mShader '%s' (%s) failed to compile:\n%s\n\033[0m", title.begin(), (T == GL_VERTEX_SHADER ? "vertex" : "fragment"), log);
+        printf("\033[31mShader failed to compile:\n%s\n\033[0m", log);
     }
     return shader;
 }
@@ -109,63 +111,94 @@ GLuint load_program(std::initializer_list<GLuint> shaders) {
     return program;
 }
 
-void load_texture(unsigned short* txtid, path path) {
+void load_texture(unsigned* txtid, const path& path) {
     int width, height, channels;
 
     uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
 
     if (!data) return;
-    
-    unsigned txtu32;
+
     int format = (channels==1) ? GL_RED : (channels==3) ? GL_RGB : GL_RGBA;
-    glGenTextures(1, &txtu32);
+    glGenTextures(1, txtid);
     glBindTexture(GL_TEXTURE_2D, *txtid);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
-
-    *txtid = txtu32;
 }
 
-Mesh& Perekop::World::import_mesh(const path& path) {
-    vector<Mesh::Vertex> vertices;
-    vector<unsigned short> indices;
+void Perekop::World::import_scene(
+    const std::filesystem::path& path, vector<set_handle<Model>>* emited_models, vector<set_handle<Mesh>>* emited_meshes
+) {
+    cgltf_options options{};  
+    cgltf_data* data{nullptr};
+    auto spath = path.string();
 
-    try {
-        stl_reader::StlMesh<float, unsigned int> stl(path.string());
+    cgltf_result result = cgltf_parse_file(&options, spath.c_str(), &data);
 
-        vertices.reserve(stl.num_vrts());
+    result = cgltf_load_buffers(&options, data, spath.c_str());
 
-        for (size_t i = 0; i < stl.num_vrts(); ++i) {
-            vec3 pos = *(vec3*)(stl.vrt_coords(i));
+    for (unsigned id = 0; id < data->meshes_count; id++) {
+        cgltf_mesh& gmesh = data->meshes[id];
+        
+        // each primitive is its own mesh
+        for (unsigned pid = 0; pid < gmesh.primitives_count; pid++) {
+            cgltf_accessor *pos{nullptr}, *nor{nullptr}, *uv{nullptr};
+            const auto& primitive = gmesh.primitives[pid];
 
-            vertices[i] = { pos, vec3{0}, vec2{0} };
+            for (unsigned attid = 0; attid < primitive.attributes_count; attid++) {
+                const auto& attribute = primitive.attributes[attid];
+
+                switch (attribute.type) {
+                    case cgltf_attribute_type_position: pos = attribute.data; break;
+                    case cgltf_attribute_type_normal: nor = attribute.data; break;
+                    case cgltf_attribute_type_texcoord: uv = attribute.data; break;
+                    default: 
+                }
+            }
+            if (!pos || pos->count == 0) continue;
+            
+            decltype(Mesh::vertices) vertices; 
+            decltype(Mesh::indices) indices;
+            
+            vertices.reserve(pos->count);
+            for (unsigned vid = 0; vid < pos->count; vid++) {
+                Mesh::Vertex &v = vertices.emplace();
+                cgltf_accessor_read_float(pos, vid, &v.p.x, 3);
+
+                if (nor) cgltf_accessor_read_float(nor, vid, &v.n.x, 3);
+                if (uv) cgltf_accessor_read_float(uv, vid, &v.uv.x, 2);
+            }
+
+            if (primitive.indices) {
+                indices.reserve(primitive.indices->count);
+                for (unsigned iid = 0; iid < primitive.indices->count; iid++) {
+                    unsigned int intermediate;
+                    cgltf_accessor_read_uint(primitive.indices, iid, &intermediate, 1);
+                    indices.push(intermediate);
+                }
+            } else {
+                indices.reserve(vertices.size());
+                for (unsigned vid = 0; vid < vertices.size(); vid++) indices.push(vid);
+            }
+
+            set_handle<Mesh> handle = World::meshes.insert(std::move(vertices), std::move(indices));
+            if (emited_meshes) {
+                emited_meshes->push(std::move(handle));
+            }
         }
-
-        indices.reserve(stl.num_tris() * 3);
-        for (size_t i = 0; i < stl.num_tris(); ++i) {
-            const unsigned int* corners = stl.tri_corner_inds(i);
-            indices[i * 3 + 0] = corners[0];
-            indices[i * 3 + 1] = corners[1];
-            indices[i * 3 + 2] = corners[2];
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "No STL!! " << e.what() << '\n';
     }
-
-    return World::meshes.insert(std::move(vertices), std::move(indices));
 }
 
-Texture::Texture(path path) {
+Texture::Texture(const path& path) {
     load_texture(&txtid, path);
 };
 
-Shader::Shader(string_view title, path vpath, path fpath) {
+Shader::Shader(const path& vpath, const path& fpath) {
     string vsrc = file(vpath), fsrc = file(fpath);
     program = load_program({
-        load_shader(vsrc, title, GL_VERTEX_SHADER), 
-        load_shader(fsrc, title, GL_FRAGMENT_SHADER)
+        load_shader(vsrc, GL_VERTEX_SHADER), 
+        load_shader(fsrc, GL_FRAGMENT_SHADER)
     });
   
     layoutP = glGetUniformLocation(program, "proj");
@@ -254,26 +287,26 @@ void Perekop::render(bool recollect) {
 
         // transform collection
         for (const Model &model : World::models) {
-            cache::T[model.mesh_id].emplace(model.pose, model.metadata);
+            cache::T[model.mesh_id - 1].emplace(model.pose, model.scale, model.metadata);
         }
     }
 
     // instanced draw
-    for (unsigned short meshid = 0; meshid < World::meshes.size(); meshid++) {
-        vector<ModelData> &modeldata = cache::T[meshid];
-        Mesh& mesh = World::meshes[meshid];
+    for (Mesh& mesh : World::meshes) {
+        vector<ModelData> &modeldata = cache::T[mesh.id - 1];
 
         if (modeldata.is_empty() && mesh.loaded()) {
             mesh.unload(); continue; // lazy unload
-        } else {
+        } else if (mesh.shader) {
             if (!mesh.loaded()) mesh.load(); // lazy load
         }
 
         if (!mesh.shader) continue;
 
         mesh.shader->use(view, proj);
-        mesh.texture->use(mesh.shader->layoutT);
 
+        if (mesh.texture) mesh.texture->use(mesh.shader->layoutT); 
+ 
         glAttribute(meshVAO)
             .bind_elements(mesh.EBO)
             .data<ModelData>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, modeldata)
@@ -315,8 +348,8 @@ void Perekop::init_render() {
     glAttribute(&meshVAO)
         // vertex (pos, norm, uv)
         .item<vec3, vec3, vec2>()
-        // model (t, meta)
-        .item_instanced<vec4, vec4, vec4, vec4, vec4>();
+        // model (t, size, meta)
+        .item_instanced<vec4, vec4, vec4, vec4, vec3, vec4>();
     
     vec2 gui_V[6] = {{0,0}, {0,1}, {1,0}, {1,0}, {0,1}, {1,1}};
     glAttribute(&guiVAO)
@@ -327,8 +360,8 @@ void Perekop::init_render() {
     
     string vsrc = file("engine/assets/shaders/vertexgui.glsl");
     guiShader = load_program({
-        load_shader({vsrc}, "gui", GL_VERTEX_SHADER),
-        load_shader({"#version 430\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"}, "gui", GL_FRAGMENT_SHADER)
+        load_shader({vsrc}, GL_VERTEX_SHADER),
+        load_shader({"#version 430\n in vec4 col2; out vec4 fragColor; void main() { fragColor = col2; }"},  GL_FRAGMENT_SHADER)
     });
     
 }

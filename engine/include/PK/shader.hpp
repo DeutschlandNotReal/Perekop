@@ -25,7 +25,7 @@ namespace pk {
         
         public:
             Shader() = default;
-            Shader(std::string_view title, path vshader_path, path fshader_path);
+            Shader(const path& vshader_path, const path& fshader_path);
 
             void uniform(UniformType type, std::string_view title, const void* data);
     };

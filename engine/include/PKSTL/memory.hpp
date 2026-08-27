@@ -3,11 +3,9 @@
 #include <utility>
 #include <new>
 
-#define constinl [[clang::always_inline]] constexpr
-
 namespace pk {
     template <typename T, bool destructive = true>
-    constinl void move(T* dst, T* src) {
+    constexpr void move(T* dst, T* src) {
         // non-trivial path
         if constexpr (std::is_move_constructible_v<T>) {
             new (dst) T(std::move(*src));
@@ -20,7 +18,7 @@ namespace pk {
     }
 
     template <typename T = char>
-    [[nodiscard]] constinl T* alloc(unsigned n) {
+    [[nodiscard]] constexpr T* alloc(unsigned n) {
         // rounded to nearest align
         unsigned len = sizeof(T) * n + alignof(T) & ~(alignof(T) - 1);
 
@@ -29,12 +27,12 @@ namespace pk {
     }
 
     template <typename T>
-    constinl void free(T *ptr) {
+    constexpr void free(T *ptr) {
         ::operator delete(ptr, std::align_val_t(alignof(T)));
     }
 
     template <typename T> 
-    constinl void copy(T* dst, const T* src, unsigned n = 1) requires(std::is_copy_constructible_v<T>) {
+    constexpr void copy(T* dst, const T* src, unsigned n = 1) requires(std::is_copy_constructible_v<T>) {
         if constexpr (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             const T* end = src + n; 
 
@@ -44,7 +42,7 @@ namespace pk {
     }
 
     template <typename T, bool destructive = true> 
-    constinl void move(T* dst, T* src, unsigned n) {
+    constexpr void move(T* dst, T* src, unsigned n) {
         if constexpr (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* end = src + n; 
 
@@ -55,7 +53,7 @@ namespace pk {
     }
 
     template <typename T> 
-    constinl void rshift(T* src, T* end, unsigned n) {
+    constexpr void rshift(T* src, T* end, unsigned n) {
         if constexpr (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* dstend = end + n;
 

@@ -9,11 +9,11 @@ namespace pk {
         friend void Perekop::render(bool);
         #endif
         
-        unsigned short txtid;
+        unsigned txtid;
         public:
             void use(unsigned layout) const noexcept;
             ~Texture();
-            Texture(path path);
+            Texture(const path& path);
             Texture(Texture&& b) = default; 
             Texture& operator=(Texture&&) = default;
     };

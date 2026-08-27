@@ -9,7 +9,7 @@ f32 _pitch{0}, _yaw{0};
 
 void pkgame::init::camera() {
     Mouse::on_scroll.listen([](auto d){
-        World::camera.pose += vec3{0, 0, -d} * World::camera.pose.rot;
+        World::camera.pose += Mouse::pose.rot * vec3{0, 0, -d};
     });
 
     Mouse::on_move.listen([](vec2 delta){

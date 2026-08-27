@@ -15,6 +15,10 @@ namespace Perekop::World {
     inline double fps{60};
     inline pk::Camera camera;
 
-    // .stl format
-    pk::Mesh& import_mesh(const std::filesystem::path& path);
+    // .glb / .gltf format
+    void import_scene(
+        const std::filesystem::path& path,
+        pk::vector<decltype(models)::handle>* models = nullptr, 
+        pk::vector<decltype(meshes)::handle>* meshes = nullptr
+    );
 }

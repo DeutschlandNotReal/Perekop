@@ -8,7 +8,7 @@ namespace pk {
             pose pose;
             float min{.1f}, max{200.f}, fov{70};
 
-            mat4 view() const noexcept { return pose.invmat4(); }
+            mat4 view() const noexcept { return pose.inverse(); }
 
             glm::mat4 proj(float width, float height) const noexcept {
                 return glm::perspective(
