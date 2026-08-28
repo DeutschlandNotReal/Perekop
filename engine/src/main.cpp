@@ -1,19 +1,43 @@
 #define PK_INTERNAL
-#include <format>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#define CGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+
+#include <stb_image.h>
+#include <cgltf.h>
+
+#include <windows.h>
 #include <thread>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include <PKINT/internal.hpp>
 #include <PK/time.hpp>
 #include <PK/file.hpp>
+#include <PK/window.hpp>
 
 using namespace pk;
 using namespace Perekop;
 
 void Perekop::exit() { glfwDestroyWindow(glfw_window); }
 
-int main() {
+void Perekop::Window::icon(const path& path) noexcept {
+    HWND hwnd = glfwGetWin32Window(glfw_window);
+
+    HICON icon = (HICON)LoadImageW(
+        nullptr,
+        path.c_str(),
+        IMAGE_ICON,
+        0, 0,
+        LR_LOADFROMFILE | LR_DEFAULTSIZE
+    );
+
+    SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)icon);
+    SendMessage(hwnd, WM_SETICON, ICON_SMALL, (LPARAM)icon);
+}
+
+void init() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -27,56 +51,41 @@ int main() {
 
     init_render();
     init_window();
-
-    time::Tracker<double, 2> frame_timer;
-    frame_timer.begin();
-    printf("on_launch() begin\n");
     on_launch();
-    printf("on_launch() end (%.2fms)\n", frame_timer.stop() * 1000);
-
-    frame_timer.begin();
+    
     glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
-        Perekop::render(false);
+        Perekop::on_render();
     });
+}
+
+int main() {
+    init();
+    time::Tracker<double, 2> frame_timer;
 
     double accumulator{0};
-
     double rfps = 1.0 / World::fps;
+    frame_timer.begin();
     while (!glfwWindowShouldClose(glfw_window)) {
         accumulator += frame_timer.delta();
 
         if (accumulator >= rfps) {
             glfwPollEvents();
             int ticks = accumulator * World::fps;
-    
-            if (ticks > 4) {
-                // ticks dropped to not overload
-                accumulator -= (ticks - 2) * rfps;
-                ticks = 2;
-            }
+            accumulator -= ticks * rfps;
+            
+            ticks = std::min(ticks, 4);
 
-            frame_timer.begin();
-            while (accumulator >= rfps) {
-                accumulator -= rfps;
+            while (ticks-- > 0) {
                 step_physics(rfps);
                 on_step(rfps);
-            }
+            } 
 
-            double util = frame_timer.stop() * World::fps * 100;
-
-            glfwSetWindowTitle(glfw_window, std::format("Perekop | UTIL {:2.3f}%", util).c_str());
-
-            render(true);
+            Perekop::on_render();
         }
 
         std::this_thread::yield();
     }
-    frame_timer.stop();
-    frame_timer.begin();
-
-    printf("on_exit() begin\n");
-    on_exit();
-    printf("on_exit() end (%.2fms)\n", frame_timer.stop() * 1000);
+    on_exit(); 
 
     glfwTerminate();
 }

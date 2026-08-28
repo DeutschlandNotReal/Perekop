@@ -1,6 +1,6 @@
 #pragma once
 #include <PK/pose.hpp>
-#include <PK/texture.hpp>
+#include <PK/shader.hpp>
 
 namespace pk::gui {
     enum class type: char {

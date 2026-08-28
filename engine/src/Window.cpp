@@ -27,13 +27,17 @@ namespace Perekop::Input {
 }
 
 namespace Perekop::Window {
-    vec2 get_size() noexcept {
+
+    vec2 size() noexcept {
         i32 x, y; 
         glfwGetWindowSize(glfw_window, &x, &y); return {x, y};
     }
 
-    void set_size(vec2 size) noexcept { glfwSetWindowSize(glfw_window, size.x, size.y); }
-    void set_title(std::string_view title) noexcept { glfwSetWindowTitle(glfw_window, title.begin()); }
+    void size(vec2 size) noexcept { 
+        glfwSetWindowSize(glfw_window, size.x, size.y); 
+    }
+
+    void title(std::string_view title) noexcept { glfwSetWindowTitle(glfw_window, title.begin()); }
 
     void minimize() noexcept { glfwIconifyWindow(glfw_window); }
     void maximize() noexcept { glfwMaximizeWindow(glfw_window); }
@@ -63,14 +67,14 @@ void Perekop::init_window() {
         vec2 pos{x, y};
         if (pos.x == lpos.x && pos.y == lpos.y) return;
 
-        vec2 rsize = 1.f / Window::get_size();
+        vec2 rsize = 1.f / Window::size();
         vec2 delta = (pos - lpos) * rsize; // [-1 -> 1]
         //Perekop::query_gui();
 
         lpos = pos;
         if (!Mouse::is_locked()) {
             Mouse::pos -= delta;
-            float radfov = radians(World::camera.fov);
+            float radfov = radians(World::camera.fov());
  
            Mouse::pose = World::camera.pose * angleAxis(radfov * delta.x, vec3{0, 1, 0}) * angleAxis(radfov * delta.y, vec3{1, 0, 0});
         }
@@ -89,6 +93,8 @@ void Perekop::init_window() {
         glViewport(0, 0, w, h);
         Window::on_resize.fire({w, h});
     });
+
+    Window::size(Window::size()); // aspect init
 }
 
 void Perekop::query_gui() {

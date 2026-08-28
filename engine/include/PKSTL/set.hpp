@@ -5,7 +5,7 @@ namespace pk {
     template <typename T>
     class set {
         using index_t = decltype(T::id);
-        vector<T, index_t> dense;
+        vector<T, index_t> dense{16 };
         vector<index_t> sparse;
 
         T& at(index_t i) noexcept { return dense[sparse[i]]; }
@@ -42,14 +42,13 @@ namespace pk {
                         index_t dense_index = sparse[index];
 
                         dense[dense_index] = std::move(dense.back()); // swap pop
-                        sparse[dense[dense_index].id] = dense_index;
-
                         dense.pop();
-                        sparse.pop();
-                        
+        
                         set = nullptr; index = 0;
                         return item;
                     }
+
+                    index_t id() const noexcept { return index + 1; }
 
                     void remove() { delist(); }
             };
@@ -71,8 +70,16 @@ namespace pk {
             index_t size() const noexcept { return dense.size(); }
 
             template <typename... arg>
-            handle insert(arg&&... args) {
+            handle insert(arg&&... args) requires(std::is_constructible_v<T, arg...>) {
                 T& item = dense.emplace(std::forward<arg>(args)...);
+                sparse.push(dense.size() - 1);
+
+                item.id = sparse.size();
+                return {this, item.id};
+            }
+
+            handle insert(T&& b) {
+                T& item = dense.emplace(std::forward(b));
                 sparse.push(dense.size() - 1);
 
                 item.id = sparse.size();
@@ -80,5 +87,6 @@ namespace pk {
             }
     };
 
-    template <typename T> using set_handle = set<T>::handle;
+    template <typename T>
+    using set_handle = set<T>::handle;
 }

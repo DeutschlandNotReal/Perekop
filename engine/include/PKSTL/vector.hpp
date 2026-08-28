@@ -43,9 +43,10 @@ namespace pk {
             }
 
             constexpr vector(vector &&b) noexcept: 
-                data(b.data), cap(b.cap), cur(b.cur) {
-                b.cap = b.cur = 0; b.data = nullptr;
-            }
+                data(std::exchange(b.data, nullptr)),
+                cap(std::exchange(b.cap, 0)),
+                cur(std::exchange(b.cur, 0))
+            {}
 
             constexpr vector(std::initializer_list<T> items) {
                 data = pk::alloc<T>(items.size());
@@ -109,8 +110,9 @@ namespace pk {
                 if (&b == this) return *this;
 
                 if (data) { clear(); pk::free(data); }
-                cur = b.cur; cap = b.cap; data = b.data;
-                b.cur = b.cap = 0; b.data = nullptr;
+                cur = std::exchange(b.cur, 0);
+                cap = std::exchange(b.cap, 0);
+                data = std::exchange(b.data, nullptr);
 
                 return *this;
             }
@@ -158,6 +160,13 @@ namespace pk {
             constexpr void shift(unsigned i, unsigned n) {
                 if (size() + n > capacity()) resize(size() + n);
                 pk::rshift(data + i, data + cur, n);
+            }
+
+            constexpr void trim() {
+                T* newdata = pk::alloc<T>(size());
+                pk::move(newdata, data, size());
+                pk::free(data);
+                data = newdata;
             }
 
             constexpr ~vector() {

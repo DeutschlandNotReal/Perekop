@@ -4,19 +4,26 @@
 
 namespace pk {
     class Camera {
+        friend vec3 worldspace(vec3, const Camera&) noexcept;
+        friend vec3 localspace(vec3, const Camera&) noexcept;
+
+        float cotfov, degfov;
         public:
             pose pose;
-            float min{.1f}, max{200.f}, fov{70};
+            float min{.1f}, max{2000.f};
 
-            mat4 view() const noexcept { return pose.inverse(); }
+            float fov() const noexcept { return degfov; }
 
-            glm::mat4 proj(float width, float height) const noexcept {
-                return glm::perspective(
-                    glm::radians(fov),
-                    width / height,
-                    min,
-                    max
-                );
+            void fov(float newfov) noexcept { 
+                cotfov = 1.f / tan(radians((degfov = newfov) * .5f));
             }
+
+            Camera() noexcept { fov(70.f); }
+
+            mat4 view() const noexcept;
+            mat4 proj() const noexcept;
     };
+
+    vec3 worldspace(vec3, const Camera& space) noexcept;
+    vec3 localspace(vec3, const Camera& space) noexcept;
 }

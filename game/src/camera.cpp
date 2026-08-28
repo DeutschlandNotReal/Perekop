@@ -5,20 +5,26 @@
 
 using namespace pk;
 using namespace Perekop;
-f32 _pitch{0}, _yaw{0};
+float _pitch{0}, _yaw{0};
 
 void pkgame::init::camera() {
+    vec3 dir = normalize(World::camera.pose.rot * vec3{0,0,-1});;
+
+    _yaw = atan2(-dir.x, -dir.z);
+    _pitch = asin(dir.y);
+
     Mouse::on_scroll.listen([](auto d){
-        World::camera.pose += Mouse::pose.rot * vec3{0, 0, -d};
+        World::camera.pose += World::camera.pose.rot * vec3{0, 0, -d};
     });
 
     Mouse::on_move.listen([](vec2 delta){
         if (Mouse::held(Mouse::left) /* && !Gui::top */ ) {
-            vec2 size = Window::get_size();
-            f32 yfov = World::camera.fov * (size.y / size.x);
+            vec2 size = Window::size();
+            float rfov = radians(World::camera.fov());
+            float yfov = rfov * size.x / size.y;
 
-            _pitch = std::clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
-            _yaw -= delta.x * World::camera.fov;
+            _pitch = clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
+            _yaw -= delta.x * rfov;
 
             World::camera.pose.rot = angleAxis(_yaw, vec3{0, 1, 0}) * angleAxis(_pitch, vec3{1, 0, 0});
         }
@@ -34,7 +40,7 @@ void pkgame::init::camera() {
 
 }
 
-void pkgame::step::camera(f32 dt) {
+void pkgame::step::camera(float dt) {
     using Input::held;
     vec3 delta{0};
 
@@ -45,5 +51,5 @@ void pkgame::step::camera(f32 dt) {
     if (held('E')) delta += vec3{0,1,0};
     if (held('Q')) delta -= vec3{0,1,0};
 
-    World::camera.pose += Mouse::pose.rot * (3.f * delta);
+    World::camera.pose += World::camera.pose.rot * (3.f * delta * dt);
 };

@@ -141,10 +141,14 @@ namespace pk {
         }
     }
 
+    float plane::distance(vec3 point) const noexcept {
+        return dot(point - pos, nor);
+    }
+
+    vec3 plane::project(vec3 point) const noexcept {
+        return point - distance(point) * nor;
+    }
 }
-
- 
-
 
 void Perekop::step_physics(float dt) {
 

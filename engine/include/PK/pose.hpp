@@ -12,6 +12,8 @@ namespace pk {
 
         [[nodiscard]] pose(vec3 pos) noexcept: pos(pos) {}
         [[nodiscard]] pose(vec3 pos, quat rot) noexcept: pos(pos), rot(rot) {}
+        [[nodiscard]] pose(mat4 mat) noexcept: pos(mat[3]), rot(quat_cast(mat3(mat))) {}
+        [[nodiscard]] pose(mat3 rot) noexcept: pos(0), rot(quat_cast(rot)) {}
 
         [[nodiscard]] pose inverse() const noexcept {
             quat r = conjugate(rot);

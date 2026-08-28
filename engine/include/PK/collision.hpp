@@ -11,10 +11,18 @@ namespace pk {
     };
 
     struct plane { 
-        vec3 pos, nor; 
-
-        plane(vec3 pos, vec3 nor) noexcept: pos(pos), nor(nor) {}
+        vec3 pos; vec3 nor; 
+        plane(vec3 pos, vec3 nor = {0, 1, 0}) noexcept: pos(pos), nor(nor) {}
+        
         static plane lookat(vec3 from, vec3 at) noexcept { return {from, normalize(at - from)}; };
+        static plane xyplane(vec3 pos = vec3{0}) noexcept { return { pos, vec3{0, 0, 1}}; }
+        static plane yzplane(vec3 pos = vec3{0}) noexcept { return { pos, vec3{1, 0, 0}}; }
+        static plane zxplane(vec3 pos = vec3{0}) noexcept { return { pos, vec3{0, 1, 0}}; }
+        
+        float distance(vec3 point) const noexcept;
+        vec3 project(vec3 point) const noexcept;
+
+        plane operator-() const noexcept { return {pos, -nor}; }
     };
 
     struct shape {
@@ -69,5 +77,4 @@ namespace pk {
 
     bool intersects(plane, shape, pose relative) noexcept;
     bool intersects(plane, shape, vec3 relative) noexcept;
-    bool intersects(plane, plane) noexcept;
 }

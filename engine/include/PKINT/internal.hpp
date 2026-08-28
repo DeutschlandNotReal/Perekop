@@ -15,19 +15,12 @@ namespace pk {
         vec2 p, s; 
         vec4 RGBA;
     };
-
-    struct ModelData { 
-        mat4 transform; 
-        vec3 scale;
-        vec4 metadata; 
-    };
 };
 
 namespace Perekop {
     inline GLFWwindow* glfw_window{nullptr};
 
     namespace cache {
-        inline pk::vector<pk::vector<pk::ModelData>> T;
         inline pk::vector<pk::GuiData> gui;
     }
 
