@@ -1,65 +1,84 @@
-#include <PK/callbacks.hpp>
-#include <PK/world.hpp>
+#include <PK/step.hpp>
 #include <PK/file.hpp>
 #include <PK/window.hpp>
 #include <PK/shader.hpp>
+#include <glm/gtc/random.hpp>
 
 #include <cstdio>
-#include <PKGame/camera.hpp>
+#include <PKG/camera.hpp>
 using namespace pk;
+using namespace Perekop;
 
 const path assets = path("game") / "assets";
 
-void Perekop::on_step(f64 dt) {
-    pkgame::step::camera(dt);
+namespace RenderState {
+    vector<Mesh> meshes;
+    vector<Model> models;
+
+    ShaderProgram shader;
+    Texture texture;
+
+    Camera camera;
+    mat4 VP;
+    Renderer renderer;
 }
 
-mat4 V{0}, P{0};
-Mesh ball, other;
-ShaderProgram shader;
-vector<Model> models;
-Texture texture;
-
-void Perekop::on_render() {
-    V = World::camera.view();
-    P = World::camera.proj();
-    Window::clear(World::bgcol);
-
-    shader.draw(other, models);
-
-    Window::swap_buffers();
+void Perekop::OnStep(double dt) {
+    PKG::StepCamera(RenderState::camera, dt);
 }
 
-void Perekop::on_launch() {
+void Perekop::OnRender() {
+    using namespace RenderState;
+    VP = camera.proj() * camera.view();
+
+    renderer.fill({0.2, 0.2, 0.2});
+    renderer.clear(depthBuffer | colourBuffer);
+    renderer.ready_models(models);
+
+    if (meshes.size() > 0) {
+        renderer.draw(shader, meshes.back());
+    }
+
+    renderer.swap();
+}
+
+void Perekop::OnLaunch() {
     printf("Game begin\n");
-    Perekop::Window::icon(assets / "images/icon.ico");
-    World::camera.pose = inverse(lookAt(vec3{25, 25, 25}, vec3{0, 0, 0}, vec3{0, 1, 0}));
-    pkgame::init::camera();
+    Window::SetIcon(assets / "images/icon.ico");
+    RenderState::camera.pose = inverse(lookAt(vec3{25, 25, 25}, vec3{0, 0, 0}, vec3{0, 1, 0}));
+    PKG::InitCamera(RenderState::camera);
 
-    ball = assets / "models/Untitled.glb";
-    other = assets / "models/PK67.glb";
+    RenderState::meshes.push(
+        assets / "models/Untitled.glb",
+        assets / "models/PK67.glb"
+    );
 
-    ball.load(); other.load();
-    shader = ShaderProgram(
+    for (Mesh& mesh : RenderState::meshes) mesh.load();
+
+    RenderState::shader = ShaderProgram(
         Shader(Shader::vertex, assets / "shaders/vert.glsl"),
         Shader(Shader::fragment, assets / "shaders/frag.glsl"),
         {
-            {.name = "V", .type = ShaderProgram::u_mat4, .data = &V},
-            {.name = "P", .type = ShaderProgram::u_mat4, .data = &P},
-            {.name = "T", .type = ShaderProgram::texture, .data = &texture}
-        }
+            {.name = "camera", .type = ShaderProgram::u_mat4, .data = &RenderState::VP},
+            {.name = "T", .type = ShaderProgram::texture, .data = &RenderState::texture}
+        } 
     );
-    texture = assets / "images/test.jpg";
+
+    RenderState::texture = assets / "images/test.jpg";
 
     for (int x = 0; x < 15; x++) {
         for (int y = 0; y < 15; y++) {
             for (int z = 0; z < 15; z++) {
-                models.emplace(vec3{x, y, z} * 5.f, vec3{1, 1, 1}, vec4{x, y, z, x});
+                RenderState::models.emplace(
+                    ballRand(25.f),
+                    vec3{1, 1, 1}, 
+                    vec4{x, y, z, x}
+                );
             }
         }
     }
 }
 
-void Perekop::on_exit() {
+void Perekop::OnExit() {
     printf("game's gone\n");
 } 

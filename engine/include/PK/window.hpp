@@ -1,28 +1,21 @@
 #pragma once
-#include <PK/event.hpp>
 #include <PK/pose.hpp>
 #include <string_view>
+#include <functional>
 #include <filesystem>
 
 namespace Perekop::Window {
-        inline pk::Event<vec2> on_resize;
+        extern void BindToResize(std::function<void(vec2)>&&) noexcept;
+        extern void SetTitle(std::string_view) noexcept;
+        extern void SetIcon(const std::filesystem::path&) noexcept;
+        extern void SetSize(vec2) noexcept;
+        extern void Maximize() noexcept;
+        extern void Minimize() noexcept;
 
-        extern vec2 size() noexcept;
-        extern void size(vec2) noexcept;
-
-        extern void title(std::string_view) noexcept;
-
-        extern void maximize() noexcept;
-        extern void minimize() noexcept;
-
-        extern void icon(const std::filesystem::path&) noexcept;
-        extern void swap_buffers() noexcept;
-        extern void clear(vec3 colour) noexcept;
+        extern vec2 Size() noexcept;
 }
 
-#ifdef PK_ENGINE_SRC
+#ifdef PK_INTERNAL
 struct GLFWwindow;
-namespace Perekop::Window {
-        inline GLFWwindow* glfw;
-}
+namespace Perekop { inline GLFWwindow* glfw_window; }
 #endif

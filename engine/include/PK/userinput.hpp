@@ -1,25 +1,26 @@
 #pragma once
 #include <PK/pose.hpp>
-#include <PK/event.hpp>
+#include <functional>
 
 namespace Perekop::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };
-    inline vec2 pos{0,0};
-    void point_to(vec3);
+    extern void SetPosition() noexcept;
+    extern void Lock() noexcept;
+    extern void Unlock() noexcept;
+    extern bool Locked() noexcept;
+    
+    extern vec2 Position() noexcept;
+    extern void BindToMove(std::function<void(vec2)>&&) noexcept;
+    extern void BindToScroll(std::function<void(float)>&&) noexcept;
+    extern void BindToPress(std::function<void(Button)>&&) noexcept;
+    extern void BindToRelease(std::function<void(Button)>&&) noexcept;
 
-    extern void lock(); 
-    extern void unlock();
-    extern bool is_locked();
-
-    inline pk::pose pose;
-
-    inline pk::Event<vec2> on_move;
-    inline pk::Event<Button> on_down, on_up;
-    inline pk::Event<int> on_scroll;
-    extern bool held(Button button);
+    extern bool Held(Button) noexcept;
 }
 
 namespace Perekop::Input {
-    inline pk::Event<int> on_down, on_up;
-    extern bool held(int key);
+    extern void BindToPress(std::function<void()>&&) noexcept;
+    extern void BindToRelease(std::function<void()>&&) noexcept;
+
+    extern bool Held(int) noexcept;
 }

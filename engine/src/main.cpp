@@ -20,9 +20,9 @@
 using namespace pk;
 using namespace Perekop;
 
-void Perekop::exit() { glfwDestroyWindow(glfw_window); }
+void Perekop::ExitGame() { glfwDestroyWindow(glfw_window); }
 
-void Perekop::Window::icon(const path& path) noexcept {
+void Perekop::Window::SetIcon(const path& path) noexcept {
     HWND hwnd = glfwGetWin32Window(glfw_window);
 
     HICON icon = (HICON)LoadImageW(
@@ -49,12 +49,12 @@ void init() {
     glfwShowWindow(glfw_window);
     glEnable(GL_DEPTH_TEST);
 
-    init_render();
-    init_window();
-    on_launch();
+    RenderBegin();
+    WindowBegin();
+    OnLaunch();
     
     glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
-        Perekop::on_render();
+        Perekop::OnRender();
     });
 }
 
@@ -63,29 +63,30 @@ int main() {
     time::Tracker<double, 2> frame_timer;
 
     double accumulator{0};
-    double rfps = 1.0 / World::fps;
+
+    double frameperiod = 1.0 / fps;
     frame_timer.begin();
     while (!glfwWindowShouldClose(glfw_window)) {
         accumulator += frame_timer.delta();
 
-        if (accumulator >= rfps) {
+        if (accumulator >= frameperiod) {
+            frameperiod = 1.0 / fps;
             glfwPollEvents();
-            int ticks = accumulator * World::fps;
-            accumulator -= ticks * rfps;
+            int ticks = accumulator * fps;
+            accumulator -= ticks * frameperiod;
             
             ticks = std::min(ticks, 4);
 
             while (ticks-- > 0) {
-                step_physics(rfps);
-                on_step(rfps);
+                PhysicsStep(frameperiod);
+                OnStep(frameperiod);
             } 
 
-            Perekop::on_render();
+            OnRender();
         }
-
         std::this_thread::yield();
     }
-    on_exit(); 
+    OnExit(); 
 
     glfwTerminate();
 }

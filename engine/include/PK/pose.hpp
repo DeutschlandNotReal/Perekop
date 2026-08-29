@@ -28,6 +28,8 @@ namespace pk {
             return mat3_cast(rot);
         }
 
+        [[nodiscard]] pose displace_local(vec3 local) const noexcept { return {pos + rot * local, rot}; }
+
         pose& operator+=(vec3 v) noexcept { pos += v; return *this; }
         pose& operator-=(vec3 v) noexcept { pos -= v; return *this; }
         pose& operator*=(quat r) noexcept { rot *= r; return *this; }

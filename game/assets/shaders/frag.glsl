@@ -1,10 +1,10 @@
 #version 430
 out vec4 fragColor;
-in vec2 fuv;
 
 uniform sampler2D T;
 
+in vec2 f_uv;
+
 void main() { 
-    fragColor = texture(T, fuv);
-    //fragColor = vec4(1.0, 1.0, 0.0, 1.0);
+    fragColor = texture(T, f_uv);
 }

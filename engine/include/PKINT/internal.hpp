@@ -2,34 +2,26 @@
 
 #ifdef PK_INTERNAL
 namespace Perekop { void render(bool); }
-
-#include <PK/callbacks.hpp>
+#include <PKSTL/vector.hpp>
+#include <PK/step.hpp>
 #include <PK/userinput.hpp>
 #include <PK/window.hpp>
-#include <PK/world.hpp>
 
-class GLFWwindow;
-namespace pk {
-    struct GuiData { 
-        float Z; 
-        vec2 p, s; 
-        vec4 RGBA;
-    };
-};
+template <typename... T> using consumer = std::function<void(T...)>;
+template <typename... T> using listeners = pk::vector<consumer<T...>>;
+
+template <typename... T, typename... A>
+void InvokeListeners(const listeners<T...>& l, A&&... args) noexcept {
+    for (const auto &f: l) f(std::forward<A>(args)...);
+}
+
+#define ImplementBinder(name, source, ...) void name(consumer<__VA_ARGS__>&& f) noexcept { source.push(std::forward<decltype(f)>(f)); }
 
 namespace Perekop {
-    inline GLFWwindow* glfw_window{nullptr};
+    void RenderBegin() noexcept;
+    void WindowBegin() noexcept;
 
-    namespace cache {
-        inline pk::vector<pk::GuiData> gui;
-    }
-
-    void init_render();
-    void init_window();
-
-    void step_window();
-    void step_physics(float dt);
-
-    extern void query_gui();
+    void RenderStep() noexcept;
+    void PhysicsStep(double dt) noexcept;
 }
 #endif

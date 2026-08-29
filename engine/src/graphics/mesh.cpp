@@ -8,7 +8,6 @@
 #include <PK/file.hpp>
 #include <utility>
 #include <PK/mesh.hpp>
-#include <PK/world.hpp>
 
 using namespace pk;
 using std::string_view;
@@ -21,7 +20,6 @@ Mesh::Mesh(Mesh&& b) noexcept:
     VBO(std::exchange(b.VBO, 0)),
     EBO(std::exchange(b.EBO, 0)),
     IBO(std::exchange(b.IBO, 0)),
-    id(std::exchange(b.id, 0)),
     vertices(std::move(b.vertices)),
     indices(std::move(b.indices))
 {}
@@ -35,7 +33,6 @@ Mesh& Mesh::operator=(Mesh&& b) noexcept {
     VBO = std::exchange(b.VBO, 0);
     EBO = std::exchange(b.EBO, 0);
     IBO = std::exchange(b.IBO, 0);
-    id = std::exchange(b.id, 0);
 
     return *this;
 }
@@ -47,8 +44,7 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
 
     vertices = b.vertices;
     indices = b.indices;
-    id = 0;
-
+  
     return *this;
 }
 

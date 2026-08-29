@@ -7,13 +7,12 @@ layout(location = 3) in mat4 model;
 layout(location = 7) in vec3 scale;
 layout(location = 8) in vec4 metadata;
 
-uniform mat4 V;
-uniform mat4 P;
-out vec2 fuv;
+uniform mat4 camera;
+
+out vec2 f_uv;
 
 void main() {
-    vec4 viewspace = V * model * vec4(v_pos * scale, 1.0);
-    gl_Position = P * viewspace;
+    gl_Position = camera * model * vec4(v_pos * scale, 1.0);
  
-    fuv = v_uv;
+    f_uv = v_uv;
 }

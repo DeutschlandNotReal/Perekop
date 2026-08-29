@@ -30,6 +30,7 @@ namespace pk {
         }
 
         public:
+            using type = T;
             constexpr vector() noexcept = default;
 
             constexpr vector(index len): 
@@ -117,12 +118,13 @@ namespace pk {
                 return *this;
             }
 
-            constexpr void clear() { 
+            constexpr void clear() {
                 if constexpr (!std::is_trivially_destructible_v<T>) {
-                    T* at = data + cur;
-                    while (at >= data) (--at)->~T();
+                    while (cur)
+                        (data + --cur)->~T();
+                } else {
+                    cur = 0;
                 }
-                cur = 0;
             }
 
             constexpr void pop() {
@@ -132,7 +134,7 @@ namespace pk {
             }
 
             constexpr void pop(T* dst) {
-                pk::move(dst, --cur);
+                pk::move(dst, data + --cur);
             }
 
             constexpr void reserve(unsigned new_size) {

@@ -150,7 +150,7 @@ namespace pk {
     }
 }
 
-void Perekop::step_physics(float dt) {
+void Perekop::PhysicsStep(double dt) noexcept {
 
 }
 

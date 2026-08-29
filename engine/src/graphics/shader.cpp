@@ -164,8 +164,8 @@ Texture::Texture(const path& path) {
 void Mesh::load() {
     glAttribute(VAOmesh)
         .gbuffer<3>(&VBO)
-        .data<uint16_t>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
-        .data<Mesh::Vertex>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices)
+        .data<decltype(Mesh::indices)::type>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
+        .data<decltype(Mesh::vertices)>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices)
         .vbuffer<Mesh::Vertex>(0, VBO);
 }
 
@@ -174,7 +174,7 @@ void Mesh::unload() {
     VBO = EBO = IBO = 0;
 }
 
-void Perekop::init_render() {
+void Perekop::RenderBegin() noexcept {
     glAttribute(&VAOmesh)
         // vertex (pos, norm, uv)
         .item<vec3, vec3, vec2>()
@@ -182,36 +182,113 @@ void Perekop::init_render() {
         .item_instanced<vec4, vec4, vec4, vec4, vec3, vec4>();   
 }
 
-struct ShaderModel { mat4 matrix; vec3 scale; vec4 metadata; };
-ShaderModel* shader_cache = pk::alloc<ShaderModel>(2048); 
-unsigned shader_cache_size = 2048;
+struct ShaderModel { 
+    mat4 matrix; vec3 scale; vec4 metadata; 
+};
 
-void ShaderProgram::draw(const Mesh& mesh, span<Model> models) const noexcept {
-    if (!mesh.loaded() || !models.size()) return;
-    apply();
-    if (models.size() > shader_cache_size) {
-        pk::free(shader_cache);
-        shader_cache = pk::alloc<ShaderModel>(models.size());
-        shader_cache_size = models.size();
-    }
-    
-    for (unsigned i = 0; i < models.size(); i++) {
-        const Model& model = models[i];
-        shader_cache[i] = {model.pose, model.scale, model.metadata};
-    }
+void Renderer::ready_models(span<Model> models) noexcept {
+    modelcache.reserve(models.size());
+    modelcache.clear();
+
+    for (const Model& model : models) modelcache.emplace(
+        model.pose, model.scale, model.metadata
+    );
+}
+
+void Renderer::ready_models(span<Model> models, mat4 t) noexcept {
+    modelcache.reserve(models.size());
+    modelcache.clear();
+
+    for (const Model& model : models) modelcache.emplace(
+        t * (mat4)model.pose, model.scale, model.metadata
+    );
+}
+
+void Renderer::draw(const ShaderProgram& prog, const Mesh& mesh) const noexcept {
+    if (!mesh.loaded() || !modelcache.size()) return;
+
+    prog.apply();
 
     glAttribute(VAOmesh)
         .bind_elements(mesh.EBO)
-        .data<ShaderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, shader_cache)
+        .data<ShaderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, modelcache)
         .vbuffer<ShaderModel>(1, mesh.IBO)
-        .idraw(mesh.indices.size(), models.size());
+        .idraw(mesh.indices.size(), modelcache.size());
 }
 
-void Perekop::Window::swap_buffers() noexcept {
-    glfwSwapBuffers(glfw_window);
+void Renderer::swap() const noexcept {
+    glfwSwapBuffers(Perekop::glfw_window);
 }
 
-void Perekop::Window::clear(vec3 col) noexcept {
+void Renderer::fill(vec3 col) const noexcept {
     glClearColor(col.x, col.y, col.z, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void Renderer::clear(int buffers) const noexcept {
+    glClear(buffers);
+}
+
+void Renderer::target(const Target& tar) const noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, tar.fbo);
+}
+
+Target::Target(int x, int y, unsigned flags) noexcept {
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+    if (flags & colourBuffer) {
+        glGenTextures(1, &colour);
+        glBindTexture(GL_TEXTURE_2D, colour);
+
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_RGBA8,
+            x, y,
+            0,
+            GL_RGBA,
+            GL_UNSIGNED_BYTE,
+            nullptr
+        );
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER,
+            GL_COLOR_ATTACHMENT0,
+            GL_TEXTURE_2D,
+            colour,
+            0
+        );
+    }
+
+    if (flags & depthBuffer) {
+        glGenTextures(1, &depth);
+        glBindTexture(GL_TEXTURE_2D, depth);
+
+        glTexImage2D(
+            GL_TEXTURE_2D,
+            0,
+            GL_DEPTH_COMPONENT24,
+            x, y,
+            0,
+            GL_DEPTH_COMPONENT,
+            GL_FLOAT,
+            nullptr
+        );
+
+        glFramebufferTexture2D(
+            GL_FRAMEBUFFER,
+            GL_DEPTH_ATTACHMENT,
+            GL_TEXTURE_2D,
+            depth,
+            0
+        );
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    }
 }

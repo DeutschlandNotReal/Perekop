@@ -1,55 +1,45 @@
-#include <PK/world.hpp>
 #include <PK/userinput.hpp>
 #include <PK/window.hpp>
-#include <PKGame/camera.hpp>
-
+#include <PKG/camera.hpp>
 using namespace pk;
 using namespace Perekop;
-float _pitch{0}, _yaw{0};
 
-void pkgame::init::camera() {
-    vec3 dir = normalize(World::camera.pose.rot * vec3{0,0,-1});;
+float campitch{0}, camyaw{0};
 
-    _yaw = atan2(-dir.x, -dir.z);
-    _pitch = asin(dir.y);
+void PKG::InitCamera(Camera &camera) noexcept{
+    vec3 look = normalize(camera.pose.rot * vec3{0, 0, -1});
+    camyaw   = atan2(-look.x, -look.z);
+    campitch = asin(look.y);
 
-    Mouse::on_scroll.listen([](auto d){
-        World::camera.pose += World::camera.pose.rot * vec3{0, 0, -d};
+    Mouse::BindToScroll([&camera](auto x){
+        camera.pose += camera.pose.rot * vec3{0,0,-x};
     });
 
-    Mouse::on_move.listen([](vec2 delta){
-        if (Mouse::held(Mouse::left) /* && !Gui::top */ ) {
-            vec2 size = Window::size();
-            float rfov = radians(World::camera.fov());
-            float yfov = rfov * size.x / size.y;
+    Mouse::BindToMove([&camera](vec2 delta){
+        if (!Mouse::Held(Mouse::right)) return;
 
-            _pitch = clamp(_pitch - delta.y * yfov, radians(-60.f), radians(60.f));
-            _yaw -= delta.x * rfov;
+        vec2 size = Window::Size();
+        delta /= size;
+        float rfov = radians(camera.fov());
+        float yfov = rfov * size.x / size.y;
 
-            World::camera.pose.rot = angleAxis(_yaw, vec3{0, 1, 0}) * angleAxis(_pitch, vec3{1, 0, 0});
-        }
+        campitch = clamp(campitch - delta.y * yfov, radians(-60.f), radians(60.f));
+        camyaw -= delta.x * rfov;
+
+        camera.pose.rot = angleAxis(camyaw, vec3{0, 1, 0}) * angleAxis(campitch, vec3{1, 0, 0});
     });
-
-    Mouse::on_down.listen([](auto button){
-        // if (button == Mouse::left && !Gui::top) Mouse::lock();
-    });
-
-    Mouse::on_up.listen([](auto button){
-        //if (button == Mouse::left && !Gui::top) Mouse::unlock();
-    });
-
 }
 
-void pkgame::step::camera(float dt) {
-    using Input::held;
+void PKG::StepCamera(Camera& camera, float dt) noexcept {
+    using Input::Held;
     vec3 delta{0};
 
-    if (held('S')) delta += vec3{0,0,1};
-    if (held('W')) delta -= vec3{0,0,1};
-    if (held('D')) delta += vec3{1,0,0};
-    if (held('A')) delta -= vec3{1,0,0};
-    if (held('E')) delta += vec3{0,1,0};
-    if (held('Q')) delta -= vec3{0,1,0};
+    if (Held('S')) delta += vec3{0,0,1};
+    if (Held('W')) delta -= vec3{0,0,1};
+    if (Held('D')) delta += vec3{1,0,0};
+    if (Held('A')) delta -= vec3{1,0,0};
+    if (Held('E')) delta += vec3{0,1,0};
+    if (Held('Q')) delta -= vec3{0,1,0};
 
-    World::camera.pose += World::camera.pose.rot * (3.f * delta * dt);
+    camera.pose += localspace(delta * dt, camera.pose.rot);
 };
