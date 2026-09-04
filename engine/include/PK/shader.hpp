@@ -8,6 +8,7 @@
 namespace pk {
     using path = std::filesystem::path;
     class Renderer;
+    class Framebuffer;
 
     enum BufferType : unsigned {
         colourBuffer = 0x4000,
@@ -54,21 +55,27 @@ namespace pk {
     class Texture {
         friend ShaderProgram;
         friend Renderer;
-            
-        unsigned id{0};
+        friend Framebuffer;
+        unsigned id{0}; 
+        int w{0}, h{0};
+
         public:
             Texture() = default;
             Texture(const path& path);
+
+            static Texture depth(int x, int y) noexcept;
     };
 
-    class Target {
+    class Framebuffer {
         friend Renderer;
-        unsigned fbo{0}, depth{0}, colour{0};
-        int x{0}, y{0};
+        unsigned fbo{0};
+        int w{0}, h{0};
 
         public:
-            Target() = default;
-            Target(int width, int height, unsigned flags) noexcept;
+            Framebuffer() = default;
+            Framebuffer(int width, int height) noexcept;
+
+            void attach_depth(Texture) noexcept;
     };
 
     class Renderer {
@@ -76,17 +83,23 @@ namespace pk {
         pk::vector<ShaderModel> modelcache;
 
         public:
-            void target(const Target&) const noexcept;
+            enum DrawTarget { none = 0, front = 0x404, back = 0x405 };
+
+            void target(Framebuffer, DrawTarget) const noexcept;
             void fill(vec3 colour) const noexcept;
             void ready_models(pk::span<Model> models) noexcept;
             void ready_models(pk::span<Model> models, mat4 t) noexcept;
             void draw(const ShaderProgram& shader, const pk::Mesh& geometry) const noexcept;
             void swap() const noexcept;
             void clear(int flags) const noexcept;
+
+            void viewport() const noexcept;
+            void viewport(int w, int h) const noexcept;
+            void viewport(int x, int y, int w, int h) const noexcept;
             Renderer() = default;
             Renderer(Renderer&&) = default;
             Renderer& operator=(Renderer&&) = default;
     };
 
-    inline Target screen;
+    inline Framebuffer screen;
 }

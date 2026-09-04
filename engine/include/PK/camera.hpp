@@ -7,15 +7,16 @@ namespace pk {
         friend vec3 worldspace(vec3, const Camera&) noexcept;
         friend vec3 localspace(vec3, const Camera&) noexcept;
 
-        float cotfov, degfov;
+        float tfov, degfov;
         public:
             pose pose;
             float min{.1f}, max{2000.f};
 
             float fov() const noexcept { return degfov; }
-
+            float tanfov() const noexcept { return tfov; }
+ 
             void fov(float newfov) noexcept { 
-                cotfov = 1.f / tan(radians((degfov = newfov) * .5f));
+                tfov = tan(radians((degfov = newfov) * .5f));
             }
 
             Camera() noexcept { fov(70.f); }

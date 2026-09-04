@@ -1,15 +1,17 @@
 #pragma once
 #include <PK/pose.hpp>
+#include <PK/camera.hpp>
 #include <functional>
 
 namespace Perekop::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };
-    extern void SetPosition() noexcept;
+    extern void SetPosition(vec2) noexcept;
     extern void Lock() noexcept;
     extern void Unlock() noexcept;
     extern bool Locked() noexcept;
     
     extern vec2 Position() noexcept;
+    extern pk::pose GetPose(const pk::Camera& camera) noexcept;
     extern void BindToMove(std::function<void(vec2)>&&) noexcept;
     extern void BindToScroll(std::function<void(float)>&&) noexcept;
     extern void BindToPress(std::function<void(Button)>&&) noexcept;

@@ -19,16 +19,36 @@ namespace pk {
             quat r = conjugate(rot);
             return {-(r * pos), r};
         }
-  
+
         [[nodiscard]] operator mat4() const noexcept {
-            return translate(identity<mat4>(), pos) * mat4_cast(rot);
+            mat4 m{mat3_cast(rot)};
+            m[3] = vec4(pos, 1);
+            return m;
         }
 
         [[nodiscard]] operator mat3() const noexcept { 
             return mat3_cast(rot);
         }
 
-        [[nodiscard]] pose displace_local(vec3 local) const noexcept { return {pos + rot * local, rot}; }
+        [[nodiscard]] vec3 rvec() const noexcept { return rot * vec3(1, 0, 0); }
+        [[nodiscard]] vec3 uvec() const noexcept { return rot * vec3(0, 1, 0); }
+        [[nodiscard]] vec3 fvec() const noexcept { return rot * vec3(0, 0,-1); }
+
+        [[nodiscard]] static pose lookAt(vec3 from, vec3 at, vec3 up = {0, 1, 0}) noexcept {
+            return {from, quatLookAt(normalize(at - from), up)};
+        }
+
+        [[nodiscard]] static pose lookAlong(vec3 from, vec3 along, vec3 up = {0, 1, 0}) noexcept {
+            return {from, quatLookAt(along, up)};
+        }
+        
+        [[nodiscard]] static pose fromEuler(vec3 pos, vec3 euler) noexcept {
+            return {pos, euler};
+        }
+
+        [[nodiscard]] vec3 eulerAngles() const noexcept {
+            return glm::eulerAngles(rot);
+        }
 
         pose& operator+=(vec3 v) noexcept { pos += v; return *this; }
         pose& operator-=(vec3 v) noexcept { pos -= v; return *this; }
@@ -47,7 +67,7 @@ namespace pk {
 
     [[nodiscard]] inline vec3 localspace(vec3 v, pose space) noexcept { return conjugate(space.rot) * (v - space.pos); }
     [[nodiscard]] inline vec3 localspace(vec3 v, quat space) noexcept { return conjugate(space) * v; }
-    [[nodiscard]] inline vec3 localspace(vec3 v, vec3 space) noexcept { return space - v; }
+    [[nodiscard]] inline vec3 localspace(vec3 v, vec3 space) noexcept { return v - space; }
 
     [[nodiscard]] inline vec3 operator*(vec3 v, pose p) noexcept { return localspace(v, p); }
 }

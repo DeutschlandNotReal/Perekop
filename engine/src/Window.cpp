@@ -14,8 +14,37 @@ namespace Perekop::Mouse {
         inline vec2 lastpos;
     };
 
+    vec2 Position() noexcept {
+        double x, y;
+        glfwGetCursorPos(glfw_window, &x, &y);
+        return {x, y};
+    }
+
     bool Held(Button b) noexcept {
         return glfwGetMouseButton(glfw_window, b) == 1;
+    }
+
+    pose GetPose(const pk::Camera& camera) noexcept {
+        vec2 size = Window::Size();
+        vec2 pos = Position();
+        vec2 uv = {
+            (pos.x / size.x) * 2.0f - 1.0f,
+            1.0f - (pos.y / size.y) * 2.0f
+        };
+
+        float aspect = size.x / std::max(size.y, 1.0f);
+        float tfov = camera.tanfov();
+        vec3 local = normalize(vec3{
+            uv.x * tfov * aspect,
+            uv.y * tfov,
+            -1.0f
+        });
+
+        vec3 forward = worldspace(local, camera.pose);
+        vec3 origin = camera.pose.pos + camera.pose.fvec() * camera.min;
+        vec3 target = origin + forward * (camera.max - camera.min);
+
+        return pose::lookAt(origin, target, camera.pose.uvec());
     }
 
     void SetPosition(vec2 p) noexcept {
@@ -60,7 +89,7 @@ namespace Perekop::Window {
         inline listeners<vec2> OnResize; 
     }
 
-    vec2 Size() noexcept {
+    vec2 Size() noexcept { 
         i32 x, y; 
         glfwGetWindowSize(glfw_window, &x, &y); return {x, y};
     }

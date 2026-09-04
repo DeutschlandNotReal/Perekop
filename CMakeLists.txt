@@ -38,8 +38,8 @@ target_include_directories(perekop PRIVATE
 )
 
 target_compile_options(perekop PRIVATE
+    $<$<CONFIG:Release>:-O3;-march=native;-funroll-loops>
     $<$<CONFIG:Debug>:-Wall;-Wextra;-Wpedantic>
-    $<$<CONFIG:Release>:-O3;-march=native;-flto;-funroll-loops>
 )
 
 target_link_libraries(perekop PRIVATE

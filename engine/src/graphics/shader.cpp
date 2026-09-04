@@ -120,6 +120,8 @@ ShaderProgram::ShaderProgram(const Shader& v, const Shader& f, std::initializer_
 void ShaderProgram::apply() const noexcept {
     glUseProgram(program);
 
+    unsigned texture_index{0};
+
     for (unsigned i = 0; i < uniform_n; i++) {
         const Uniform& u = uniform[i];
         using enum ShaderProgram::UDataType;
@@ -138,25 +140,36 @@ void ShaderProgram::apply() const noexcept {
                 glUniform3fv(u.layout, 1, (float*)u.data); break;
             case u_vec4:
                 glUniform4fv(u.layout, 1, (float*)u.data); break;
-            case texture: 
-                glActiveTexture(GL_TEXTURE0);
+            case texture: {
+                glActiveTexture(GL_TEXTURE0 + texture_index);
                 glBindTexture(GL_TEXTURE_2D, ((Texture*)u.data)->id);
-                glUniform1i(u.layout, 0);
+                glUniform1i(u.layout, texture_index);
+                texture_index++;
+                break;
+            }
         }
     }
 }
 
 Texture::Texture(const path& path) {
-    int width, height, channels;
+    int channels;
 
-    uint8_t* data = stbi_load(path.string().c_str(), &width, &height, &channels, 0);
+    uint8_t* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
     if (!data) return;
-
     int format = (channels==1) ? GL_RED : (channels==3) ? GL_RGB : GL_RGBA;
     glGenTextures(1, &id);
     glBindTexture(GL_TEXTURE_2D, id);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(
+        GL_TEXTURE_2D, 
+        0, 
+        format, 
+        w, h, 
+        0, 
+        format, 
+        GL_UNSIGNED_BYTE, 
+        data
+    );
     glGenerateMipmap(GL_TEXTURE_2D);
     stbi_image_free(data);
 };
@@ -228,67 +241,65 @@ void Renderer::clear(int buffers) const noexcept {
     glClear(buffers);
 }
 
-void Renderer::target(const Target& tar) const noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, tar.fbo);
+void Renderer::target(Framebuffer fb, Renderer::DrawTarget tar) const noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
+    viewport(fb.w, fb.h);
+    glDrawBuffer(tar);
 }
 
-Target::Target(int x, int y, unsigned flags) noexcept {
+void Framebuffer::attach_depth(Texture t) noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER,
+        GL_DEPTH_ATTACHMENT,
+        GL_TEXTURE_2D,
+        t.id,
+        0
+    );
+}
+
+Texture Texture::depth(int x, int y) noexcept {
+    Texture texture;
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_DEPTH_COMPONENT24,
+        x, y,
+        0,
+        GL_DEPTH_COMPONENT,
+        GL_FLOAT,
+        nullptr
+    );
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+    return texture;
+}
+
+void Renderer::viewport() const noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    int x, y; 
+    glfwGetWindowSize(Perekop::glfw_window, &x, &y);
+    glViewport(0, 0, x, y);
+}
+
+void Renderer::viewport(int x, int y) const noexcept {
+    glViewport(0, 0, x, y);
+}
+
+void Renderer::viewport(int x, int y, int w, int h) const noexcept {
+    glViewport(x, y, w, h);
+}
+
+Framebuffer::Framebuffer(int x, int y) noexcept {
+    w = x; h = y;
     glGenFramebuffers(1, &fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-
-    if (flags & colourBuffer) {
-        glGenTextures(1, &colour);
-        glBindTexture(GL_TEXTURE_2D, colour);
-
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_RGBA8,
-            x, y,
-            0,
-            GL_RGBA,
-            GL_UNSIGNED_BYTE,
-            nullptr
-        );
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_2D,
-            colour,
-            0
-        );
-    }
-
-    if (flags & depthBuffer) {
-        glGenTextures(1, &depth);
-        glBindTexture(GL_TEXTURE_2D, depth);
-
-        glTexImage2D(
-            GL_TEXTURE_2D,
-            0,
-            GL_DEPTH_COMPONENT24,
-            x, y,
-            0,
-            GL_DEPTH_COMPONENT,
-            GL_FLOAT,
-            nullptr
-        );
-
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_DEPTH_ATTACHMENT,
-            GL_TEXTURE_2D,
-            depth,
-            0
-        );
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    }
 }

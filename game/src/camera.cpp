@@ -7,9 +7,17 @@ using namespace Perekop;
 float campitch{0}, camyaw{0};
 
 void PKG::InitCamera(Camera &camera) noexcept{
-    vec3 look = normalize(camera.pose.rot * vec3{0, 0, -1});
-    camyaw   = atan2(-look.x, -look.z);
-    campitch = asin(look.y);
+    vec3 euler = camera.pose.eulerAngles();
+    campitch = euler.x;
+    camyaw = euler.y;
+
+    Mouse::BindToPress([](Mouse::Button button){
+        if (button == Mouse::right) Mouse::Lock();
+    });
+
+    Mouse::BindToRelease([](Mouse::Button button){
+        if (button == Mouse::right) Mouse::Unlock();
+    });
 
     Mouse::BindToScroll([&camera](auto x){
         camera.pose += camera.pose.rot * vec3{0,0,-x};
@@ -19,6 +27,11 @@ void PKG::InitCamera(Camera &camera) noexcept{
         if (!Mouse::Held(Mouse::right)) return;
 
         vec2 size = Window::Size();
+        vec2 center = size * .5f;
+        vec2 pointer = Mouse::Position();
+        delta = pointer - center;
+        Mouse::SetPosition(center);
+
         delta /= size;
         float rfov = radians(camera.fov());
         float yfov = rfov * size.x / size.y;
@@ -26,7 +39,7 @@ void PKG::InitCamera(Camera &camera) noexcept{
         campitch = clamp(campitch - delta.y * yfov, radians(-60.f), radians(60.f));
         camyaw -= delta.x * rfov;
 
-        camera.pose.rot = angleAxis(camyaw, vec3{0, 1, 0}) * angleAxis(campitch, vec3{1, 0, 0});
+        camera.pose = pose::fromEuler(camera.pose.pos, {campitch, camyaw, 0});
     });
 }
 
@@ -41,5 +54,10 @@ void PKG::StepCamera(Camera& camera, float dt) noexcept {
     if (Held('E')) delta += vec3{0,1,0};
     if (Held('Q')) delta -= vec3{0,1,0};
 
-    camera.pose += localspace(delta * dt, camera.pose.rot);
+    vec3 forward = camera.pose.rot * vec3{0, 0, -1};
+    vec3 right = camera.pose.rot * vec3{1, 0, 0};
+    vec3 up = camera.pose.rot * vec3{0, 1, 0};
+
+    vec3 move = forward * (-delta.z) + right * delta.x + up * delta.y;
+    camera.pose += move * dt;
 };

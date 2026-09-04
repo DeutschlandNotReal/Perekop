@@ -60,14 +60,15 @@ void init() {
 
 int main() {
     init();
-    time::Tracker<double, 2> frame_timer;
+    time::Tracker<double, 2> FrameTimer;
 
     double accumulator{0};
 
     double frameperiod = 1.0 / fps;
-    frame_timer.begin();
+    FrameTimer.begin();
+
     while (!glfwWindowShouldClose(glfw_window)) {
-        accumulator += frame_timer.delta();
+        accumulator += FrameTimer.delta();
 
         if (accumulator >= frameperiod) {
             frameperiod = 1.0 / fps;
@@ -81,7 +82,7 @@ int main() {
                 PhysicsStep(frameperiod);
                 OnStep(frameperiod);
             } 
-
+            
             OnRender();
         }
         std::this_thread::yield();
