@@ -7,54 +7,55 @@
 
 namespace pk {
     using path = std::filesystem::path;
-    class Renderer;
+    template <typename T> using list = std::initializer_list<T>;
+
+    class Render;
     class Framebuffer;
 
     enum BufferType : unsigned {
-        colourBuffer = 0x4000,
-        depthBuffer  = 0x0100,
+        ColorBuffer = 0x4000,
+        DepthBuffer = 0x0100,
     };
 
-
-    struct Shader {
-        enum type { vertex = 0x8B31, fragment = 0x8B30 };
+    struct ShaderStage {
+        enum Stage { Vertex = 0x8B31, Fragment = 0x8B30 };
         unsigned id{0};
 
-        Shader(type T, const path&);
-        Shader(type T, std::string_view src);
-        Shader(const Shader&) = delete;
-        Shader& operator=(const Shader&) = delete;
-        ~Shader();
+        ShaderStage(Stage stage, const path&);
+        ShaderStage(Stage stage, std::string_view src);
+
+        ShaderStage(ShaderStage&&) = default;
+        ~ShaderStage();
     };
  
-    class ShaderProgram {
-        friend Renderer;
+    class Shader {
+        friend Render;
         public:
-            enum UDataType {
-                u_int, u_float, u_vec2, u_vec3, u_vec4, u_mat3, u_mat4, texture
+            enum Type {
+                Int, Float, Vec2, Vec3, Vec4, Mat3, Mat4, Texture
             };
 
-            struct UniformConfig { std::string_view name; UDataType type; const void* data; };
+            struct UniformConfig { std::string_view name; Type type; const void* data; };
+
+            Shader() noexcept = default;
+            Shader(list<ShaderStage> stages, list<UniformConfig> uniforms) noexcept;
         private:
-            #ifdef PK_INTERNAL
-            friend void Perekop::render(bool);
-            #endif
+            struct Uniform {
+                unsigned short layout;
+                Type type;
+                const void* data;
+            };
 
-            struct Uniform { unsigned short layout; UDataType type; const void* data; };
             unsigned program{0};
-            Uniform* uniform; unsigned uniform_n;
+            Uniform* uniData{nullptr};
+            unsigned uniCount{0};
         
-            void apply() const noexcept;
-        
-        public:
-            ShaderProgram() noexcept = default;
-
-            ShaderProgram(const Shader& v, const Shader& f, std::initializer_list<UniformConfig> u) noexcept;
+            void Apply() const noexcept;
     };
 
     class Texture {
-        friend ShaderProgram;
-        friend Renderer;
+        friend Shader;
+        friend Render;
         friend Framebuffer;
         unsigned id{0}; 
         int w{0}, h{0};
@@ -63,42 +64,41 @@ namespace pk {
             Texture() = default;
             Texture(const path& path);
 
-            static Texture depth(int x, int y) noexcept;
+            static Texture Color(int width, int height) noexcept;
+            static Texture Depth(int x, int y, bool compare = true) noexcept;
     };
 
     class Framebuffer {
-        friend Renderer;
+        friend Render;
         unsigned fbo{0};
         int w{0}, h{0};
+        bool color_attached{false};
 
         public:
             Framebuffer() = default;
             Framebuffer(int width, int height) noexcept;
 
-            void attach_depth(Texture) noexcept;
+                void AttachColor(const Texture&) noexcept;
+                void AttachDepth(const Texture&) noexcept;
     };
 
-    class Renderer {
-        struct ShaderModel { mat4 mat; vec3 scl; vec4 meta; };
-        pk::vector<ShaderModel> modelcache;
-
+            class Render {
         public:
-            enum DrawTarget { none = 0, front = 0x404, back = 0x405 };
+            enum DrawTarget { None = 0, Front = 0x404, Back = 0x405 };
 
-            void target(Framebuffer, DrawTarget) const noexcept;
-            void fill(vec3 colour) const noexcept;
-            void ready_models(pk::span<Model> models) noexcept;
-            void ready_models(pk::span<Model> models, mat4 t) noexcept;
-            void draw(const ShaderProgram& shader, const pk::Mesh& geometry) const noexcept;
-            void swap() const noexcept;
-            void clear(int flags) const noexcept;
+            void Target(const Framebuffer&, DrawTarget target = None) const noexcept;
+            void Fill(vec3 colour) const noexcept;
+            void Draw(const Shader& shader, const pk::Mesh& geometry, pk::span<Model> models) const noexcept;
+            void Draw(const Shader& shader) const noexcept;
+            void Swap() const noexcept;
+            void Clear(int flags) const noexcept;
 
-            void viewport() const noexcept;
-            void viewport(int w, int h) const noexcept;
-            void viewport(int x, int y, int w, int h) const noexcept;
-            Renderer() = default;
-            Renderer(Renderer&&) = default;
-            Renderer& operator=(Renderer&&) = default;
+            void Viewport() const noexcept;
+            void Viewport(int w, int h) const noexcept;
+            void Viewport(int x, int y, int w, int h) const noexcept;
+            Render() = default;
+            Render(Render&&) = default;
+            Render& operator=(Render&&) = default;
     };
 
     inline Framebuffer screen;

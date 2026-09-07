@@ -11,18 +11,18 @@ namespace pk {
         public:
             pose pose;
             float min{.1f}, max{2000.f};
-
-            float fov() const noexcept { return degfov; }
-            float tanfov() const noexcept { return tfov; }
+  
+            float Fov() const noexcept { return degfov; }
+            float TanFov() const noexcept { return tfov; }
  
-            void fov(float newfov) noexcept { 
+            void Fov(float newfov) noexcept {
                 tfov = tan(radians((degfov = newfov) * .5f));
             }
 
-            Camera() noexcept { fov(70.f); }
+            Camera() noexcept { Fov(70.f); }
 
-            mat4 view() const noexcept;
-            mat4 proj() const noexcept;
+            mat4 View() const noexcept;
+            mat4 Projection() const noexcept;
     };
 
     vec3 worldspace(vec3, const Camera& space) noexcept;

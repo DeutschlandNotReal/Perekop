@@ -6,7 +6,7 @@
 namespace pk {
     using path = std::filesystem::path;
 
-    inline std::string file(const path& path) {
+    inline std::string ReadFile(const path& path) {
         std::ifstream file(path);
 
         if (!file) return {};
@@ -17,7 +17,7 @@ namespace pk {
         );
     }
 
-    inline void filewrite(const path& path, const void* data, size_t length) {
+    inline void WriteFile(const path& path, const void* data, size_t length) {
         std::ofstream file(path, std::ios::binary);
 
         if (!file) return;

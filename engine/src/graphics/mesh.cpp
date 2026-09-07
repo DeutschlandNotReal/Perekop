@@ -13,8 +13,8 @@ using namespace pk;
 using std::string_view;
 using std::string;
 
-bool Mesh::loaded() const noexcept { return VBO != 0; }
-void Mesh::refresh() { if (loaded()) { unload(); load(); }}
+bool Mesh::Loaded() const noexcept { return VBO != 0; }
+void Mesh::Refresh() { if (Loaded()) { Unload(); Load(); }}
 
 Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::exchange(b.VBO, 0)),
@@ -26,7 +26,7 @@ Mesh::Mesh(Mesh&& b) noexcept:
 
 Mesh& Mesh::operator=(Mesh&& b) noexcept {
     if (this == &b) return *this;
-    if (loaded()) unload();
+    if (Loaded()) Unload();
 
     vertices = std::move(b.vertices);
     indices = std::move(b.indices);
@@ -39,7 +39,7 @@ Mesh& Mesh::operator=(Mesh&& b) noexcept {
 
 Mesh& Mesh::operator=(const Mesh& b) noexcept {
     if (this == &b) return *this;
-    if (loaded()) unload();
+    if (Loaded()) Unload();
     EBO = IBO = VBO = 0;
 
     vertices = b.vertices;
@@ -48,27 +48,25 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
     return *this;
 }
 
-Mesh::Mesh(vector<Vertex>&& vertices, vector<unsigned short>&& indices) noexcept:
-    vertices(std::move(vertices)),
-    indices(std::move(indices)) 
-{}
-
-
 Mesh::Mesh(const Mesh& b) noexcept: 
     vertices{b.vertices},
     indices{b.indices}
 {}
 
-Mesh::~Mesh() noexcept { unload(); }
+Mesh::~Mesh() noexcept { Unload(); }
 
 Mesh::Mesh(const std::filesystem::path& path) noexcept {
     cgltf_options options{};  
     cgltf_data* data{nullptr};
     auto spath = path.string();
 
-    cgltf_result result = cgltf_parse_file(&options, spath.c_str(), &data);
+    if (cgltf_parse_file(&options, spath.c_str(), &data) != cgltf_result_success)
+        return;
 
-    result = cgltf_load_buffers(&options, data, spath.c_str());
+    if (cgltf_load_buffers(&options, data, spath.c_str()) != cgltf_result_success) {
+        cgltf_free(data);
+        return;
+    }
 
     for (unsigned id = 0; id < data->meshes_count; id++) {
         cgltf_mesh& gmesh = data->meshes[id];
@@ -103,9 +101,7 @@ Mesh::Mesh(const std::filesystem::path& path) noexcept {
             if (primitive.indices) {
                 indices.reserve(indices.size() + primitive.indices->count);
                 for (unsigned iid = 0; iid < primitive.indices->count; iid++) {
-                    unsigned int intermediate;
-                    cgltf_accessor_read_uint(primitive.indices, iid, &intermediate, 1);
-                    indices.push(intermediate);
+                    cgltf_accessor_read_uint(primitive.indices, iid, &indices.emplace(), 1);
                 }
             } else {
                 indices.reserve(vertices.size());
@@ -113,5 +109,7 @@ Mesh::Mesh(const std::filesystem::path& path) noexcept {
             }
         }
     }
+
+    cgltf_free(data);
 }
 

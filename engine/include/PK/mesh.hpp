@@ -4,10 +4,11 @@
 #include <filesystem>
 
 namespace pk {
-    class Renderer;
+    using path = std::filesystem::path;
 
+    class Render;
     class Mesh {
-        friend Renderer;
+        friend Render;
         unsigned VBO{0}, EBO{0}, IBO{0};
 
         public:
@@ -17,16 +18,16 @@ namespace pk {
             };
 
             vector<Vertex> vertices;
-            vector<unsigned short> indices;
+            vector<unsigned> indices;
 
-            void load();
-            void unload();
-            bool loaded() const noexcept;
+            void Load();
+            void Unload();
+            bool Loaded() const noexcept;
 
-            void refresh();
+            void Refresh();
+
             Mesh() noexcept = default;
-            Mesh(vector<Vertex>&& vertices, vector<unsigned short>&& indices) noexcept;
-            Mesh(const std::filesystem::path& glb) noexcept;
+            Mesh(const path& glb) noexcept;
 
             Mesh(Mesh&&) noexcept;
             Mesh& operator=(Mesh&&) noexcept;

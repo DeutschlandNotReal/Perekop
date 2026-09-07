@@ -65,10 +65,10 @@ int main() {
     double accumulator{0};
 
     double frameperiod = 1.0 / fps;
-    FrameTimer.begin();
+    FrameTimer.Begin();
 
     while (!glfwWindowShouldClose(glfw_window)) {
-        accumulator += FrameTimer.delta();
+        accumulator += FrameTimer.Delta();
 
         if (accumulator >= frameperiod) {
             frameperiod = 1.0 / fps;
@@ -79,7 +79,6 @@ int main() {
             ticks = std::min(ticks, 4);
 
             while (ticks-- > 0) {
-                PhysicsStep(frameperiod);
                 OnStep(frameperiod);
             } 
             

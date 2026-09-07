@@ -10,15 +10,14 @@ using std::string_view;
 using std::string;
 
 unsigned VAOmesh, VBOmesh;
-class glAttribute {
+class VertexArray {
     int index{0};
     template <typename T> void member(int d, int& o) {
-        #define is_type(t) std::is_same_v<T, t>
-
-        if constexpr (is_type(float) || is_type(quat) || is_type(vec4) || is_type(vec3) || is_type(vec2))
+        if constexpr (std::is_same_v<T, float> || std::is_same_v<T, quat> ||
+            std::is_same_v<T, vec4> || std::is_same_v<T, vec3> || std::is_same_v<T, vec2>)
             glVertexAttribFormat(index, sizeof(T) >> 2, GL_FLOAT, 0, o);
-        else if constexpr(is_type(int) || is_type(unsigned))
-            glVertexAttribFormat(index, 1, is_type(int) ? GL_INT : GL_UNSIGNED_INT, o);
+        else if constexpr(std::is_same_v<T, int> || std::is_same_v<T, unsigned>)
+            glVertexAttribFormat(index, 1, std::is_same_v<T, int> ? GL_INT : GL_UNSIGNED_INT, 0, o);
 
         glVertexAttribBinding(index, d);
         glEnableVertexAttribArray(index++);
@@ -27,50 +26,43 @@ class glAttribute {
     }
 
     public:
-        glAttribute() = default;
-        glAttribute(GLuint array) { glBindVertexArray(array); }
-        glAttribute(GLuint* array) { glGenVertexArrays(1, array); glBindVertexArray(*array); }
-        template <typename... T> glAttribute& item() {
-            glVertexBindingDivisor(0, 0);
+        VertexArray() = default;
+        VertexArray(GLuint array) { glBindVertexArray(array); }
+        VertexArray(GLuint* array) { glGenVertexArrays(1, array); glBindVertexArray(*array); }
+        template <typename... T> VertexArray& Layout(int binding, int divisor) {
+            glVertexBindingDivisor(binding, divisor);
             int offset{0};
-            (member<T>(0, offset), ...);
+            (member<T>(binding, offset), ...);
             return *this;
         }
 
-        template <typename... T> glAttribute& item_instanced() {
-            glVertexBindingDivisor(1, 1);
-            int offset{0};
-            (member<T>(1, offset), ...);
-            return *this;
-        }
-
-        glAttribute& bind_elements(GLuint b) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, b); return *this;}
-        template <int L> glAttribute& gbuffer(GLuint* b) { glGenBuffers(L, b); return *this;}
+        VertexArray& BindElements(GLuint b) { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, b); return *this;}
+        template <int L> VertexArray& Buffers(GLuint* b) { glGenBuffers(L, b); return *this;}
         
-        template <typename T> glAttribute& data(GLuint buffer, GLenum type, GLenum usage, span<T> data) {
+        template <typename T> VertexArray& Upload(GLuint buffer, GLenum type, GLenum usage, span<T> data) {
             glBindBuffer(type, buffer);
             glBufferData(type, data.size() * sizeof(T), data.begin(), usage);
 
             return *this;
         }
 
-        template <typename T> glAttribute& vbuffer(int divisor, GLuint buffer) {
-            glBindVertexBuffer(divisor, buffer, 0, sizeof(T));
+        template <typename T> VertexArray& VertexBuffer(int binding, GLuint buffer) {
+            glBindVertexBuffer(binding, buffer, 0, sizeof(T));
             return *this;
         }
 
-        glAttribute& idraw(int indcount, int usecount) {
-            glDrawElementsInstanced(GL_TRIANGLES, indcount, GL_UNSIGNED_SHORT, 0, usecount);
+        VertexArray& Draw(int indcount, int usecount) {
+            glDrawElementsInstanced(GL_TRIANGLES, indcount, GL_UNSIGNED_INT, 0, usecount);
             return *this;
         }
 
-        glAttribute& idraw_array(int n_vert, int n_users) {
+        VertexArray& DrawArray(int n_vert, int n_users) {
             glDrawArraysInstanced(GL_TRIANGLES, 0, n_vert, n_users);
             return *this;
         }
 };
 
-GLuint load_shader(string_view src, GLenum T) {
+GLuint LoadShader(string_view src, GLenum T) {
     GLuint shader = glCreateShader(T);
     const char* data = src.data();
     int size = src.size();
@@ -88,28 +80,37 @@ GLuint load_shader(string_view src, GLenum T) {
     return shader;
 }
 
-Shader::Shader(Shader::type T, const path& path) {
-    string src = file(path);
-    id = load_shader(src, T);
+ShaderStage::ShaderStage(ShaderStage::Stage T, const path& path) {
+    string src = ReadFile(path);
+    id = LoadShader(src, T);
 }
 
-Shader::Shader(Shader::type T, string_view src):
-    id(load_shader(src, T))
+ShaderStage::ShaderStage(ShaderStage::Stage T, string_view src):
+    id(LoadShader(src, T))
 {}
 
-Shader::~Shader() { glDeleteShader(id); }
+ShaderStage::~ShaderStage() { glDeleteShader(id); }
 
-ShaderProgram::ShaderProgram(const Shader& v, const Shader& f, std::initializer_list<UniformConfig> u) noexcept {
+Shader::Shader(list<ShaderStage> shaders, list<UniformConfig> u) noexcept {
     program = glCreateProgram();
-    glAttachShader(program, v.id);
-    glAttachShader(program, f.id);
+    for (const auto& shader : shaders)
+        glAttachShader(program, shader.id);
+
     glLinkProgram(program);
 
-    uniform_n = u.size();
-    uniform = pk::alloc<Uniform>(u.size());
+    int linked;
+    glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    if (!linked) {
+        char log[4096];
+        glGetProgramInfoLog(program, 4096, nullptr, log);
+        printf("\033[31mShader program failed to link:\n%s\n\033[0m", log);
+    }
+
+    uniCount = u.size();
+    uniData = pk::alloc<Uniform>(u.size());
     for (unsigned i = 0; i < u.size(); i++) {
         auto uni = u.begin()[i];
-        uniform[i] = {
+        uniData[i] = {
             (unsigned short) glGetUniformLocation(program, uni.name.begin()),
             uni.type,
             uni.data
@@ -117,32 +118,32 @@ ShaderProgram::ShaderProgram(const Shader& v, const Shader& f, std::initializer_
     }
 }
 
-void ShaderProgram::apply() const noexcept {
+void Shader::Apply() const noexcept {
     glUseProgram(program);
 
     unsigned texture_index{0};
 
-    for (unsigned i = 0; i < uniform_n; i++) {
-        const Uniform& u = uniform[i];
-        using enum ShaderProgram::UDataType;
+    for (unsigned i = 0; i < uniCount; i++) {
+        const Uniform& u = uniData[i];
+        using enum Shader::Type;
         switch (u.type) {
-            case u_mat3:
+            case Mat3:
                 glUniformMatrix3fv(u.layout, 1, false, (float*)u.data); break;
-            case u_mat4:
+            case Mat4:
                 glUniformMatrix4fv(u.layout, 1, false, (float*)u.data); break;
-            case u_float:
+            case Float:
                 glUniform1f(u.layout, *(float*)u.data); break;
-            case u_int:
+            case Int:
                 glUniform1i(u.layout, *(int*)u.data); break;
-            case u_vec2:
+            case Vec2:
                 glUniform2fv(u.layout, 1, (float*)u.data); break;
-            case u_vec3:
+            case Vec3:
                 glUniform3fv(u.layout, 1, (float*)u.data); break;
-            case u_vec4:
+            case Vec4:
                 glUniform4fv(u.layout, 1, (float*)u.data); break;
-            case texture: {
+            case Texture: {
                 glActiveTexture(GL_TEXTURE0 + texture_index);
-                glBindTexture(GL_TEXTURE_2D, ((Texture*)u.data)->id);
+                glBindTexture(GL_TEXTURE_2D, ((pk::Texture*)u.data)->id);
                 glUniform1i(u.layout, texture_index);
                 texture_index++;
                 break;
@@ -174,80 +175,75 @@ Texture::Texture(const path& path) {
     stbi_image_free(data);
 };
 
-void Mesh::load() {
-    glAttribute(VAOmesh)
-        .gbuffer<3>(&VBO)
-        .data<decltype(Mesh::indices)::type>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
-        .data<decltype(Mesh::vertices)>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices)
-        .vbuffer<Mesh::Vertex>(0, VBO);
+void Mesh::Load() {
+    VertexArray(VAOmesh)
+        .Buffers<3>(&VBO)
+        .Upload<decltype(Mesh::indices)::type>(EBO, GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, indices)
+        .Upload<decltype(Mesh::vertices)>(VBO, GL_ARRAY_BUFFER, GL_STATIC_DRAW, vertices)
+        .VertexBuffer<Mesh::Vertex>(0, VBO);
 }
 
-void Mesh::unload() {
+void Mesh::Unload() {
     glDeleteBuffers(3, &VBO);
     VBO = EBO = IBO = 0;
 }
 
 void Perekop::RenderBegin() noexcept {
-    glAttribute(&VAOmesh)
+    VertexArray(&VAOmesh)
         // vertex (pos, norm, uv)
-        .item<vec3, vec3, vec2>()
+        .Layout<vec3, vec3, vec2>(0, 0)
         // model (t, size, meta)
-        .item_instanced<vec4, vec4, vec4, vec4, vec3, vec4>();   
+        .Layout<vec4, vec4, vec4, vec4, vec3, vec4>(1, 1);
 }
 
-struct ShaderModel { 
+struct ShaderModel {
     mat4 matrix; vec3 scale; vec4 metadata; 
 };
 
-void Renderer::ready_models(span<Model> models) noexcept {
-    modelcache.reserve(models.size());
-    modelcache.clear();
+void Render::Draw(const Shader& prog, const Mesh& mesh, span<Model> models) const noexcept {
+    if (!mesh.Loaded() || !models.size()) return;
 
-    for (const Model& model : models) modelcache.emplace(
+    vector<ShaderModel> instances;
+    instances.reserve(models.size());
+    for (const Model& model : models) instances.emplace(
         model.pose, model.scale, model.metadata
     );
+
+    prog.Apply();
+
+    VertexArray(VAOmesh)
+        .BindElements(mesh.EBO)
+        .Upload<ShaderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, instances)
+        .VertexBuffer<ShaderModel>(1, mesh.IBO)
+        .Draw(mesh.indices.size(), instances.size());
 }
 
-void Renderer::ready_models(span<Model> models, mat4 t) noexcept {
-    modelcache.reserve(models.size());
-    modelcache.clear();
-
-    for (const Model& model : models) modelcache.emplace(
-        t * (mat4)model.pose, model.scale, model.metadata
-    );
+void Render::Draw(const Shader& prog) const noexcept {
+    glDisable(GL_DEPTH_TEST);
+    prog.Apply();
+    VertexArray(VAOmesh).DrawArray(3, 1);
+    glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::draw(const ShaderProgram& prog, const Mesh& mesh) const noexcept {
-    if (!mesh.loaded() || !modelcache.size()) return;
-
-    prog.apply();
-
-    glAttribute(VAOmesh)
-        .bind_elements(mesh.EBO)
-        .data<ShaderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, modelcache)
-        .vbuffer<ShaderModel>(1, mesh.IBO)
-        .idraw(mesh.indices.size(), modelcache.size());
-}
-
-void Renderer::swap() const noexcept {
+void Render::Swap() const noexcept {
     glfwSwapBuffers(Perekop::glfw_window);
 }
 
-void Renderer::fill(vec3 col) const noexcept {
+void Render::Fill(vec3 col) const noexcept {
     glClearColor(col.x, col.y, col.z, 1.0);
 }
 
-void Renderer::clear(int buffers) const noexcept {
+void Render::Clear(int buffers) const noexcept {
     glClear(buffers);
 }
 
-void Renderer::target(Framebuffer fb, Renderer::DrawTarget tar) const noexcept {
+void Render::Target(const Framebuffer& fb, Render::DrawTarget target) const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
-    viewport(fb.w, fb.h);
-    glDrawBuffer(tar);
+    Viewport(fb.w, fb.h);
+    glDrawBuffer(fb.color_attached ? GL_COLOR_ATTACHMENT0 : target);
 }
 
-void Framebuffer::attach_depth(Texture t) noexcept {
+void Framebuffer::AttachDepth(const Texture& t) noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
@@ -256,9 +252,49 @@ void Framebuffer::attach_depth(Texture t) noexcept {
         t.id,
         0
     );
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        printf("Framebuffer is incomplete: 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    }
 }
 
-Texture Texture::depth(int x, int y) noexcept {
+void Framebuffer::AttachColor(const Texture& t) noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0,
+        GL_TEXTURE_2D,
+        t.id,
+        0
+    );
+    color_attached = true;
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+}
+
+Texture Texture::Color(int x, int y) noexcept {
+    Texture texture;
+    texture.w = x;
+    texture.h = y;
+    glGenTextures(1, &texture.id);
+    glBindTexture(GL_TEXTURE_2D, texture.id);
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA8,
+        x, y,
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        nullptr
+    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    return texture;
+}
+
+Texture Texture::Depth(int x, int y, bool compare) noexcept {
     Texture texture;
     glGenTextures(1, &texture.id);
     glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -277,24 +313,27 @@ Texture Texture::depth(int x, int y) noexcept {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    if (compare) {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    }
 
     return texture;
 }
 
-void Renderer::viewport() const noexcept {
+void Render::Viewport() const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDrawBuffer(GL_BACK);
     int x, y; 
     glfwGetWindowSize(Perekop::glfw_window, &x, &y);
     glViewport(0, 0, x, y);
 }
 
-void Renderer::viewport(int x, int y) const noexcept {
+void Render::Viewport(int x, int y) const noexcept {
     glViewport(0, 0, x, y);
 }
 
-void Renderer::viewport(int x, int y, int w, int h) const noexcept {
+void Render::Viewport(int x, int y, int w, int h) const noexcept {
     glViewport(x, y, w, h);
 }
 

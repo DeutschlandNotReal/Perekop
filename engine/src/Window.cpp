@@ -12,6 +12,7 @@ namespace Perekop::Mouse {
         inline listeners<float>  OnScroll;
 
         inline vec2 lastpos;
+        inline bool skip_move{false};
     };
 
     vec2 Position() noexcept {
@@ -25,26 +26,23 @@ namespace Perekop::Mouse {
     }
 
     pose GetPose(const pk::Camera& camera) noexcept {
-        vec2 size = Window::Size();
-        vec2 pos = Position();
-        vec2 uv = {
-            (pos.x / size.x) * 2.0f - 1.0f,
-            1.0f - (pos.y / size.y) * 2.0f
-        };
+        const vec2 size = Window::Size();
+        const vec2 uv = Position() / size * 2.f - 1.f;
 
-        float aspect = size.x / std::max(size.y, 1.0f);
-        float tfov = camera.tanfov();
-        vec3 local = normalize(vec3{
-            uv.x * tfov * aspect,
-            uv.y * tfov,
-            -1.0f
+        const float aspect = size.x / size.y;
+        const float fov = camera.TanFov();
+
+        const vec3 local = normalize(vec3{
+            uv.x * fov * aspect,
+            -uv.y * fov,
+            -1.f
         });
 
-        vec3 forward = worldspace(local, camera.pose);
-        vec3 origin = camera.pose.pos + camera.pose.fvec() * camera.min;
-        vec3 target = origin + forward * (camera.max - camera.min);
-
-        return pose::lookAt(origin, target, camera.pose.uvec());
+        return pose::LookAt(
+            camera.pose.pos,
+            worldspace(local, camera.pose),
+            camera.pose.Up()
+        );
     }
 
     void SetPosition(vec2 p) noexcept {
@@ -52,11 +50,18 @@ namespace Perekop::Mouse {
         glfwSetCursorPos(glfw_window, p.x, p.y);
     }
 
-    void Lock() noexcept { 
-        glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+    void Lock() noexcept {
+        if (Locked()) return;
+
+        vec2 center = Window::Size() * .5f;
+        lastpos = center;
+        skip_move = true;
+        glfwSetCursorPos(glfw_window, center.x, center.y);
+        glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
     void Unlock() noexcept {
+        skip_move = false;
         glfwSetInputMode(glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL); 
     }
 
@@ -125,24 +130,29 @@ void Perekop::WindowBegin() noexcept {
         }
     }); 
 
-    glfwSetScrollCallback(glfw_window, [](GLFWwindow*, double x, double y){
-        InvokeListeners(Mouse::OnScroll, (float)y);
+    glfwSetScrollCallback(glfw_window, [](GLFWwindow*, double, const double y){
+        InvokeListeners(Mouse::OnScroll, y);
     });
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
         vec2 pos{x, y};
+        if (Mouse::skip_move) {
+            Mouse::lastpos = pos;
+            Mouse::skip_move = false;
+            return;
+        }
         if (pos == Mouse::lastpos) return;
-        vec2 delta = pos - std::exchange(Mouse::lastpos, pos);
+        const vec2 delta = pos - std::exchange(Mouse::lastpos, pos);
 
-        InvokeListeners(Mouse::OnMove, (vec2)delta);
+        InvokeListeners(Mouse::OnMove, delta);
     });
 
-    glfwSetKeyCallback(glfw_window, [](GLFWwindow*, int k, int, int act, int){
+    glfwSetKeyCallback(glfw_window, [](GLFWwindow*, const int k, int, int act, int){
         switch (act) {
             case GLFW_PRESS: 
-                return InvokeListeners(Input::OnPress, (int)k);
+                return InvokeListeners(Input::OnPress, k);
             case GLFW_RELEASE:
-                return InvokeListeners(Input::OnRelease, (int)k);
+                return InvokeListeners(Input::OnRelease, k);
         }
     });
 

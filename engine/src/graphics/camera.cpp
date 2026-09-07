@@ -3,9 +3,9 @@
 using namespace pk;
 using namespace Perekop;
 
-mat4 Camera::view() const noexcept { return pose.inverse(); }
+mat4 Camera::View() const noexcept { return pose.Inverse(); }
 
-mat4 Camera::proj() const noexcept {
+mat4 Camera::Projection() const noexcept {
     float rdepth = -1.f / ( max - min );
     float cotfov = 1.f / tfov;
     vec2 size = Window::Size();
@@ -18,26 +18,22 @@ mat4 Camera::proj() const noexcept {
 }
 
 vec3 pk::worldspace(vec3 v, const Camera& cam) noexcept {
-    float ztan = v.z * cam.tanfov();
+    float ztan = v.z * cam.TanFov();
     vec2 size = Window::Size();
 
-    float cx = (2 * v.x - 1) * ztan * size.x / size.y;
-    float cy = (2 * v.y - 1) * ztan;
+    v.x = (1.f - 2.f * v.x) * ztan * size.x / size.y;
+    v.y = (1.f - 2.f * v.y) * ztan;
 
-    return worldspace({cx, cy, -v.z}, cam.pose);
+    return worldspace(-v, cam.pose);
 }
 
 vec3 pk::localspace(vec3 v, const Camera& cam) noexcept {
     v = localspace(v, cam.pose);
-    float cotinvz = -1.f / (v.z * -cam.tanfov());
+    float cotinvz = .5f / (v.z * -cam.TanFov());
     vec2 size = Window::Size();
 
-    float x = v.x * cotinvz * size.y / size.x;
-    float y = v.y * cotinvz;
+    v.x = .5f + v.x * cotinvz * size.y / size.x;
+    v.y = .5f + v.y * cotinvz;
 
-    return {
-        (x + 1) * .5f,
-        (y + 1) * .5f,
-        -v.z
-    };
+    return -v;
 }

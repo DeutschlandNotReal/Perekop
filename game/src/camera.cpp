@@ -7,7 +7,7 @@ using namespace Perekop;
 float campitch{0}, camyaw{0};
 
 void PKG::InitCamera(Camera &camera) noexcept{
-    vec3 euler = camera.pose.eulerAngles();
+    vec3 euler = camera.pose.EulerAngles();
     campitch = euler.x;
     camyaw = euler.y;
 
@@ -33,13 +33,13 @@ void PKG::InitCamera(Camera &camera) noexcept{
         Mouse::SetPosition(center);
 
         delta /= size;
-        float rfov = radians(camera.fov());
+        float rfov = radians(camera.Fov());
         float yfov = rfov * size.x / size.y;
 
         campitch = clamp(campitch - delta.y * yfov, radians(-60.f), radians(60.f));
         camyaw -= delta.x * rfov;
 
-        camera.pose = pose::fromEuler(camera.pose.pos, {campitch, camyaw, 0});
+        camera.pose = pose::FromEuler(camera.pose.pos, {campitch, camyaw, 0});
     });
 }
 
@@ -54,10 +54,5 @@ void PKG::StepCamera(Camera& camera, float dt) noexcept {
     if (Held('E')) delta += vec3{0,1,0};
     if (Held('Q')) delta -= vec3{0,1,0};
 
-    vec3 forward = camera.pose.rot * vec3{0, 0, -1};
-    vec3 right = camera.pose.rot * vec3{1, 0, 0};
-    vec3 up = camera.pose.rot * vec3{0, 1, 0};
-
-    vec3 move = forward * (-delta.z) + right * delta.x + up * delta.y;
-    camera.pose += move * dt;
+    camera.pose += worldspace(delta * dt * 15.f, Mouse::GetPose(camera).rot);
 };

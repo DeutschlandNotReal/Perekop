@@ -15,7 +15,7 @@ namespace pk {
         [[nodiscard]] pose(mat4 mat) noexcept: pos(mat[3]), rot(quat_cast(mat3(mat))) {}
         [[nodiscard]] pose(mat3 rot) noexcept: pos(0), rot(quat_cast(rot)) {}
 
-        [[nodiscard]] pose inverse() const noexcept {
+        [[nodiscard]] pose Inverse() const noexcept {
             quat r = conjugate(rot);
             return {-(r * pos), r};
         }
@@ -30,23 +30,23 @@ namespace pk {
             return mat3_cast(rot);
         }
 
-        [[nodiscard]] vec3 rvec() const noexcept { return rot * vec3(1, 0, 0); }
-        [[nodiscard]] vec3 uvec() const noexcept { return rot * vec3(0, 1, 0); }
-        [[nodiscard]] vec3 fvec() const noexcept { return rot * vec3(0, 0,-1); }
+        [[nodiscard]] vec3 Right() const noexcept { return rot * vec3(1, 0, 0); }
+        [[nodiscard]] vec3 Up() const noexcept { return rot * vec3(0, 1, 0); }
+        [[nodiscard]] vec3 Forward() const noexcept { return rot * vec3(0, 0,-1); }
 
-        [[nodiscard]] static pose lookAt(vec3 from, vec3 at, vec3 up = {0, 1, 0}) noexcept {
+        [[nodiscard]] static pose LookAt(vec3 from, vec3 at, vec3 up = {0, 1, 0}) noexcept {
             return {from, quatLookAt(normalize(at - from), up)};
         }
 
-        [[nodiscard]] static pose lookAlong(vec3 from, vec3 along, vec3 up = {0, 1, 0}) noexcept {
+        [[nodiscard]] static pose LookAlong(vec3 from, vec3 along, vec3 up = {0, 1, 0}) noexcept {
             return {from, quatLookAt(along, up)};
         }
         
-        [[nodiscard]] static pose fromEuler(vec3 pos, vec3 euler) noexcept {
+        [[nodiscard]] static pose FromEuler(vec3 pos, vec3 euler) noexcept {
             return {pos, euler};
         }
 
-        [[nodiscard]] vec3 eulerAngles() const noexcept {
+        [[nodiscard]] vec3 EulerAngles() const noexcept {
             return glm::eulerAngles(rot);
         }
 
