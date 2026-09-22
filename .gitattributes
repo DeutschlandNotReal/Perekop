@@ -3,7 +3,9 @@ engine/lib/** linguist-vendored
 engine/lib/** -diff
 
 engine/assets/** linguist-vendored
+engine/assets/** linguist-generated=true
 engine/assets/** -diff
 
 game/assets/** linguist-vendored
+game/assets/** linguist-generated=true
 game/assets/** -diff

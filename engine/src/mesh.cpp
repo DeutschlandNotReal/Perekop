@@ -83,7 +83,7 @@ Mesh::Mesh(const std::filesystem::path& path) noexcept {
                     case cgltf_attribute_type_position: pos = attribute.data; break;
                     case cgltf_attribute_type_normal: nor = attribute.data; break;
                     case cgltf_attribute_type_texcoord: uv = attribute.data; break;
-                    default: 
+                    default: break;
                 }
             }
 

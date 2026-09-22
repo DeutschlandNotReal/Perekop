@@ -1,0 +1,9 @@
+[submodule "engine/lib/freetype"]
+	path = engine/lib/freetype
+	url = https://gitlab.freedesktop.org/freetype/freetype.git
+[submodule "engine/lib/glfw"]
+	path = engine/lib/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "engine/lib/glm"]
+	path = engine/lib/glm
+	url = https://github.com/g-truc/glm.git

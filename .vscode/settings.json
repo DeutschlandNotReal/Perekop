@@ -1,7 +1,14 @@
 {
-    "clangd.path": "C:/msys64/mingw64/bin/clangd.exe",
-    "clangd.arguments": ["--pch-storage=memory", "--compile-commands-dir=build"],
-    "[cpp]": {
-        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
-    }
+  "cmake.buildType": "Release",
+  "cmake.configureOnOpen": true,
+  "clangd.path": "clangd",
+  "clangd.arguments": [
+    "--compile-commands-dir=${workspaceFolder}/build",
+    "--query-driver=C:/msys64/mingw64/bin/g++*"
+  ],
+  "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+  "C_Cpp.intelliSenseEngine": "Disabled",
+  "[cpp]": {
+    "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+  }
 }
