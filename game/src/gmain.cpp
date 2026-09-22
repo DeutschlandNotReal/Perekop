@@ -9,90 +9,55 @@
 #include <cstdio>
 #include <PKG/camera.hpp>
 #include <PK/time.hpp>
+
+#include <PK/world.hpp>
+#include <PK/lighting.hpp>
+
 using namespace pk;
 using namespace Perekop;
 const path assets = path("game") / "assets";
 
-namespace RenderState {
-    vector<Mesh> meshes;
-    vector<Model> models;
-    vector<vec3> model_scales;
-
-    Shader shader;
-    Shader shadow_shader;
-    Texture texture;
-
-    Camera camera;
-    Camera light;
-
-    mat4 VP;
-    mat4 lightVP;
-    Render renderer;
-
-    Texture shadow;
-    Framebuffer shadow_buffer;
-}
-
 float light_phase{0.f};
 
 void Perekop::OnStep(double dt) {
-    PKG::StepCamera(RenderState::camera, dt);
+    PKG::StepCamera(Lighting::Camera, dt);
 
     light_phase += dt * .9f;
     float orbit = 60.f;
-    RenderState::light.pose = pose::LookAt(
+    Lighting::Light = pose::LookAt(
         {sin(light_phase) * orbit, 42.f + cos(light_phase * 1.3f) * 12.f, cos(light_phase) * orbit},
         {0, 3.0f, 0},
         {0, 1, 0}
     );
 }
 
-time::Tracker<double, 3> RenderTracker;
 void Perekop::OnRender() {
-    using namespace RenderState;
 
-    RenderTracker.Begin();
-    VP = camera.Projection() * camera.View();
-    lightVP = light.Projection() * light.View();
-
-    renderer.Target(shadow_buffer, Render::None);
-    renderer.Fill({1.f, 1.f, 1.f});
-    renderer.Clear(DepthBuffer);
-    if (meshes.size() > 0) {
-        renderer.Draw(shadow_shader, meshes.back(), models);
-    }
-
-    renderer.Viewport();
-    renderer.Fill({0.2, 0.2, 0.2});
-    renderer.Clear(DepthBuffer | ColorBuffer);
-    if (meshes.size() > 0) {
-        renderer.Draw(shader, meshes.back(), models);
-    }
-    renderer.Swap();
-    double render_T = RenderTracker.Stop();
-
-    printf("Render Time %.3fs\n", render_T);
 }  
 
 void Perekop::OnLaunch() {
     printf("Game begin\n");
     Window::SetIcon(assets / "images/icon.ico");
-    RenderState::camera.pose = pose::LookAt({52, 20, 52}, {0, 4, 0});
-    RenderState::light.pose = pose::LookAt({50, 36, 22}, {0, 2, 0});
-    PKG::InitCamera(RenderState::camera);
+    Lighting::Camera.pose = pose::LookAt({52, 20, 52}, {0, 4, 0});
+    Lighting::Light = pose::LookAt({50, 36, 22}, {0, 2, 0});
+    PKG::InitCamera(Lighting::Camera);
 
-    RenderState::shadow = Texture::Depth(2048, 2048);
-    RenderState::shadow_buffer = Framebuffer(2048, 2048);
-    RenderState::shadow_buffer.AttachDepth(RenderState::shadow);
+    Lighting::Shadow::Texture = Texture::Depth(2048, 2048);
+    Lighting::Shadow::Buffer = Framebuffer(2048, 2048);
+    Lighting::Shadow::Buffer.AttachDepth(Lighting::Shadow::Texture);
 
-    RenderState::meshes.push(
+    World::meshes.push(
         assets / "models/Untitled.glb",
         assets / "models/PK67.glb"
     );
 
-    for (Mesh& mesh : RenderState::meshes) mesh.Load();
+    Texture* test = new Texture(assets / "images/test.jpg");
+    World::meshes[0].texture = test;
+    World::meshes[1].texture = test;
 
-    RenderState::shadow_shader = Shader({
+    for (Mesh& mesh : World::meshes) mesh.Load();
+
+    Lighting::Shadow::Shader = Shader({
         ShaderStage(ShaderStage::Vertex, assets / "shaders/vert.glsl"),
         ShaderStage(ShaderStage::Fragment, std::string_view(R"(
             #version 430
@@ -100,19 +65,17 @@ void Perekop::OnLaunch() {
             void main() { fragColor = vec4(1.0); }
         )"))},
         {
-            {.name = "camera", .type = Shader::Mat4, .data = &RenderState::lightVP},
-            {.name = "light", .type = Shader::Mat4, .data = &RenderState::lightVP},
-            {.name = "lightPos", .type = Shader::Vec3, .data = &RenderState::light.pose.pos}
+            {.name = "camera", .type = Shader::Mat4, .data = &Lighting::Camera},
+            {.name = "light", .type = Shader::Mat4, .data = &Lighting::Light},
         }
     );
 
-    RenderState::shader = Shader({
+    Shader* shader = new Shader({
         ShaderStage(ShaderStage::Vertex, assets / "shaders/vert.glsl"),
         ShaderStage(ShaderStage::Fragment, assets / "shaders/frag.glsl")},
         {
-            {.name = "camera", .type = Shader::Mat4, .data = &RenderState::VP},
-            {.name = "light", .type = Shader::Mat4, .data = &RenderState::lightVP},
-            {.name = "lightPos", .type = Shader::Vec3, .data = &RenderState::light.pose.pos},
+            {.name = "camera", .type = Shader::Mat4, .data = &Lighting::Camera.pose},
+            {.name = "light", .type = Shader::Mat4, .data = &Lighting::Light},
             {.name = "T", .type = Shader::Texture, .data = &RenderState::texture},
             {.name = "shadow", .type = Shader::Texture, .data = &RenderState::shadow}
         }

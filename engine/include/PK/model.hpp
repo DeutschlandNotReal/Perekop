@@ -6,5 +6,7 @@ namespace pk {
         pose pose; 
         vec3 scale{1};
         vec4 metadata; // shader metadata
+        
+        short meshid{0};
     };
 } 

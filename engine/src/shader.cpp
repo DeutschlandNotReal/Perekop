@@ -196,26 +196,15 @@ void Perekop::RenderBegin() noexcept {
         .Layout<vec4, vec4, vec4, vec4, vec3, vec4>(1, 1);
 }
 
-struct ShaderModel {
-    mat4 matrix; vec3 scale; vec4 metadata; 
-};
-
-void Render::Draw(const Shader& prog, const Mesh& mesh, span<Model> models) const noexcept {
+void Render::Draw(const Shader& prog, const Mesh& mesh, span<RenderModel> models) const noexcept {
     if (!mesh.Loaded() || !models.size()) return;
-
-    vector<ShaderModel> instances;
-    instances.reserve(models.size());
-    for (const Model& model : models) instances.emplace(
-        model.pose, model.scale, model.metadata
-    );
-
     prog.Apply();
 
     VertexArray(VAOmesh)
         .BindElements(mesh.EBO)
-        .Upload<ShaderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, instances)
-        .VertexBuffer<ShaderModel>(1, mesh.IBO)
-        .Draw(mesh.indices.size(), instances.size());
+        .Upload<RenderModel>(mesh.IBO, GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, models)
+        .VertexBuffer<RenderModel>(1, mesh.IBO)
+        .Draw(mesh.indices.size(), models.size());
 }
 
 void Render::Draw(const Shader& prog) const noexcept {
@@ -240,7 +229,7 @@ void Render::Clear(int buffers) const noexcept {
 void Render::Target(const Framebuffer& fb, Render::DrawTarget target) const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, fb.fbo);
     Viewport(fb.w, fb.h);
-    glDrawBuffer(fb.color_attached ? GL_COLOR_ATTACHMENT0 : target);
+    glDrawBuffer(fb.ColourAttached ? GL_COLOR_ATTACHMENT0 : (GLenum) target);
 }
 
 void Framebuffer::AttachDepth(const Texture& t) noexcept {
@@ -258,7 +247,7 @@ void Framebuffer::AttachDepth(const Texture& t) noexcept {
     }
 }
 
-void Framebuffer::AttachColor(const Texture& t) noexcept {
+void Framebuffer::AttachColour(const Texture& t) noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glFramebufferTexture2D(
         GL_FRAMEBUFFER,
@@ -267,11 +256,11 @@ void Framebuffer::AttachColor(const Texture& t) noexcept {
         t.id,
         0
     );
-    color_attached = true;
+    ColourAttached = true;
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 }
 
-Texture Texture::Color(int x, int y) noexcept {
+Texture Texture::Colour(int x, int y) noexcept {
     Texture texture;
     texture.w = x;
     texture.h = y;
@@ -335,6 +324,10 @@ void Render::Viewport(int x, int y) const noexcept {
 
 void Render::Viewport(int x, int y, int w, int h) const noexcept {
     glViewport(x, y, w, h);
+}
+
+void Render::SetMode(DrawMode mode) const noexcept {
+    glPolygonMode(GL_FRONT_AND_BACK, (GLenum) mode);
 }
 
 Framebuffer::Framebuffer(int x, int y) noexcept {

@@ -82,11 +82,11 @@ int main() {
                 OnStep(frameperiod);
             } 
             
+            RenderStep();
             OnRender();
         }
         std::this_thread::yield();
     }
     OnExit(); 
-
     glfwTerminate();
 }

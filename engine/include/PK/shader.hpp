@@ -13,7 +13,7 @@ namespace pk {
     class Framebuffer;
 
     enum BufferType : unsigned {
-        ColorBuffer = 0x4000,
+        ColourBuffer = 0x4000,
         DepthBuffer = 0x0100,
     };
 
@@ -64,7 +64,7 @@ namespace pk {
             Texture() = default;
             Texture(const path& path);
 
-            static Texture Color(int width, int height) noexcept;
+            static Texture Colour(int width, int height) noexcept;
             static Texture Depth(int x, int y, bool compare = true) noexcept;
     };
 
@@ -72,26 +72,31 @@ namespace pk {
         friend Render;
         unsigned fbo{0};
         int w{0}, h{0};
-        bool color_attached{false};
+        bool ColourAttached {false};
 
         public:
             Framebuffer() = default;
             Framebuffer(int width, int height) noexcept;
 
-                void AttachColor(const Texture&) noexcept;
+                void AttachColour(const Texture&) noexcept;
                 void AttachDepth(const Texture&) noexcept;
     };
 
-            class Render {
+    class Render {
         public:
-            enum DrawTarget { None = 0, Front = 0x404, Back = 0x405 };
+            struct RenderModel { mat4 mat; vec3 scl; vec4 meta; };
 
-            void Target(const Framebuffer&, DrawTarget target = None) const noexcept;
+            enum class DrawTarget { None = 0, Front = 0x404, Back = 0x405 };
+
+            void Target(const Framebuffer&, DrawTarget target = DrawTarget::None) const noexcept;
             void Fill(vec3 colour) const noexcept;
-            void Draw(const Shader& shader, const pk::Mesh& geometry, pk::span<Model> models) const noexcept;
+            void Draw(const Shader& shader, const pk::Mesh& geometry, const pk::span<RenderModel> models) const noexcept;
             void Draw(const Shader& shader) const noexcept;
             void Swap() const noexcept;
             void Clear(int flags) const noexcept;
+
+            enum class DrawMode { Line = 0x1B01, Fill = 0x1B02 };
+            void SetMode(DrawMode mode) const noexcept;
 
             void Viewport() const noexcept;
             void Viewport(int w, int h) const noexcept;

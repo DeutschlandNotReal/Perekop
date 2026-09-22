@@ -4,6 +4,9 @@
 #include <filesystem>
 
 namespace pk {
+    struct Texture;
+    struct Shader;
+    
     using path = std::filesystem::path;
 
     class Render;
@@ -16,6 +19,9 @@ namespace pk {
                 vec3 pos{0}, nor{0};
                 vec2 uv{0};
             };
+
+            Texture* texture{nullptr};
+            Shader* shader{nullptr};
 
             vector<Vertex> vertices;
             vector<unsigned> indices;
