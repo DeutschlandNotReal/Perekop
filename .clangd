@@ -1,8 +1,20 @@
 CompileFlags:
   CompilationDatabase: build
-  Add: [-std=c++23, -xc++, -Iengine/include, -Iengine/lib/glfw/include, -Iengine/lib/glad/include, -Iengine/lib/glm, -Iengine/lib, -Igame/include]
   Remove: [-include-pch, -Xclang, -include]
 Completion:
   HeaderInsertion: Never
 Index:
   StandardLibrary: Yes
+---
+If:
+  PathMatch: '.*\.(h|hpp|cpp)$'
+CompileFlags:
+  Add:
+    - -std=c++23
+    - -xc++
+    - -I../include
+    - -I../lib
+    - -I../lib/glm
+    - -I../lib/glad/include
+    - -I../lib/glfw/include
+    - -I../lib/freetype/include
