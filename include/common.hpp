@@ -24,5 +24,7 @@ namespace Perekop {
 
     void RenderStep() noexcept;
     void PhysicsStep(double dt) noexcept;
+
+    inline pk::vector<mat3> invmatrices{};
 }
 #endif

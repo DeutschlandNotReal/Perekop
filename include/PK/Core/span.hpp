@@ -68,6 +68,5 @@ namespace pk {
                 data((const void*)container.begin()),
                 cap((const void*)container.end())
             {}
-
     };
 }

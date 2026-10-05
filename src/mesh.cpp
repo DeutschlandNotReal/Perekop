@@ -41,6 +41,23 @@ void Mesh::Unload() {
     EBO.Delete();
 }
 
+vec3 Mesh::GetEdge(unsigned V0, unsigned V1) noexcept {
+    return vertices[V1].pos - vertices[V0].pos;
+}
+
+float Mesh::GetArea(unsigned V0, unsigned V1, unsigned V2) noexcept {
+    return .5f * length(cross(GetEdge(V0, V1), GetEdge(V1, V2)));
+}
+
+float Mesh::GetVolume(unsigned V0, unsigned V1, unsigned V2, unsigned V3) noexcept {
+    const vec3 &p0 = vertices[V0].pos, &p1 = vertices[V1].pos, &p2 = vertices[V2].pos, &p3 = vertices[V3].pos;
+
+    return (1.f / 6.f) * (
+        dot(p0, cross(p1, p2)) +
+        dot(p1, cross(p2, p3))
+    );
+}
+
 Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::move(b.VBO)),
     EBO(std::move(b.EBO)),

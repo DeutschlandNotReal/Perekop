@@ -292,9 +292,7 @@ Texture Texture::Depth(int width, int height, bool compare) noexcept {
     return texture;
 }
 
-Framebuffer::Framebuffer(int width, int height) noexcept:
-    w(width), h(height)
-{
+Framebuffer::Framebuffer(int width, int height) noexcept: w(width), h(height) {
     glGenFramebuffers(1, &index);
 }
 
@@ -347,10 +345,7 @@ void Renderer::Target(const Framebuffer& framebuffer, DrawTarget target) noexcep
     glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.index);
     Viewport(framebuffer.w, framebuffer.h);
 
-    if (framebuffer.ColourAttached)
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
-    else
-        glDrawBuffer((GLenum)target);
+    glDrawBuffer(framebuffer.ColourAttached ? GL_COLOR_ATTACHMENT0 : (GLenum) target);
 }
 
 void Renderer::Fill(vec3 colour) noexcept {

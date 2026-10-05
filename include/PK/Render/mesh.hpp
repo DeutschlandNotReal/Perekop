@@ -11,19 +11,22 @@ namespace pk {
         public:
             Render::Buffer VBO, EBO;
             struct alignas(32) Vertex { 
-                vec3 pos{0}, nor{0};
-                vec2 uv{0};
+                vec3 pos{0.f}, nor{0.f}; vec2 uv{.0f};
+            };
+
+            struct Triangle {
+                unsigned V0{0}, V1{0}, V2{0};
             };
 
             Material* material{nullptr};
 
-            vector<Vertex> vertices;
-            vector<unsigned> indices;
+            vector<Vertex> v; 
+            vector<Triangle> t;
 
             void Load();
             void Unload();
             bool Loaded() const noexcept;
-            static void Initialize() noexcept;
+            //static void Initialize() noexcept;
 
             void Refresh();
 
@@ -35,6 +38,10 @@ namespace pk {
 
             Mesh(const Mesh&) noexcept;
             Mesh& operator=(const Mesh&) noexcept;
+
+            vec3 GetEdge(unsigned V0, unsigned V1) noexcept;
+            float GetArea(unsigned V0, unsigned V1, unsigned V2) noexcept;
+            float GetVolume(unsigned V0, unsigned V1, unsigned V2, unsigned V3) noexcept;
 
             ~Mesh() noexcept;
     };
