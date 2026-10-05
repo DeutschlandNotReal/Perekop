@@ -108,6 +108,7 @@ bool Physics::TestOOB(Box B1, Box B2, pose rel) noexcept {
     if (any(greaterThan(rt, B2.ext + transpose(A) * B1.ext)))
         return false;
 
+    
     return
         abs(t.y * R[2][0] - t.z * R[1][0]) <=
             B1.ext.y*A[2][0] + B1.ext.z*A[1][0] +
@@ -166,5 +167,3 @@ mat3 Physics::GetUniformInertia(span<Mesh::Vertex> vertices) noexcept {
         zx, yz, xx+yy
     };
 }
-
- 

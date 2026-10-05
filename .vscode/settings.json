@@ -1,13 +1,21 @@
 {
-  "cmake.buildType": "Release",
+  "cmake.buildType": "Debug",
   "cmake.configureOnOpen": true,
+  "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+  "cmake.buildDirectory": "${workspaceFolder}/build",
+  "cmake.generator": "Visual Studio 17 2022",
+  "cmake.configureArgs": [
+    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+  ],
   "clangd.path": "clangd",
   "clangd.arguments": [
     "--compile-commands-dir=${workspaceFolder}/build",
-    "--query-driver=C:/msys64/mingw64/bin/g++*,C:/msys64/mingw64/bin/gcc*"
+    "--header-insertion=never"
   ],
-  "C_Cpp.default.compilerPath": "C:/msys64/mingw64/bin/g++.exe",
+  "C_Cpp.default.cppStandard": "c++23",
   "C_Cpp.intelliSenseEngine": "Disabled",
+  "editor.inlineSuggest.enabled": false,
+  "github.copilot.inlineSuggest.enable": false,
   "[cpp]": {
     "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
   }
