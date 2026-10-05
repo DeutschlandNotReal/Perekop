@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Container/span.hpp>
+#include <PK/Core/span.hpp>
 
 namespace pk::Render {
     enum class BufferTarget {

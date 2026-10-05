@@ -1,9 +1,9 @@
 #pragma once
-#include <PK/Render/Primitive/buffer.hpp>
-#include <PK/Render/Primitive/framebuffer.hpp>
-#include <PK/Render/Primitive/shader.hpp>
-#include <PK/Render/Primitive/texture.hpp>
-#include <PK/Render/Primitive/vertexattribute.hpp>
+#include <PK/Render/Resources/buffer.hpp>
+#include <PK/Render/Resources/framebuffer.hpp>
+#include <PK/Render/Resources/shader.hpp>
+#include <PK/Render/Resources/texture.hpp>
+#include <PK/Render/Resources/vertexattribute.hpp>
 
 namespace pk::Render {
     enum class RasterMode {

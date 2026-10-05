@@ -1,7 +1,7 @@
 #pragma once
-#include <PK/Container/vector.hpp>
+#include <PK/Core/vector.hpp>
 #include <PK/Render/renderer.hpp>
-#include <PK/Render/Primitive/material.hpp>
+#include <PK/Render/Resources/material.hpp>
 #include <filesystem>
 
 namespace pk {
@@ -10,8 +10,6 @@ namespace pk {
     class Mesh {
         public:
             Render::Buffer VBO, EBO;
-            bool loaded{false};
-
             struct alignas(32) Vertex { 
                 vec3 pos{0}, nor{0};
                 vec2 uv{0};

@@ -1,7 +1,7 @@
 #pragma once
 #include <PK/Render/mesh.hpp>
 #include <PK/Render/model.hpp>
-#include <PK/Render/Primitive/vertexattribute.hpp>
+#include <PK/Render/Resources/vertexattribute.hpp>
 
 namespace pk {
     namespace Render { struct Renderer; }

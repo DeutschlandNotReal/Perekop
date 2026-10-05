@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Container/span.hpp>
+#include <PK/Core/span.hpp>
 #include <cstddef>
 #include <initializer_list>
 #include <utility>

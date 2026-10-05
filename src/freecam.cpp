@@ -1,8 +1,10 @@
-#include <PK/Connections/userinput.hpp>
+#include <PK/Input/mouse.hpp>
+#include <PK/Input/keyboard.hpp>
 #include <PK/Render/window.hpp>
 #include <PK/Systems/camera.hpp>
 using namespace pk;
 using namespace Perekop;
+using namespace Perekop::Input;
 
 float campitch{0}, camyaw{0};
 

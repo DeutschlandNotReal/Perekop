@@ -4,7 +4,8 @@
 #include <common.hpp>
 using namespace pk;
 
-namespace Perekop::Mouse {
+
+namespace Perekop::Input::Mouse {
     namespace {
         inline listeners<Button> OnPress;
         inline listeners<Button> OnRelease;
@@ -114,6 +115,7 @@ namespace Perekop::Window {
 }
 
 void Perekop::WindowBegin() noexcept {
+    using namespace Input;
     int winwidth, winheight;
     glfwGetWindowSize(glfw_window, &winwidth, &winheight);
 

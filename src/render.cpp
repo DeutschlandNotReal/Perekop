@@ -12,7 +12,6 @@ using namespace pk::Render;
 void Perekop::RenderBegin() noexcept {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    pk::Mesh::Initialize();
 }
 
 VertexArray::Builder&

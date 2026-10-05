@@ -1,9 +1,9 @@
 #pragma once
-#include <PK/Physics/pose.hpp>
+#include <PK/Math/pose.hpp>
 #include <PK/Render/camera.hpp>
 #include <functional>
 
-namespace Perekop::Mouse {
+namespace Perekop::Input::Mouse {
     enum Button { left = 0, right = 1, middle = 2 };
     extern void SetPosition(vec2) noexcept;
     extern void Lock() noexcept;
@@ -18,11 +18,4 @@ namespace Perekop::Mouse {
     extern void BindToRelease(std::function<void(Button)>&&) noexcept;
 
     extern bool Held(Button) noexcept;
-}
-
-namespace Perekop::Input {
-    extern void BindToPress(std::function<void()>&&) noexcept;
-    extern void BindToRelease(std::function<void()>&&) noexcept;
-
-    extern bool Held(int) noexcept;
 }

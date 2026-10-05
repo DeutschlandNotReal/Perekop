@@ -1,7 +1,7 @@
 #pragma once
-#include <PK/Render/Primitive/texture.hpp>
-#include <PK/Render/Primitive/shader.hpp>
-#include <PK/Container/array.hpp>
+#include <PK/Render/Resources/texture.hpp>
+#include <PK/Render/Resources/shader.hpp>
+#include <PK/Core/array.hpp>
 
 namespace pk {
     namespace Render { struct Renderer; }

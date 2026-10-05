@@ -15,6 +15,7 @@
 #include <common.hpp>
 #include <PK/Util/time.hpp>
 #include <PK/Util/file.hpp>
+#include <PK/Render/mesh.hpp>
 #include <PK/Render/window.hpp>
 
 using namespace pk;
@@ -49,6 +50,7 @@ void init() {
     glfwShowWindow(glfw_window);
     glEnable(GL_DEPTH_TEST);
 
+    Mesh::Initialize();
     RenderBegin();
     WindowBegin();
     OnLaunch();

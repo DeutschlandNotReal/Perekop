@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Physics/pose.hpp>
+#include <PK/math/pose.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace pk {

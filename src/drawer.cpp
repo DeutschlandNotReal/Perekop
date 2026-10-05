@@ -1,7 +1,7 @@
 #define PK_INTERNAL
 #include <common.hpp>
 #include <PK/Render/renderer.hpp>
-#include <PK/Connections/collections.hpp>
+#include <PK/Scene/collections.hpp>
 #include <PK/Render/lighting.hpp>
 
 using namespace pk;
@@ -23,7 +23,7 @@ span<unsigned> Collection::GetMeshIds() noexcept {
     if (!data) return span<unsigned>();
 
     return span<unsigned>(
-        (unsigned*) ((Model*)data + ModelCount), 
+        (unsigned*) ((Model*)data + Capacity), 
         ModelCount
     );
 }
@@ -32,7 +32,7 @@ span<const unsigned> Collection::GetMeshIds() const noexcept {
     if (!data) return span<const unsigned>();
 
     return span<const unsigned>(
-        (const unsigned*) ((Model*)data + ModelCount), 
+        (const unsigned*) ((Model*)data + Capacity), 
         ModelCount
     );
 }
@@ -40,7 +40,7 @@ span<const unsigned> Collection::GetMeshIds() const noexcept {
 void Collection::Resize(unsigned newcapacity) {
     void* newdata = pk::alloc<>(newcapacity * (sizeof(Model) + sizeof(unsigned)));
     pk::copy((Model*)newdata, (Model*)data, ModelCount);
-    pk::copy((unsigned*)((Model*)newdata + ModelCount), (unsigned*)((Model*)data + ModelCount), ModelCount);
+    pk::copy((unsigned*)((Model*)newdata + newcapacity), (unsigned*)((Model*)data + Capacity), ModelCount);
     pk::free((char*) data);
 
     data = newdata;
@@ -110,8 +110,9 @@ void DrawCollection(const Collection& collection, const mat4& camera, bool shado
 
         Render::Shader& shader = shadowPass ? Lighting::Shadow::Shader : mesh.material->shader;
         shader.Use();
-        shader.GetUniform("VP")     = camera;
+        shader.GetUniform("camera")  = camera;
         shader.GetUniform("light")  = (mat4) Lighting::Light;
+        shader.GetUniform("lightPos") = Lighting::Light.pos;
         shader.GetUniform("model")  = (mat4) model.pose;
         shader.GetUniform("scale")  = model.scale;
 

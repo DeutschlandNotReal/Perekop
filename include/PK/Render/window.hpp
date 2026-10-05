@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Physics/pose.hpp>
+#include <PK/Math/pose.hpp>
 #include <string_view>
 #include <functional>
 #include <filesystem>

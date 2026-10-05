@@ -15,7 +15,7 @@ using std::string;
 
 Render::VertexArray pk::MeshVAO;
 
-bool Mesh::Loaded() const noexcept { return loaded; }
+bool Mesh::Loaded() const noexcept { return VBO && EBO; }
 void Mesh::Refresh() { if (Loaded()) { Unload(); Load(); }}
 
 void Mesh::Initialize() noexcept {
@@ -34,19 +34,16 @@ void Mesh::Load() {
     EBO = Render::Buffer::Generate();
     VBO.Upload(Render::BufferTarget::Array,   Render::BufferUsage::Static, vertices);
     EBO.Upload(Render::BufferTarget::Element, Render::BufferUsage::Static, indices);
-    loaded = true;
 }
 
 void Mesh::Unload() {
     VBO.Delete();
     EBO.Delete();
-    loaded = false;
 }
 
 Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::move(b.VBO)),
     EBO(std::move(b.EBO)),
-    loaded(std::exchange(b.loaded, false)),
     vertices(std::move(b.vertices)),
     indices(std::move(b.indices))
 {}
@@ -59,8 +56,6 @@ Mesh& Mesh::operator=(Mesh&& b) noexcept {
     indices = std::move(b.indices);
     VBO = std::move(b.VBO);
     EBO = std::move(b.EBO);
-    loaded = std::exchange(b.loaded, false);
-
     return *this;
 }
 

@@ -1,5 +1,5 @@
 #pragma once
-#include <PK/Render/Primitive/buffer.hpp>
+#include <PK/Render/Resources/buffer.hpp>
 #include <cstddef>
 
 namespace pk::Render {

@@ -2,9 +2,10 @@
 
 #ifdef PK_INTERNAL
 namespace Perekop { void render(bool); }
-#include <PK/Container/vector.hpp>
+#include <PK/Core/vector.hpp>
 #include <PK/Connections/step.hpp>
-#include <PK/Connections/userinput.hpp>
+#include <PK/Input/mouse.hpp>
+#include <PK/Input/keyboard.hpp>
 #include <PK/Render/window.hpp>
 
 template <typename... T> using consumer = std::function<void(T...)>;
