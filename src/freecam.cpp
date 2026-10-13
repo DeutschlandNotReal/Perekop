@@ -7,6 +7,7 @@ using namespace Perekop;
 using namespace Perekop::Input;
 
 float campitch{0}, camyaw{0};
+constexpr const float maxpitch = radians(85.f);
 
 void PKG::InitCamera(Camera &camera) noexcept{
     vec3 euler = camera.pose.EulerAngles();
@@ -38,7 +39,7 @@ void PKG::InitCamera(Camera &camera) noexcept{
         float rfov = radians(camera.Fov());
         float yfov = rfov * size.x / size.y;
 
-        campitch = clamp(campitch - delta.y * yfov, radians(-60.f), radians(60.f));
+        campitch = clamp(campitch - delta.y * yfov, -maxpitch, maxpitch);
         camyaw -= delta.x * rfov;
 
         camera.pose = pose::FromEuler(camera.pose.pos, {campitch, camyaw, 0});

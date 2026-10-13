@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Perekop {
-    inline double fps{60};
+    inline double fps{240};
 
     // defined by game
     extern void OnLaunch();

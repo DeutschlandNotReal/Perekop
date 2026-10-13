@@ -28,12 +28,12 @@ void DrawModel(const Model& model, const mat4& camera, const mat4& light) noexce
     MeshVAO.BindBuffer(0, mesh.VBO, Render::BufferTarget::Array,   sizeof(Mesh::Vertex));
     MeshVAO.BindBuffer(0, mesh.EBO, Render::BufferTarget::Element, 0);
         
-    Lighting::Renderer.DrawElems(3 * mesh.t.size());
+    Lighting::Renderer.DrawElems(mesh.ind.size());
 }
 
 void Perekop::RenderStep() noexcept {
     const mat4 VP = Lighting::Camera.Projection() * Lighting::Camera.View();
-    const mat4 L  = Lighting::Light;
+    const mat4 L  = Lighting::Light; 
 
     Lighting::Renderer.Target(Lighting::Shadow::Buffer);
     Lighting::Renderer.Fill({1.f, 1.f, 1.f});

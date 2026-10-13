@@ -50,7 +50,13 @@ void init() {
     glfwShowWindow(glfw_window);
     glEnable(GL_DEPTH_TEST);
 
-    Mesh::Initialize();
+    MeshVAO = Render::VertexArray::generate();
+    MeshVAO.Bind();
+    Render::VertexArray::Builder().
+        Float(3).
+        Float(3).
+        Float(2);
+
     RenderBegin();
     WindowBegin();
     OnLaunch();

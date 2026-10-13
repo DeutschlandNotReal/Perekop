@@ -6,7 +6,9 @@
 #include <PK/Physics/plane.hpp>
 #include <PK/Physics/ray.hpp>
 #include <PK/Physics/body.hpp>
+#include <PK/Scene/world.hpp>
 
+#include <cmath>
 #include <limits>
 #include <glm/gtx/component_wise.hpp>
 
@@ -81,74 +83,54 @@ vec3 plane::Project(vec3 point) const noexcept {
     return point - Distance(point) * nor;
 }
 
-bool Physics::Test(Sphere S0, Sphere S1, vec3 disp) noexcept {
-    float r = S0.r + S1.r;
-    return dot(disp, disp) <= r * r;
+vec3 Physics::TestSAT(Shape A, Shape B) noexcept {
+    if (A.type != ShapeType::Box || B.type != ShapeType::Box)
+        return {0.f, 0.f, 0.f};
+
+    mat3 RA = mat3_cast(A.pose.rot);
+    mat3 RB = mat3_cast(B.pose.rot);
+    vec3 delta = B.pose.pos - A.pose.pos;
+
+    vec3 best{0.f};
+    float bestDist = std::numeric_limits<float>::infinity();
+    bool colliding = true;
+
+    auto TestAxis = [&](vec3 axis) noexcept {
+        if (!colliding || dot(axis, axis) <= 1e-6f) return;
+        axis = normalize(axis);
+
+        float ra = abs(dot(axis, RA[0])) * A.ext.x +
+                   abs(dot(axis, RA[1])) * A.ext.y +
+                   abs(dot(axis, RA[2])) * A.ext.z;
+        float rb = abs(dot(axis, RB[0])) * B.ext.x +
+                   abs(dot(axis, RB[1])) * B.ext.y +
+                   abs(dot(axis, RB[2])) * B.ext.z;
+
+        float d = abs(dot(axis, delta));
+        if (d > ra + rb) {
+            colliding = false;
+            return;
+        }
+
+        float depth = ra + rb - d;
+        if (depth < bestDist) {
+            bestDist = depth;
+            best = axis * depth;
+        }
+    };
+
+    for (unsigned i = 0; i < 3; ++i) {
+        TestAxis(RA[i]);
+        TestAxis(RB[i]);
+
+        for (unsigned j = 0; j < 3; ++j)
+            TestAxis(cross(RA[i], RB[j]));
+    }
+
+    return colliding && bestDist != std::numeric_limits<float>::infinity() ? best : vec3{0.f};
 }
 
-bool Physics::Test(Sphere S, Box B, vec3 disp) noexcept {
-    vec3 d = max(abs(disp) - B.ext, 0.f);
-    return dot(d, d) <=  S.r * S.r;
-}
-
-bool Physics::TestAABB(Box B1, Box B2, vec3 disp) noexcept {
-    return all(lessThanEqual(abs(disp), B1.ext + B2.ext));
-}
-
-bool Physics::TestOOB(Box B1, Box B2, pose rel) noexcept {
-    mat3 R = rel;
-    mat3 A{abs(R[0]), abs(R[1]), abs(R[2])};
-    vec3 t = abs(rel.pos);
-
-    if (any(greaterThan(t, B1.ext + A * B2.ext)))
-        return false;
-
-    vec3 rt = abs(transpose(R) * rel.pos);
-
-    if (any(greaterThan(rt, B2.ext + transpose(A) * B1.ext)))
-        return false;
-
-    
-    // unlooped bloat
-    return
-        abs(t.y * R[2][0] - t.z * R[1][0]) <=
-            B1.ext.y*A[2][0] + B1.ext.z*A[1][0] +
-            B2.ext.y*A[0][2] + B2.ext.z*A[0][1] &&
-
-        abs(t.y * R[2][1] - t.z * R[1][1]) <=
-            B1.ext.y*A[2][1] + B1.ext.z*A[1][1] +
-            B2.ext.x*A[0][2] + B2.ext.z*A[0][0] &&
-
-        abs(t.y * R[2][2] - t.z * R[1][2]) <=
-            B1.ext.y*A[2][2] + B1.ext.z*A[1][2] +
-            B2.ext.x*A[0][1] + B2.ext.y*A[0][0] &&
-
-        abs(t.z * R[0][0] - t.x * R[2][0]) <=
-            B1.ext.z*A[0][0] + B1.ext.x*A[2][0] +
-            B2.ext.y*A[1][2] + B2.ext.z*A[1][1] &&
-
-        abs(t.z * R[0][1] - t.x * R[2][1]) <=
-            B1.ext.z*A[0][1] + B1.ext.x*A[2][1] +
-            B2.ext.x*A[1][2] + B2.ext.z*A[1][0] &&
-
-        abs(t.z * R[0][2] - t.x * R[2][2]) <=
-            B1.ext.z*A[0][2] + B1.ext.x*A[2][2] +
-            B2.ext.x*A[1][1] + B2.ext.y*A[1][0] &&
-
-        abs(t.x * R[1][0] - t.y * R[0][0]) <=
-            B1.ext.x*A[1][0] + B1.ext.y*A[0][0] +
-            B2.ext.y*A[2][2] + B2.ext.z*A[2][1] &&
-
-        abs(t.x * R[1][1] - t.y * R[0][1]) <=
-            B1.ext.x*A[1][1] + B1.ext.y*A[0][1] +
-            B2.ext.x*A[2][2] + B2.ext.z*A[2][0] &&
-
-        abs(t.x * R[1][2] - t.y * R[0][2]) <=
-            B1.ext.x*A[1][2] + B1.ext.y*A[0][2] +
-            B2.ext.x*A[2][1] + B2.ext.y*A[2][0];
-}
-
-mat3 Physics::GetUniformInertia(span<Mesh::Vertex> vertices) noexcept {
+mat3 Physics::GetUniformInertia(span<const Mesh::Vertex> vertices) noexcept {
     float xx{0}, yy{0}, zz{0}, xy{0}, yz{0}, zx{0};
 
     for (const auto& v : vertices) {
@@ -167,4 +149,163 @@ mat3 Physics::GetUniformInertia(span<Mesh::Vertex> vertices) noexcept {
         xy, xx+zz, yz,
         zx, yz, xx+yy
     };
+}
+
+void Perekop::CacheMesh(const Mesh& mesh) noexcept {
+    for (unsigned i = 0; i < World::meshes.size(); ++i) {
+        if (&World::meshes[i] != &mesh)
+            continue;
+
+        while (invmatrices.size() <= i)
+            invmatrices.emplace(mat3{1.f});
+        invmatrices[i] = mesh.vtx.empty()
+            ? mat3{1.f}
+            : inverse(Physics::GetUniformInertia(mesh.vtx));
+        return;
+    }
+}
+
+void Physics::Body::Impulse(vec3 localforce) noexcept {
+    if (GetFlag(StateFlag::anchored) || GetFlag(StateFlag::weightless))
+        return;
+
+    force += model.pose.rot * localforce;
+}
+
+void Physics::Body::Impulse(vec3 localforce, vec3 localpoint) noexcept {
+    if (GetFlag(StateFlag::anchored) || GetFlag(StateFlag::weightless))
+        return;
+    if (model.meshid >= World::meshes.size())
+        return;
+    if (Perekop::invmatrices.size() <= model.meshid)
+        Perekop::CacheMesh(World::meshes[model.meshid]);
+
+    vec3 force = model.pose.rot * localforce;
+    vec3 point = model.pose.rot * localpoint;
+    this->force += force;
+    moment += cross(point, force);
+}
+
+float t = 0.f;
+void Perekop::PhysicsStep(double dt) noexcept {
+    float fdt = dt;
+    float friction = 1.f - expf(-.15f * fdt);
+    t += fdt;
+    float G = (gravity * 0.6f) * fdt * sin(t * 0.5f) + (gravity * .5f);
+
+    for (Physics::Body& body : World::bodies) {
+        if (body.GetFlag(Physics::Body::StateFlag::anchored))
+            continue;
+
+        body.vel += (body.force / body.mass) * fdt;
+        if (!body.GetFlag(Physics::Body::StateFlag::weightless))
+            body.vel.y -= gravity;
+
+        if (body.model.meshid < invmatrices.size())
+            body.avel += invmatrices[body.model.meshid] * body.moment * fdt;
+
+        float angspeed = length(body.avel) * fdt;
+        if (angspeed > 1e-6f) {
+            vec3 axis = normalize(body.avel);
+            float s, c;
+            sincosf(angspeed * .5f, &s, &c);
+            quat delta{c, axis.x * s, axis.y * s, axis.z * s};
+            body.model.pose.rot = normalize(delta * body.model.pose.rot);
+        }
+
+        body.model.pose.pos += body.vel * fdt;
+        body.force = {0.f, 0.f, 0.f};
+        body.moment = {0.f, 0.f, 0.f};
+    }
+
+    for (unsigned i = 0; i < World::bodies.size(); ++i) {
+        for (unsigned j = i + 1; j < World::bodies.size(); ++j) {
+            Body& a = World::bodies[i];
+            Body& b = World::bodies[j];
+
+            // if (a.model.meshid >= World::meshes.size() || b.model.meshid >= World::meshes.size()) continue;
+            if (a.GetFlag(Body::StateFlag::anchored) && b.GetFlag(Body::StateFlag::anchored))
+                continue;
+
+            const Mesh& ma = World::meshes[a.model.meshid];
+            const Mesh& mb = World::meshes[b.model.meshid];
+            if (ma.vtx.empty() || mb.vtx.empty()) continue;
+
+            pose pa = a.model.pose;
+            pose pb = b.model.pose;
+            pa.pos += pa.rot * (ma.center * a.model.scale);
+            pb.pos += pb.rot * (mb.center * b.model.scale);
+
+            Shape sa{pa, ma.ext * abs(a.model.scale)};
+            Shape sb{pb, mb.ext * abs(b.model.scale)};
+
+            vec3 delta = pb.pos - pa.pos;
+            float ra = length(sa.ext), rb = length(sb.ext);
+            if (dot(delta, delta) > (ra + rb) * (ra + rb))
+                continue;
+
+            mat3 RA = pa, RB = pb;
+            vec3 ea = abs(RA[0]) * sa.ext.x + abs(RA[1]) * sa.ext.y + abs(RA[2]) * sa.ext.z;
+            vec3 eb = abs(RB[0]) * sb.ext.x + abs(RB[1]) * sb.ext.y + abs(RB[2]) * sb.ext.z;
+            if (any(greaterThan(abs(delta), ea + eb)))
+                continue;
+
+            vec3 axis = TestSAT(sa, sb);
+            if (dot(axis, axis) <= 1e-6f)
+                continue;
+
+            if (dot(axis, pb.pos - pa.pos) < 0.f)
+                axis = -axis;
+
+            vec3 normal = normalize(axis);
+            vec3 correction = normal * (max(length(axis) - .01f, 0.f) * .8f);
+            bool anchoredA = a.GetFlag(Body::StateFlag::anchored);
+            bool anchoredB = b.GetFlag(Body::StateFlag::anchored);
+
+
+            if (anchoredA)
+                b.model.pose.pos += correction;
+            else if (anchoredB)
+                a.model.pose.pos -= correction;
+            else {
+                correction *= .5f;
+                a.model.pose.pos -= correction;
+                b.model.pose.pos += correction;
+            }
+
+            float closing = dot(b.vel - a.vel, normal);
+            if (closing < 0.f) {
+                vec3 impulse = normal * closing;
+                if (anchoredA)
+                    b.vel -= impulse;
+                else if (anchoredB)
+                    a.vel += impulse;
+                else {
+                    impulse *= .5f;
+                    a.vel += impulse;
+                    b.vel -= impulse;
+                }
+            }
+
+            vec3 relative = b.vel - a.vel;
+            vec3 ftan = friction * (relative - normal * dot(relative, normal));
+
+
+            if (anchoredA)
+                b.vel -= ftan;
+            else if (anchoredB)
+                a.vel += ftan;
+            else {
+                ftan *= .5f;
+                a.vel += ftan;
+                b.vel -= ftan;
+            }
+
+            float spin = 1.f - friction;
+            if (!anchoredA)
+                a.avel *= spin;
+            if (!anchoredB)
+                b.avel *= spin;
+        }
+    }
 }

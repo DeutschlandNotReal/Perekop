@@ -18,22 +18,26 @@ Render::VertexArray pk::MeshVAO;
 bool Mesh::Loaded() const noexcept { return VBO && EBO; }
 void Mesh::Refresh() { if (Loaded()) { Unload(); Load(); }}
 
-void Mesh::Initialize() noexcept {
-    MeshVAO = Render::VertexArray::generate();
-    MeshVAO.Bind();
-    Render::VertexArray::Builder().
-        Float(3).
-        Float(3).
-        Float(2);
-}
-
 void Mesh::Load() {
+    center = {0.f, 0.f, 0.f};
+    ext = {0.f, 0.f, 0.f};
+    if (!vtx.empty()) {
+        vec3 minv = vtx[0].pos, maxv = vtx[0].pos;
+        for (const Vertex& vertex : vtx) {
+            minv = min(minv, vertex.pos);
+            maxv = max(maxv, vertex.pos);
+        }
+        center = (minv + maxv) * .5f;
+        ext = (maxv - minv) * .5f;
+    }
+    Perekop::CacheMesh(*this);
+
     if (Loaded()) return;
 
     VBO = Render::Buffer::Generate();
     EBO = Render::Buffer::Generate();
-    VBO.Upload(Render::BufferTarget::Array,   Render::BufferUsage::Static, vertices);
-    EBO.Upload(Render::BufferTarget::Element, Render::BufferUsage::Static, indices);
+    VBO.Upload(Render::BufferTarget::Array,   Render::BufferUsage::Static, vtx);
+    EBO.Upload(Render::BufferTarget::Element, Render::BufferUsage::Static, ind);
 }
 
 void Mesh::Unload() {
@@ -42,35 +46,37 @@ void Mesh::Unload() {
 }
 
 vec3 Mesh::GetEdge(unsigned V0, unsigned V1) noexcept {
-    return vertices[V1].pos - vertices[V0].pos;
+    return vtx[V1].pos - vtx[V0].pos;
 }
 
 float Mesh::GetArea(unsigned V0, unsigned V1, unsigned V2) noexcept {
     return .5f * length(cross(GetEdge(V0, V1), GetEdge(V1, V2)));
 }
 
-float Mesh::GetVolume(unsigned V0, unsigned V1, unsigned V2, unsigned V3) noexcept {
-    const vec3 &p0 = vertices[V0].pos, &p1 = vertices[V1].pos, &p2 = vertices[V2].pos, &p3 = vertices[V3].pos;
-
+float Mesh::GetVolume(unsigned a, unsigned b, unsigned c, unsigned d) noexcept {
     return (1.f / 6.f) * (
-        dot(p0, cross(p1, p2)) +
-        dot(p1, cross(p2, p3))
+        dot(vtx[a].pos, cross(vtx[b].pos, vtx[c].pos)) +
+        dot(vtx[b].pos, cross(vtx[c].pos, vtx[d].pos))
     );
 }
 
 Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::move(b.VBO)),
     EBO(std::move(b.EBO)),
-    vertices(std::move(b.vertices)),
-    indices(std::move(b.indices))
+    vtx(std::move(b.vtx)),
+    ind(std::move(b.ind)),
+    center(b.center),
+    ext(b.ext)
 {}
 
 Mesh& Mesh::operator=(Mesh&& b) noexcept {
     if (this == &b) return *this;
     if (Loaded()) Unload();
 
-    vertices = std::move(b.vertices);
-    indices = std::move(b.indices);
+    vtx = std::move(b.vtx);
+    ind = std::move(b.ind);
+    center = b.center;
+    ext = b.ext;
     VBO = std::move(b.VBO);
     EBO = std::move(b.EBO);
     return *this;
@@ -80,15 +86,19 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
     if (this == &b) return *this;
     if (Loaded()) Unload();
 
-    vertices = b.vertices;
-    indices = b.indices;
+    vtx = b.vtx;
+    ind = b.ind;
+    center = b.center;
+    ext = b.ext;
   
     return *this;
 }
 
 Mesh::Mesh(const Mesh& b) noexcept: 
-    vertices{b.vertices},
-    indices{b.indices}
+    vtx{b.vtx},
+    ind{b.ind},
+    center{b.center},
+    ext{b.ext}
 {}
 
 Mesh::~Mesh() noexcept { Unload(); }
@@ -127,27 +137,28 @@ Mesh::Mesh(const std::filesystem::path& path) noexcept {
 
             if (!pos || pos->count == 0) continue;
 
-            vertices.reserve(vertices.size() + pos->count);
+            vtx.reserve(vtx.size() + pos->count);
             for (unsigned vid = 0; vid < pos->count; vid++) {
-                Mesh::Vertex &v = vertices.emplace();
-                cgltf_accessor_read_float(pos, vid, &v.pos.x, 3);
+                Mesh::Vertex& vertex = vtx.emplace();
+                cgltf_accessor_read_float(pos, vid, &vertex.pos.x, 3);
 
-                if (nor) cgltf_accessor_read_float(nor, vid, &v.nor.x, 3);
-                if (uv) cgltf_accessor_read_float(uv, vid, &v.uv.x, 2);
+                if (nor) cgltf_accessor_read_float(nor, vid, &vertex.nor.x, 3);
+                if (uv) cgltf_accessor_read_float(uv, vid, &vertex.uv.x, 2);
             }
 
             if (primitive.indices) {
-                indices.reserve(indices.size() + primitive.indices->count);
+                unsigned index{};
+                ind.reserve(ind.size() + primitive.indices->count);
                 for (unsigned iid = 0; iid < primitive.indices->count; iid++) {
-                    cgltf_accessor_read_uint(primitive.indices, iid, &indices.emplace(), 1);
+                    cgltf_accessor_read_uint(primitive.indices, iid, &index, 1);
+                    ind.push(index);
                 }
             } else {
-                indices.reserve(vertices.size());
-                for (unsigned vid = 0; vid < vertices.size(); vid++) indices.push(vid);
+                ind.reserve(vtx.size());
+                for (unsigned vid = 0; vid < vtx.size(); vid++) ind.push(vid);
             }
         }
     }
 
     cgltf_free(data);
 }
-

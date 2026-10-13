@@ -14,14 +14,11 @@ namespace pk {
                 vec3 pos{0.f}, nor{0.f}; vec2 uv{.0f};
             };
 
-            struct Triangle {
-                unsigned V0{0}, V1{0}, V2{0};
-            };
-
             Material* material{nullptr};
 
-            vector<Vertex> v; 
-            vector<Triangle> t;
+            vector<Vertex> vtx;
+            vector<unsigned> ind;
+            vec3 center{0.f}, ext{0.f};
 
             void Load();
             void Unload();

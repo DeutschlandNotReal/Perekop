@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef PK_INTERNAL
+namespace pk { class Mesh; }
 namespace Perekop { void render(bool); }
 #include <PK/Core/vector.hpp>
 #include <PK/Connections/step.hpp>
@@ -19,6 +20,8 @@ void InvokeListeners(const listeners<T...>& l, A&&... args) noexcept {
 #define ImplementBinder(name, source, ...) void name(consumer<__VA_ARGS__>&& f) noexcept { source.push(std::forward<decltype(f)>(f)); }
 
 namespace Perekop {
+    void CacheMesh(const pk::Mesh& mesh) noexcept;
+
     void RenderBegin() noexcept;
     void WindowBegin() noexcept;
 
