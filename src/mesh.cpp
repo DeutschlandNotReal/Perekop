@@ -8,6 +8,7 @@
 #include <PK/Util/file.hpp>
 #include <utility>
 #include <PK/Render/mesh.hpp>
+#include <PK/Physics/body.hpp>
 
 using namespace pk;
 using std::string_view;
@@ -19,18 +20,20 @@ bool Mesh::Loaded() const noexcept { return VBO && EBO; }
 void Mesh::Refresh() { if (Loaded()) { Unload(); Load(); }}
 
 void Mesh::Load() {
-    center = {0.f, 0.f, 0.f};
-    ext = {0.f, 0.f, 0.f};
+    ext = centre = invInertia = vec3{0.f};
+    
     if (!vtx.empty()) {
         vec3 minv = vtx[0].pos, maxv = vtx[0].pos;
+
         for (const Vertex& vertex : vtx) {
             minv = min(minv, vertex.pos);
             maxv = max(maxv, vertex.pos);
         }
-        center = (minv + maxv) * .5f;
-        ext = (maxv - minv) * .5f;
+
+        centre = (maxv + minv) * .5f;
+        ext = centre - minv;
+        invInertia = Physics::InverseInertia(vtx);
     }
-    Perekop::CacheMesh(*this);
 
     if (Loaded()) return;
 
@@ -65,8 +68,9 @@ Mesh::Mesh(Mesh&& b) noexcept:
     EBO(std::move(b.EBO)),
     vtx(std::move(b.vtx)),
     ind(std::move(b.ind)),
-    center(b.center),
-    ext(b.ext)
+    centre(b.centre),
+    ext(b.ext),
+    invInertia(b.invInertia)
 {}
 
 Mesh& Mesh::operator=(Mesh&& b) noexcept {
@@ -75,8 +79,9 @@ Mesh& Mesh::operator=(Mesh&& b) noexcept {
 
     vtx = std::move(b.vtx);
     ind = std::move(b.ind);
-    center = b.center;
+    centre = b.centre;
     ext = b.ext;
+    invInertia = b.invInertia;
     VBO = std::move(b.VBO);
     EBO = std::move(b.EBO);
     return *this;
@@ -88,7 +93,8 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
 
     vtx = b.vtx;
     ind = b.ind;
-    center = b.center;
+    centre = b.centre;
+    invInertia = b.invInertia;
     ext = b.ext;
   
     return *this;
@@ -97,7 +103,8 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
 Mesh::Mesh(const Mesh& b) noexcept: 
     vtx{b.vtx},
     ind{b.ind},
-    center{b.center},
+    centre{b.centre},
+    invInertia{b.invInertia},
     ext{b.ext}
 {}
 

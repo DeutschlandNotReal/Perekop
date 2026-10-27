@@ -7,17 +7,17 @@
 using namespace pk;
 using namespace Perekop;
 
-template <bool shadow>
-void DrawModel(const Model& model, const mat4& camera, const mat4& light) noexcept {
-    const Mesh&  mesh  = World::meshes[model.meshid];
+
+template <bool shadow> void Draw(pose pose, uint meshid, vec3 scale, const mat4& camera, const mat4& light) noexcept {
+    const Mesh& mesh = World::meshes[meshid];
 
     Render::Shader& shader = shadow ? Lighting::Shadow::Shader : mesh.material->shader;
     shader.Use();
     shader.GetUniform("camera")   = camera;
     shader.GetUniform("light")    = light;
     shader.GetUniform("lightPos") = Lighting::Light.pos;
-    shader.GetUniform("model")    = (mat4) model.pose;
-    shader.GetUniform("scale")    = model.scale;
+    shader.GetUniform("model")    = (mat4) pose;
+    shader.GetUniform("scale")    = scale;
 
     if constexpr (!shadow) {
         shader.SetTexture("T",      0, mesh.material->textures[0]);
@@ -41,18 +41,18 @@ void Perekop::RenderStep() noexcept {
 
     // shadow stage
     for (const Model& model : World::models) 
-        DrawModel<true>(model, L, L);
+        Draw<true>(model.pose, model.meshid, model.scale, L, L);
     for (const Physics::Body& body : World::bodies)
-        DrawModel<true>(body.model, L, L);
+        Draw<true>(body.pose, body.meshid, body.scale, L, L);
 
     Lighting::Renderer.Viewport();
     Lighting::Renderer.Fill({.15f, .15f, .15f});
     Lighting::Renderer.Clear((int)Render::ClearTarget::Depth | (int)Render::ClearTarget::Colour);
 
     for (const Model& model : World::models) 
-        DrawModel<false>(model, VP, L);
+        Draw<false>(model.pose, model.meshid, model.scale, VP, L);
     for (const Physics::Body& body : World::bodies)
-        DrawModel<false>(body.model, VP, L);
+        Draw<false>(body.pose, body.meshid, body.scale, VP, L);
 
     Lighting::Renderer.Swap();
 }

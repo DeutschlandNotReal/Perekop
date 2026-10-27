@@ -72,7 +72,8 @@ int main() {
 
     double accumulator{0};
 
-    double frameperiod = 1.0 / fps;
+
+    double frameperiod  = 1.0 / fps;
     FrameTimer.Begin();
 
     while (!glfwWindowShouldClose(glfw_window)) {
@@ -84,11 +85,9 @@ int main() {
             int ticks = accumulator * fps;
             accumulator -= ticks * frameperiod;
             
-            ticks = std::min(ticks, 4);
+            ticks = min(ticks, 4);
 
-            while (ticks-- > 0) {
-                OnStep(frameperiod);
-            } 
+            while (ticks-- > 0) OnStep(frameperiod);
             
             RenderStep();
             OnRender();

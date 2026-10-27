@@ -233,10 +233,9 @@ void Shader::SetTexture(std::string_view name, unsigned slot, const Texture& tex
 
 Texture::Texture(const path& path) noexcept {
     int channels;
-    unsigned char* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
+    uchar* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
 
-    if (!data)
-        return;
+    if (!data) return;
 
     int format = channels == 1 ? GL_RED : channels == 3 ? GL_RGB : GL_RGBA;
 

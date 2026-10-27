@@ -1,4 +1,5 @@
 #pragma once
+#include <PK/Math/typedef.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -56,6 +57,7 @@ namespace pk {
         pose& operator*=(pose p) noexcept { pos += rot * p.pos; rot *= p.rot; return *this; }
     };
 
+    [[nodiscard]] inline vec3 operator-(pose a, pose b) noexcept { return (a -= b.pos).pos; }
     [[nodiscard]] inline pose operator+(pose p, vec3 v) noexcept { return p += v; }
     [[nodiscard]] inline pose operator-(pose p, vec3 v) noexcept { return p -= v; }
     [[nodiscard]] inline pose operator*(pose p, quat r) noexcept { return p *= r; }
@@ -64,10 +66,12 @@ namespace pk {
     [[nodiscard]] inline vec3 worldspace(vec3 v, pose space) noexcept { return space.rot * v + space.pos; }
     [[nodiscard]] inline vec3 worldspace(vec3 v, quat space) noexcept { return space * v; }
     [[nodiscard]] inline vec3 worldspace(vec3 v, vec3 space) noexcept { return space + v; }
-
+    [[nodiscard]] inline pose worldspace(pose p, pose space) noexcept { return space * p;}
+    
     [[nodiscard]] inline vec3 localspace(vec3 v, pose space) noexcept { return conjugate(space.rot) * (v - space.pos); }
     [[nodiscard]] inline vec3 localspace(vec3 v, quat space) noexcept { return conjugate(space) * v; }
     [[nodiscard]] inline vec3 localspace(vec3 v, vec3 space) noexcept { return v - space; }
+    [[nodiscard]] inline pose localspace(pose p, pose space) noexcept { return space.Inverse() * p; }
 
     [[nodiscard]] inline vec3 operator*(vec3 v, pose p) noexcept { return localspace(v, p); }
 }

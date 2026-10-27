@@ -1,42 +1,36 @@
 #pragma once
 #include <PK/Physics/model.hpp>
+#include <PK/Physics/shape.hpp>
 #include <PK/Render/mesh.hpp>
 
 namespace pk::Physics { 
-    mat3 GetUniformInertia(
+    vec3 InverseInertia(
         span<const Mesh::Vertex> vertices
     ) noexcept;
 
-    class Body {
-        int flags{0};
+    class Body : public Model {
+        float mass{0}, imass{0};
 
         public:
-            enum class StateFlag: int {
-                anchored, weightless
-            };
+            float GetMass()  const noexcept { return mass; }
+            float GetiMass() const noexcept { return imass; }
 
-            bool GetFlag(StateFlag F) noexcept {
-                return (flags >> (int)F) & 1;
+            void SetMass(float m) noexcept {
+                mass = m;
+                imass = m != 0 ? 1.f / m : m;
             }
+            
+            void SetMassless() noexcept { mass = imass = 0; }
 
-            void SetFlag(StateFlag F, bool v) noexcept {
-                if (v) flags |= 1 << (int)F;
-                else flags &= ~(1 << (int)F);
-            }
+            ShapeType shapetype{ShapeType::Box};
+            vec3 vel{0.f}, avel{0.f}, F{0.f}, mom{0.f};
         
-            Model model; // inertia is per-mesh
-            float mass{1.f};
-            vec3 vel{0.f}, avel{0.f};
-            vec3 force{0.f}, moment{0.f};
+            void Impulse(vec3 force) noexcept;
+            void Impulse(vec3 force, vec3 point) noexcept;
 
-            void Impulse(
-                vec3 localforce
-            ) noexcept;
-
-            void Impulse(
-                vec3 localforce, vec3 localpoint
-            ) noexcept;
+            void ImpulseLocal(vec3 force) noexcept;
+            void ImpulseLocal(vec3 force, vec3 point) noexcept;
     };
 
-    inline float gravity = 24.f;
+    extern vec3 GetGravity(vec3 O) noexcept;
 }

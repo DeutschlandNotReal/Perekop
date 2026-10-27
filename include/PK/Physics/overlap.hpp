@@ -1,22 +1,12 @@
 #pragma once
-#include <PK/Math/pose.hpp>
+#include <PK/Physics/shape.hpp>
 
 namespace pk::Physics {
-    enum class ShapeType {
-        Box, Ball
+    struct OverlapResult { 
+        vec3 axis{0.f}; 
+        float overlap{0.f}; 
+        operator vec3() const noexcept { return axis * overlap; }
     };
-
-    struct Shape {
-        ShapeType type;
-        pose pose;
-        union {
-            float r;
-            vec3 ext;
-        };
-
-        Shape(::pk::pose P, float r) noexcept : type{ShapeType::Ball}, pose{P}, r{r} {}
-        Shape(::pk::pose P, vec3 exts) noexcept : type{ShapeType::Box}, pose{P}, ext{exts} {}
-    };
-
-    vec3 TestSAT(Shape A, Shape B) noexcept;
+    
+    OverlapResult GetOverlap(const Shape&, const Shape&) noexcept;
 };

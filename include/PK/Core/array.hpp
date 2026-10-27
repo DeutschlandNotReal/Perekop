@@ -16,9 +16,9 @@ namespace pk {
                 data{static_cast<T>(args)...} 
             {}
 
-            template <unsigned... ns>
+            template <uint... ns>
             constexpr array(const array<T, ns>&... subarrays) requires((... + ns) <= n) {
-                unsigned i = 0;
+                uint i = 0;
                 ([this, &i](const auto& sub){ 
                     pk::copy(data + i, sub.begin(), sub.size()); i+= sub.size(); 
                 }(subarrays), ...);
@@ -28,27 +28,27 @@ namespace pk {
             constexpr const T* end()   const noexcept { return data + n; }
             constexpr T* begin() noexcept { return data; }
             constexpr T* end()   noexcept { return data + n; }
-            constexpr unsigned size() const noexcept { return n; }
+            constexpr uint size() const noexcept { return n; }
 
-            constexpr const T& operator[](unsigned i) const noexcept { return data[i]; }
-            constexpr T& operator[](unsigned i) noexcept { return data[i]; }
+            constexpr const T& operator[](uint i) const noexcept { return data[i]; }
+            constexpr T& operator[](uint i) noexcept { return data[i]; }
     };
 
     template <typename T>
     class array<T, 0> {
         T* data{nullptr};
-        unsigned len{0};
+        uint len{0};
 
         public:
             constexpr array() noexcept = default;
 
-            constexpr array(unsigned len) noexcept: 
+            constexpr array(uint len) noexcept: 
                 len(len),
                 data(pk::alloc<T>(len))
             {
                 if constexpr (std::is_trivial_v<T>) {
                     std::memset(data, 0, len * sizeof(T));
-                } else for (unsigned i = 0; i < len; i++)
+                } else for (uint i{0}; i < len; i++)
                     data[i] = T();
             }
 
@@ -62,10 +62,10 @@ namespace pk {
             constexpr const T* end()   const noexcept { return data + len; }
             constexpr T* begin() noexcept { return data; }
             constexpr T* end()   noexcept { return data + len; }
-            constexpr unsigned size() const noexcept { return len; }
+            constexpr uint size() const noexcept { return len; }
 
-            constexpr const T& operator[](unsigned i) const noexcept { return data[i]; }
-            constexpr T& operator[](unsigned i) noexcept { return data[i]; }
+            constexpr const T& operator[](uint i) const noexcept { return data[i]; }
+            constexpr T& operator[](uint i) noexcept { return data[i]; }
 
             constexpr void clear() noexcept {
                 if (std::is_trivially_destructible_v<T>) {

@@ -2,14 +2,13 @@
 #include <cstring>
 #include <utility>
 #include <new>
+#include <PK/Math/typedef.hpp>
 
 namespace pk {
-    
-
     template <typename T, bool destructive = true>
     constexpr void move(T* dst, T* src) {
         // non-trivial path
-        if  constexpr (std::is_move_constructible_v<T>) {
+        if constexpr (std::is_move_constructible_v<T>) {
             new (dst) T(std::move(*src));
             if constexpr (!destructive) return;
         } else {
@@ -20,9 +19,9 @@ namespace pk {
     }
 
     template <typename T = char>
-    [[nodiscard]] constexpr T* alloc(unsigned n) {
+    [[nodiscard]] constexpr T* alloc(uint n) {
         // rounded to nearest align
-        unsigned len = sizeof(T) * n + alignof(T) & ~(alignof(T) - 1);
+        uint len = sizeof(T) * n + alignof(T) & ~(alignof(T) - 1);
 
         T* ptr = (T*)::operator new(len, std::align_val_t(alignof(T)));
         return ptr;
@@ -34,7 +33,7 @@ namespace pk {
     }
 
     template <typename T> 
-    constexpr void copy(T* dst, const T* src, unsigned n = 1) requires(std::is_copy_constructible_v<T>) {
+    constexpr void copy(T* dst, const T* src, uint n = 1) requires(std::is_copy_constructible_v<T>) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             const T* end = src + n; 
 
@@ -44,7 +43,7 @@ namespace pk {
     }
 
     template <typename T, bool destructive = true> 
-    constexpr void move(T* dst, T* src, unsigned n) {
+    constexpr void move(T* dst, T* src, uint n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* end = src + n; 
 
@@ -57,7 +56,7 @@ namespace pk {
     }
 
     template <typename T> 
-    constexpr void rshift(T* src, T* end, unsigned n) {
+    constexpr void rshift(T* src, T* end, uint n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
             T* dstend = end + n;
 

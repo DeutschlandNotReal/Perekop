@@ -4,7 +4,7 @@
 namespace pk {
     class Model {
         public:
-            unsigned meshid{0};
+            uint meshid{0};
             pose pose{};
             vec3 scale{1};
     };

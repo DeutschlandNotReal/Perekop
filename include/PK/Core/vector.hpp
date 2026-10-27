@@ -8,9 +8,9 @@
 namespace pk {
     template <typename T> class vector {
         T* data{nullptr};
-        unsigned cur{0}, cap{0};
+        uint cur{0}, cap{0};
     
-        constexpr void resize(unsigned newcap) {
+        constexpr void resize(uint newcap) {
             T* newdata = pk::alloc<T>(newcap);
 
             [[likely]] if (data) {
@@ -22,16 +22,16 @@ namespace pk {
             data = newdata;
         }
 
-        constexpr unsigned NextSize() const noexcept { return (cap * 3 >> 1) + 1; }
+        constexpr uint nextsize() const noexcept { return (cap * 3 >> 1) + 1; }
 
         constexpr void grow() {
-            [[unlikely]] if (full()) resize(NextSize());
+            [[unlikely]] if (full()) resize(nextsize());
         }
 
         public:
             constexpr vector() noexcept = default;
 
-            constexpr vector(unsigned len): 
+            constexpr vector(uint len): 
                 data(pk::alloc<T>(len)), cap(len), cur(0) 
             {}
 
@@ -62,8 +62,8 @@ namespace pk {
             constexpr explicit operator bool() const noexcept { return data != nullptr; }
             constexpr bool operator!()         const noexcept { return data == nullptr; }
 
-            constexpr T& operator[](unsigned i) noexcept { return data[i]; }
-            constexpr const T& operator[](unsigned i) const noexcept { return data[i]; }
+            constexpr T& operator[](uint i) noexcept { return data[i]; }
+            constexpr const T& operator[](uint i) const noexcept { return data[i]; }
 
             constexpr T& back() noexcept { return *(data + cur - 1); }
             constexpr const T& back() const noexcept { return *(data + cur - 1); }
@@ -77,9 +77,9 @@ namespace pk {
             constexpr bool empty() const noexcept { return cur == 0; }
             constexpr bool full()  const noexcept { return cap == cur; }
             
-            constexpr unsigned size()     const noexcept { return cur; }
-            constexpr unsigned capacity() const noexcept { return cap; }
-            constexpr unsigned bytesize() const noexcept { return size() * sizeof(T); }
+            constexpr uint size()     const noexcept { return cur; }
+            constexpr uint capacity() const noexcept { return cap; }
+            constexpr uint bytesize() const noexcept { return size() * sizeof(T); }
 
             constexpr bool in_range(T* ptr) const noexcept { return (size_t)ptr - (size_t)data < bytesize(); }
 
@@ -93,7 +93,7 @@ namespace pk {
                         data = pk::alloc<T>(b.size());
                         cap = b.size();
                     }
-                } else {
+                
                     data = pk::alloc<T>(b.size());
                     cap = b.size();
                 }
@@ -147,16 +147,16 @@ namespace pk {
 
             template <typename... item>
             constexpr T& push(item&&... items) requires((std::is_constructible_v<T, item> && ...) && sizeof...(item) > 0) {
-                unsigned oldcur{cur}, len = sizeof...(item);
+                uint oldcur{cur}, len = sizeof...(item);
 
-                reserve(std::max(cur + len, NextSize()));
+                reserve(std::max(cur + len, nextsize()));
       
                 (new (data + cur++) T(std::forward<item>(items)), ...);
 
                 return *(data + oldcur);
             }
 
-            constexpr void shift(unsigned i, unsigned n) {
+            constexpr void shift(uint i, uint n) {
                 if (size() + n > capacity()) resize(size() + n);
                 pk::rshift(data + i, data + cur, n);
             }

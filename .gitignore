@@ -1,7 +1,7 @@
 build/
 .cache/
 compile_commands.json
-!perekop.exe
+Perekop.exe
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

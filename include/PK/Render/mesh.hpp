@@ -18,13 +18,12 @@ namespace pk {
 
             vector<Vertex> vtx;
             vector<unsigned> ind;
-            vec3 center{0.f}, ext{0.f};
+            vec3 centre{0.f}, ext{0.f}, invInertia{0.f};
 
             void Load();
             void Unload();
             bool Loaded() const noexcept;
-            //static void Initialize() noexcept;
-
+    
             void Refresh();
 
             Mesh() noexcept = default;
