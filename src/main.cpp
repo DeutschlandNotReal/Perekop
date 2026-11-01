@@ -68,32 +68,33 @@ void init() {
 
 int main() {
     init();
-    time::Tracker<double, 2> FrameTimer;
+    time::Tracker<float, 2> FrameTimer;
 
-    double accumulator{0};
-
-
-    double frameperiod  = 1.0 / fps;
+    float dt  = 1.f / fps;
     FrameTimer.Begin();
 
     while (!glfwWindowShouldClose(glfw_window)) {
-        accumulator += FrameTimer.Delta();
+        float elapsed = FrameTimer.Elapsed();
 
-        if (accumulator >= frameperiod) {
-            frameperiod = 1.0 / fps;
+        if (elapsed >= dt) {
+            dt = 1.0 / fps;
             glfwPollEvents();
-            int ticks = accumulator * fps;
-            accumulator -= ticks * frameperiod;
+            int ticks = elapsed * fps;
+            FrameTimer.Roll(ticks * dt);
             
             ticks = min(ticks, 4);
 
-            while (ticks-- > 0) OnStep(frameperiod);
+            while (ticks-- > 0) {
+                Perekop::PhysicsStep(dt);
+                OnStep(dt);
+            }
             
             RenderStep();
             OnRender();
         }
         std::this_thread::yield();
     }
+
     OnExit(); 
     glfwTerminate();
 }

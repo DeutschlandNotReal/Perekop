@@ -4,7 +4,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
-#include <cgltf.h>
 #include <PK/Util/file.hpp>
 #include <utility>
 #include <PK/Render/mesh.hpp>
@@ -66,6 +65,7 @@ float Mesh::GetVolume(unsigned a, unsigned b, unsigned c, unsigned d) noexcept {
 Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::move(b.VBO)),
     EBO(std::move(b.EBO)),
+    material(b.material),
     vtx(std::move(b.vtx)),
     ind(std::move(b.ind)),
     centre(b.centre),
@@ -79,6 +79,7 @@ Mesh& Mesh::operator=(Mesh&& b) noexcept {
 
     vtx = std::move(b.vtx);
     ind = std::move(b.ind);
+    material = b.material;
     centre = b.centre;
     ext = b.ext;
     invInertia = b.invInertia;
@@ -93,6 +94,7 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
 
     vtx = b.vtx;
     ind = b.ind;
+    material = b.material;
     centre = b.centre;
     invInertia = b.invInertia;
     ext = b.ext;
@@ -101,71 +103,29 @@ Mesh& Mesh::operator=(const Mesh& b) noexcept {
 }
 
 Mesh::Mesh(const Mesh& b) noexcept: 
+    material{b.material},
     vtx{b.vtx},
     ind{b.ind},
     centre{b.centre},
-    invInertia{b.invInertia},
-    ext{b.ext}
+    ext{b.ext},
+    invInertia{b.invInertia}
 {}
 
 Mesh::~Mesh() noexcept { Unload(); }
 
-Mesh::Mesh(const std::filesystem::path& path) noexcept {
-    cgltf_options options{};  
-    cgltf_data* data{nullptr};
-    auto spath = path.string();
+Mesh Mesh::Merge(const Mesh& A, const Mesh& B, pose pA, pose pB) noexcept {
+    Mesh merged;
+    merged.ind.reserve(A.ind.size() + B.ind.size());
+    merged.vtx.reserve(A.vtx.size() + B.vtx.size());
+    pose dlt = localspace(pB, pA);
 
-    if (cgltf_parse_file(&options, spath.c_str(), &data) != cgltf_result_success)
-        return;
+    for (const Vertex& v : A.vtx) merged.vtx.emplace(v);
+    for (const Vertex& v : B.vtx) {
+        merged.vtx.emplace(worldspace(v.pos, dlt), worldspace(v.nor, dlt), v.uv);
+    };
 
-    if (cgltf_load_buffers(&options, data, spath.c_str()) != cgltf_result_success) {
-        cgltf_free(data);
-        return;
-    }
+    for (uint i : A.ind) merged.ind.emplace(i);
+    for (uint i : B.ind) merged.ind.emplace(i+A.vtx.size());
 
-    for (unsigned id = 0; id < data->meshes_count; id++) {
-        cgltf_mesh& gmesh = data->meshes[id];
-        
-        // each primitive is its own mesh
-        for (unsigned pid = 0; pid < gmesh.primitives_count; pid++) {
-            cgltf_accessor *pos{nullptr}, *nor{nullptr}, *uv{nullptr};
-            const auto& primitive = gmesh.primitives[pid];
-
-            for (unsigned attid = 0; attid < primitive.attributes_count; attid++) {
-                const auto& attribute = primitive.attributes[attid];
-
-                switch (attribute.type) {
-                    case cgltf_attribute_type_position: pos = attribute.data; break;
-                    case cgltf_attribute_type_normal: nor = attribute.data; break;
-                    case cgltf_attribute_type_texcoord: uv = attribute.data; break;
-                    default: break;
-                }
-            }
-
-            if (!pos || pos->count == 0) continue;
-
-            vtx.reserve(vtx.size() + pos->count);
-            for (unsigned vid = 0; vid < pos->count; vid++) {
-                Mesh::Vertex& vertex = vtx.emplace();
-                cgltf_accessor_read_float(pos, vid, &vertex.pos.x, 3);
-
-                if (nor) cgltf_accessor_read_float(nor, vid, &vertex.nor.x, 3);
-                if (uv) cgltf_accessor_read_float(uv, vid, &vertex.uv.x, 2);
-            }
-
-            if (primitive.indices) {
-                unsigned index{};
-                ind.reserve(ind.size() + primitive.indices->count);
-                for (unsigned iid = 0; iid < primitive.indices->count; iid++) {
-                    cgltf_accessor_read_uint(primitive.indices, iid, &index, 1);
-                    ind.push(index);
-                }
-            } else {
-                ind.reserve(vtx.size());
-                for (unsigned vid = 0; vid < vtx.size(); vid++) ind.push(vid);
-            }
-        }
-    }
-
-    cgltf_free(data);
+    return merged;
 }

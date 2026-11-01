@@ -36,7 +36,7 @@ namespace pk {
             const entry* end() const noexcept { return data.end(); }
 
             uint size() const noexcept { return data.size(); }
-            bool valid(uint id) const noexcept { return id - 1 > size(); }
+            bool valid(uint id) const noexcept { return id - 1 < size(); }
 
             entry& operator[](uint id) noexcept { 
                 if (id-1 > size()) printf("%i id's out of bounds mate\n", id); 
@@ -47,6 +47,9 @@ namespace pk {
                 if (id-1 > size()) printf("%i id's out of bounds mate\n", id); 
                 return data[index[id-1]]; 
             }
+
+            const entry& dataindex(uint id) const noexcept { return data[id]; }
+            entry& dataindex(uint id) noexcept { return data[id]; }
 
             template <typename... args>
             entry& push(args&&... arg) {

@@ -1,7 +1,6 @@
 #define PK_INTERNAL
 #include <common.hpp>
 #include <PK/Render/renderer.hpp>
-#include <PK/Render/mesh.hpp>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
@@ -248,78 +247,6 @@ Texture::Texture(const path& path) noexcept {
     stbi_image_free(data);
 }
 
-Texture Texture::Colour(int width, int height) noexcept {
-    Texture texture;
-
-    texture.w = width;
-    texture.h = height;
-
-    glGenTextures(1, &texture.index);
-    glBindTexture(GL_TEXTURE_2D, texture.index);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    return texture;
-}
-
-Texture Texture::Depth(int width, int height, bool compare) noexcept {
-    Texture texture;
-
-    texture.w = width;
-    texture.h = height;
-
-    glGenTextures(1, &texture.index);
-    glBindTexture(GL_TEXTURE_2D, texture.index);
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-
-    if (compare) {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-    }
-
-    return texture;
-}
-
-Framebuffer::Framebuffer(int width, int height) noexcept: w(width), h(height) {
-    glGenFramebuffers(1, &index);
-}
-
-void Framebuffer::Bind() noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, index);
-}
-
-void Framebuffer::AttachColour(const Texture& texture) noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, index);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture.index, 0);
-
-    ColourAttached = true;
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
-}
-
-void Framebuffer::AttachDepth(const Texture& texture) noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, index);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texture.index, 0);
-
-    if (!ColourAttached) {
-        glDrawBuffer(GL_NONE);
-        glReadBuffer(GL_NONE);
-    }
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        printf("Framebuffer is incomplete: 0x%x\n", glCheckFramebufferStatus(GL_FRAMEBUFFER));
-}
-
 void Renderer::DrawElems(int indices, PrimitiveMode mode) noexcept {
     glDrawElements((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr);
 }
@@ -340,13 +267,6 @@ void Renderer::SetMode(RasterMode mode) noexcept {
     glPolygonMode(GL_FRONT_AND_BACK, (GLenum)mode);
 }
 
-void Renderer::Target(const Framebuffer& framebuffer, DrawTarget target) noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.index);
-    Viewport(framebuffer.w, framebuffer.h);
-
-    glDrawBuffer(framebuffer.ColourAttached ? GL_COLOR_ATTACHMENT0 : (GLenum) target);
-}
-
 void Renderer::Fill(vec3 colour) noexcept {
     glClearColor(colour.x, colour.y, colour.z, 1.0f);
 }
@@ -356,21 +276,12 @@ void Renderer::Clear(int flags) noexcept {
 }
 
 void Renderer::Viewport() noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDrawBuffer(GL_BACK);
 
     int width, height;
     glfwGetWindowSize(Perekop::glfw_window, &width, &height);
 
     glViewport(0, 0, width, height);
-}
-
-void Renderer::Viewport(int width, int height) noexcept {
-    glViewport(0, 0, width, height);
-}
-
-void Renderer::Viewport(int x, int y, int width, int height) noexcept {
-    glViewport(x, y, width, height);
 }
 
 void Renderer::Swap() noexcept {

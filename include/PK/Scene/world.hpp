@@ -2,6 +2,7 @@
 #include <PK/Render/mesh.hpp>
 #include <PK/Physics/model.hpp>
 #include <PK/Physics/body.hpp>
+#include <PK/Physics/collision.hpp>
 #include <PK/Physics/joint.hpp>
 #include <PK/Render/Resources/vertexattribute.hpp>
 
@@ -13,4 +14,7 @@ namespace pk::World {
     inline set<Model> models;
     inline set<Physics::Body> bodies;
     inline set<Physics::Joint> joints;
+    inline set<Physics::CollisionGroup> collisiongroups;
+
+    inline Physics::SpatialSeperator bodySeparator;
 }

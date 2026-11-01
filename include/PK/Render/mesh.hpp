@@ -6,6 +6,7 @@
 
 namespace pk {
     extern Render::VertexArray MeshVAO;
+    class Mesh;
 
     class Mesh {
         public:
@@ -17,7 +18,7 @@ namespace pk {
             Material* material{nullptr};
 
             vector<Vertex> vtx;
-            vector<unsigned> ind;
+            vector<uint> ind;
             vec3 centre{0.f}, ext{0.f}, invInertia{0.f};
 
             void Load();
@@ -27,7 +28,7 @@ namespace pk {
             void Refresh();
 
             Mesh() noexcept = default;
-            Mesh(const std::filesystem::path& glb) noexcept;
+            //Mesh(const std::filesystem::path& glb) noexcept;
 
             Mesh(Mesh&&) noexcept;
             Mesh& operator=(Mesh&&) noexcept;
@@ -35,10 +36,16 @@ namespace pk {
             Mesh(const Mesh&) noexcept;
             Mesh& operator=(const Mesh&) noexcept;
 
-            vec3 GetEdge(unsigned V0, unsigned V1) noexcept;
-            float GetArea(unsigned V0, unsigned V1, unsigned V2) noexcept;
-            float GetVolume(unsigned V0, unsigned V1, unsigned V2, unsigned V3) noexcept;
+            vec3 GetEdge(uint V0, uint V1) noexcept;
+            float GetArea(uint V0, uint V1, uint V2) noexcept;
+            float GetVolume(uint V0, uint V1, uint V2, uint V3) noexcept;
 
             ~Mesh() noexcept;
+
+            // accepts .glb only!!
+            using importcallback = std::function<void(Mesh&& mesh, std::string_view name, pose pose)>;
+            static void Import(const std::filesystem::path&, importcallback) noexcept;
+
+            static Mesh Merge(const Mesh& A, const Mesh& B, pose poseA, pose poseB) noexcept;
     };
 }

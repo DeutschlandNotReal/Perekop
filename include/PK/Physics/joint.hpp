@@ -3,7 +3,7 @@
 
 namespace pk::Physics {
     enum class JointType {
-        Spring, Solid, Angular
+        Spring, Solid, Angular, Rope
     };
 
     class Joint {
@@ -13,7 +13,7 @@ namespace pk::Physics {
             vec3 attA, attB;
 
             union {
-                struct { float stiffness, length; }; // spring
+                struct { float stiffness, length; }; // spring, rope
                 struct { float maxstrength; };       // solid
                 struct { float maxangle; };          // angular
             };
@@ -37,6 +37,14 @@ namespace pk::Physics {
                 Joint J;
                 J.type = JointType::Angular;
                 J.maxangle = maxangle;
+                return J;
+            }
+
+            static Joint RopeType(float stiffness, float length) noexcept {
+                Joint J;
+                J.type = JointType::Rope;
+                J.stiffness = stiffness;
+                J.length = length;
                 return J;
             }
 

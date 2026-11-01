@@ -24,6 +24,7 @@ namespace pk::Physics {
 
             ShapeType shapetype{ShapeType::Box};
             vec3 vel{0.f}, avel{0.f}, F{0.f}, mom{0.f};
+            uint colgroup{0};
         
             void Impulse(vec3 force) noexcept;
             void Impulse(vec3 force, vec3 point) noexcept;

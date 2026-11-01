@@ -62,14 +62,15 @@ OverlapResult Physics::GetOverlap(const Shape &A, const Shape &B) noexcept {
 
         return {minaxis, minO};
     } else if (A.type == ShapeType::Ball && B.type == ShapeType::Ball) {
-        vec3 disp = A.pose - B.pose;
+        vec3 disp = (A.pose - B.pose).pos;
         float r = A.r + B.r;
         float dst2 = dot(disp, disp);
 
         if (dst2 > r * r) return {};
-        float dst{sqrt(dst2)};
+        float dst = sqrt(dst2);
+        vec3 axis = dst2 > eps ? disp / dst : xaxis;
 
-        return {disp/dst, r - dst};
+        return {axis, r - dst};
     } else {
         Shape Box{A}, Ball{B}; 
         if (B.type == ShapeType::Box) std::swap(Box, Ball);
@@ -125,13 +126,20 @@ mat3 worldInertia(const mat3& R, vec3 i) noexcept {
     };
 }
 
-void Physics::Collide(Body& A, Body& B, float dt) noexcept {
+Shape GetShape(const Body &A, const Mesh &M) noexcept {
+    switch (A.shapetype) {
+        case Physics::ShapeType::Box:
+            return {A.pose, M.ext * A.scale};
+        case Physics::ShapeType::Ball:
+            return {A.pose, compMin(M.ext * A.scale)};
+    }
+}
+
+void Physics::Collide(Body &A, Body &B, float dt) noexcept {
     const Mesh &meshA = World::meshes[A.meshid], 
                &meshB = World::meshes[B.meshid];
 
-
-    Shape shapeA{A.pose, (meshA.ext.x * A.scale.x)},
-          shapeB{B.pose, (meshB.ext.x * B.scale.x)};
+    Shape shapeA{GetShape(A, meshA)}, shapeB{GetShape(B, meshB)};
 
     auto result = GetOverlap(shapeA, shapeB);
     if (result.overlap < eps) return;
@@ -143,12 +151,84 @@ void Physics::Collide(Body& A, Body& B, float dt) noexcept {
     float shareA = A.GetiMass() * iMassNet;
     float shareB = B.GetiMass() * iMassNet;
 
-    vec3 n = normalize(B.pose - A.pose);
+    vec3 centerDelta = B.pose.pos - A.pose.pos;
+    vec3 n = len2(centerDelta) > eps ? normalize(centerDelta) : xaxis;
     vec3 common = n * (dot(n, A.vel * A.GetMass()) - dot(n, B.vel * B.GetMass()));
 
-    A.Impulse(-common * shareA, A.pose.pos + n * shapeA.r);
-    B.Impulse(common * shareB, B.pose.pos - n * shapeB.r);
+    A.Impulse(-common * shareA, n * shapeA.r);
+    B.Impulse(common * shareB, -n * shapeB.r);
 
     A.pose += (vec3)result * shareA;
     B.pose -= (vec3)result * shareB;
+}
+
+void SpatialSeperator::seperate(const set<Body>& values) {
+    entries.clear();
+    positions.clear();
+    positions.reserve(values.size());
+
+    for (uint i{0}; i < values.size(); i++) {
+        const auto& val = values.dataindex(i);
+        const Body& body = val;
+        float radius = abs(World::meshes[body.meshid]->ext.x * body.scale.x);
+        positions.emplace(body.pose.pos, vec3{radius}, val.GetId());
+    }
+
+    auto build = [&](auto&& build, uint first, uint last) -> uint {
+        vec3 minext{inf}, maxext{-inf};
+        for (uint i{first}; i < last; i++) {
+            minext = min(minext, positions[i].centre - positions[i].ext);
+            maxext = max(maxext, positions[i].centre + positions[i].ext);
+        }
+
+        vec3 centre = (minext + maxext) * .5f;
+        vec3 ext = (maxext - minext) * .5f;
+        uint index = entries.size();
+        entries.emplace(centre, ext);
+
+        if (last - first == 1) {
+            entries[index].itemid = positions[first].id;
+            return index;
+        }
+
+        uint axis = ext.x > ext.y ? (ext.x > ext.z ? 0 : 2) : (ext.y > ext.z ? 1 : 2);
+        uint middle = first + (last - first) / 2;
+        std::nth_element(
+            positions.begin() + first,
+            positions.begin() + middle,
+            positions.begin() + last,
+            [axis](const Position& a, const Position& b) { return a.centre[axis] < b.centre[axis]; }
+        );
+
+        entries[index].lhsid = build(build, first, middle);
+        entries[index].rhsid = build(build, middle, last);
+        return index;
+    };
+
+    if (!positions.empty()) build(build, 0, positions.size());
+}
+
+span<uint> SpatialSeperator::near(vec3 O, vec3 ext) noexcept {
+    nearby.clear();
+    ext = abs(ext);
+
+    auto search = [&](auto&& search, uint index){
+        const Entry& entry = entries[index];
+        vec3 delta = abs(entry.centre - O);
+        if (delta.x > entry.ext.x + ext.x ||
+            delta.y > entry.ext.y + ext.y ||
+            delta.z > entry.ext.z + ext.z) return;
+
+        if (entry.itemid) {
+            nearby.emplace(entry.itemid);
+            return;
+        }
+
+        search(search, entry.lhsid);
+        search(search, entry.rhsid);
+    };
+
+    if (!entries.empty()) search(search, 0);
+
+    return {nearby.begin(), nearby.end()};
 }

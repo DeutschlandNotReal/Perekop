@@ -38,6 +38,14 @@ namespace pk {
             void map(A... args, T* result) const noexcept {
                 for (uint i{0}; i < size(); i++) result[i] = f(data[i], std::forward(args...));
             }
+
+            span subspan(uint from, uint to) noexcept {
+                return {data+from, to-from};
+            }
+
+            const span subspan(uint from, uint to) const noexcept {
+                return {data + from, to-from};
+            }
     };
 
     template <> class span<void> {
@@ -59,7 +67,6 @@ namespace pk {
                 return *((const T*)data + index);
             }
 
-
             template <typename C>
             constexpr span(const C& container) noexcept requires(
                 std::is_convertible_v<decltype(container.begin()), const void*> &&
@@ -68,5 +75,7 @@ namespace pk {
                 data((const void*)container.begin()),
                 cap((const void*)container.end())
             {}
+
+
     };
 }

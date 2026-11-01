@@ -8,51 +8,39 @@ using namespace pk;
 using namespace Perekop;
 
 
-template <bool shadow> void Draw(pose pose, uint meshid, vec3 scale, const mat4& camera, const mat4& light) noexcept {
-    const Mesh& mesh = World::meshes[meshid];
+void Draw(pose pose, uint meshid, vec3 scale, const mat4& camera) noexcept {
+    using namespace Render;
+    const Mesh &mesh = World::meshes[meshid];
 
-    Render::Shader& shader = shadow ? Lighting::Shadow::Shader : mesh.material->shader;
+    Shader &shader = mesh.material->shader;
     shader.Use();
     shader.GetUniform("camera")   = camera;
-    shader.GetUniform("light")    = light;
     shader.GetUniform("lightPos") = Lighting::Light.pos;
     shader.GetUniform("model")    = (mat4) pose;
     shader.GetUniform("scale")    = scale;
 
-    if constexpr (!shadow) {
-        shader.SetTexture("T",      0, mesh.material->textures[0]);
-        shader.SetTexture("shadow", 1, Lighting::Shadow::Texture);
-    }
+    shader.SetTexture("T", 0, mesh.material->textures[0]);
 
     MeshVAO.Bind();
-    MeshVAO.BindBuffer(0, mesh.VBO, Render::BufferTarget::Array,   sizeof(Mesh::Vertex));
-    MeshVAO.BindBuffer(0, mesh.EBO, Render::BufferTarget::Element, 0);
+    MeshVAO.BindBuffer(0, mesh.VBO, BufferTarget::Array,   sizeof(Mesh::Vertex));
+    MeshVAO.BindBuffer(0, mesh.EBO, BufferTarget::Element, 0);
         
     Lighting::Renderer.DrawElems(mesh.ind.size());
 }
 
 void Perekop::RenderStep() noexcept {
+    using namespace Render;
+
     const mat4 VP = Lighting::Camera.Projection() * Lighting::Camera.View();
-    const mat4 L  = Lighting::Light; 
-
-    Lighting::Renderer.Target(Lighting::Shadow::Buffer);
-    Lighting::Renderer.Fill({1.f, 1.f, 1.f});
-    Lighting::Renderer.Clear((int)Render::ClearTarget::Depth);
-
-    // shadow stage
-    for (const Model& model : World::models) 
-        Draw<true>(model.pose, model.meshid, model.scale, L, L);
-    for (const Physics::Body& body : World::bodies)
-        Draw<true>(body.pose, body.meshid, body.scale, L, L);
-
     Lighting::Renderer.Viewport();
     Lighting::Renderer.Fill({.15f, .15f, .15f});
     Lighting::Renderer.Clear((int)Render::ClearTarget::Depth | (int)Render::ClearTarget::Colour);
 
-    for (const Model& model : World::models) 
-        Draw<false>(model.pose, model.meshid, model.scale, VP, L);
-    for (const Physics::Body& body : World::bodies)
-        Draw<false>(body.pose, body.meshid, body.scale, VP, L);
+    for (const Model &model : World::models)
+        Draw(model.pose, model.meshid, model.scale, VP);
+
+    for (const Physics::Body &body : World::bodies)
+        Draw(body.pose, body.meshid, body.scale, VP);
 
     Lighting::Renderer.Swap();
 }

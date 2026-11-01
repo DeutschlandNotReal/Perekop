@@ -57,7 +57,7 @@ namespace pk {
         pose& operator*=(pose p) noexcept { pos += rot * p.pos; rot *= p.rot; return *this; }
     };
 
-    [[nodiscard]] inline vec3 operator-(pose a, pose b) noexcept { return (a -= b.pos).pos; }
+    [[nodiscard]] inline pose operator-(pose a, pose b) noexcept { return (a -= b.pos); }
     [[nodiscard]] inline pose operator+(pose p, vec3 v) noexcept { return p += v; }
     [[nodiscard]] inline pose operator-(pose p, vec3 v) noexcept { return p -= v; }
     [[nodiscard]] inline pose operator*(pose p, quat r) noexcept { return p *= r; }

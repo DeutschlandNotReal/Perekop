@@ -14,7 +14,7 @@ namespace pk::time {
     template <typename U, unsigned short L = 1> class Tracker {
         short ptr{-1}; U records[L]{};
         public:
-            void Begin(U offset = 0) {
+            void Begin(U offset = 0) noexcept {
                 if (ptr + 1 >= L) {
                     ptr = L - 1;
                     records[ptr] = Now<U>() + offset;
@@ -23,23 +23,27 @@ namespace pk::time {
                 records[++ptr] = Now<U>() + offset;
             }
 
-            U Stop() {
+            U Stop() noexcept {
                 if (ptr < 0) return U{};
                 U elapsed = Now<U>() - records[ptr];
                 --ptr;
                 return elapsed;
             }
 
-            [[nodiscard]] U Elapsed() const {
+            [[nodiscard]] U Elapsed() const noexcept {
                 if (ptr < 0) return U{};
                 return Now<U>() - records[ptr];
             }
 
-            [[nodiscard]] U Delta() {
+            U Delta() noexcept {
                 if (ptr < 0) return U{};
                 U dt = Elapsed();
                 records[ptr] += dt;
                 return dt;
+            }
+
+            void Roll(U delta) noexcept {
+                records[ptr] += delta;
             }
     };
 }

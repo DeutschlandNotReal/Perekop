@@ -7,12 +7,6 @@ namespace pk::Lighting {
     inline pose   Light;
     inline Render::Renderer Renderer;
     inline Render::Texture Material;
-    
-    namespace Shadow {
-        inline Render::Shader Shader;
-        inline Render::Framebuffer Buffer;
-        inline Render::Texture Texture;
-    }
 
     namespace ShaderData {
         inline mat4 CameraMatrix;

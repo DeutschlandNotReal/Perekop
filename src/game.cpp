@@ -16,34 +16,26 @@ using namespace pk;
 const std::filesystem::path assets{"assets"};
 Material gamemat;
 
-void CreateWorld() {
-    for (uint i{0}; i < 2; ++i) {
-        Physics::Body& body = World::bodies.push();
-        
-        body.meshid = 1;
-        body.shapetype    = Physics::ShapeType::Ball;
-        
-        body.pose = vec3{(float)(rand() % 100), (float)(rand() % 100), (float)(rand() % 100)};
-
-        body.scale = vec3{1.f};
-
-        body.SetMass(1.f);
-
-        body.vel = (i%2==0) ? vec3{1, 1, 1} : vec3{-1, -1, -1};
-        body.vel *= .5f;
-    }
-
-    World::joints.push(
-        Physics::Joint::SpringType(2, 5)
-            .AttachA(1, vec3{1, 2, 1})
-            .AttachB(2, vec3{4, 3, -1})
-    );
+// -1 to 1
+float urand() noexcept { 
+    return (float) (rand() % 1000 - 500) / 500.f;
 }
 
+// l <= x <= h
+int irand(int l, int h) noexcept {
+    return rand() % (h - l) + l;
+}
+
+vec3 rnvec() noexcept {
+    return normalize(vec3{urand(), urand(), urand()});
+}
+
+vec3 rvec(float r) noexcept {
+    return rnvec() * pow((urand() + 1) * .5f, 1.f/3.f) * r; 
+}
 
 void Perekop::OnStep(double dt) {
     PKG::StepCamera(pk::Lighting::Camera, dt);
-    Perekop::PhysicsStep(dt);
 }
 
 void Perekop::OnRender() {
@@ -56,30 +48,31 @@ void Perekop::OnLaunch() {
 
     using namespace Lighting;
     using namespace Render;
-    Light = pk::pose::LookAt({50, 36, 22}, {0, 2, 0});
-    Lighting::Camera.pose = pk::pose::LookAt({0, 12, 30}, {0, 2, 0});
-    PKG::InitCamera(pk::Lighting::Camera);
+    Light = pose::LookAt({50, 36, 22}, {0, 2, 0});
+    Lighting::Camera.pose = pose::LookAt({0, 0, 55}, {0, 0, 0});
+    PKG::InitCamera(Lighting::Camera);
 
-    Shadow::Texture = Texture::Depth(2048, 2048);
-    Shadow::Buffer = Framebuffer(2048, 2048);
-    Shadow::Buffer.AttachDepth(Shadow::Texture);
-
-    Shadow::Shader = Render::Shader({
-        {ShaderType::Vertex, assets/"shaders/vert.glsl"},
-        {ShaderType::Fragment, (std::string_view) "#version 430\n void main() {}"}
-    });
-
-    gamemat.shader = pk::Render::Shader({
+    gamemat.shader = {
         {ShaderType::Vertex,   assets/"shaders/vert.glsl"},
         {ShaderType::Fragment, assets/"shaders/frag.glsl"}
-    }); 
+    };
         
     gamemat.textures[0] = Lighting::Material = assets/"images/test.jpg";
 
-    Mesh& box = World::meshes.push(assets/"models/PK67.glb");
-    box.material = &gamemat;
-    box.Load();
-    CreateWorld();
+    Mesh::Import(assets/"models/zelensky.glb", [](auto &&mesh, std::string_view name, pose pose) {
+        printf(" loading mesh %*s\n", (int) name.size(), name.cbegin());
+        auto &imesh = World::meshes.push(std::move(mesh));
+        imesh->material = &gamemat;
+        imesh->Load();
+
+        Physics::Body& body = World::bodies.push();
+        body.SetMass(1);
+        body.meshid = imesh.GetId();
+        body.pose = pose; 
+
+        if (name == "propeller") 
+            body.avel = vec3{1.f, 0.f, 0.f};
+    });
 }
 
 void Perekop::OnExit() {
