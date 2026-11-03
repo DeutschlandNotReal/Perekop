@@ -46,7 +46,7 @@ if(MSVC)
     target_compile_options(Perekop PRIVATE $<$<CONFIG:Debug>:/W4>)
 else()
     target_compile_options(Perekop PRIVATE
-        $<$<CONFIG:Debug>:-Wall -Wextra -Wpedantic>
+        $<$<CONFIG:Debug>:>
         $<$<CONFIG:Release>:-O3 -funroll-loops>
     )
 

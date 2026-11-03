@@ -42,11 +42,14 @@ OverlapResult Physics::GetOverlap(const Shape &A, const Shape &B) noexcept {
         };
 
         float minO{inf}; vec3 minaxis;
-        vec3 hA = A.ext * .5f, hB = B.ext * .5f;
+        vec3 hA = A.ext, hB = B.ext;
 
         mat3 tR = transpose(R);
         for (uint i{0}; i < 15; i++) {
             vec3 axis{axes[i]};
+            float axisLength2 = dot(axis, axis);
+            if (axisLength2 < eps) continue;
+            axis *= 1.f / sqrt(axisLength2);
 
             // analytical way instead of looping through all eight (8) corners
             float extOA = dot(hA, abs(axis));
@@ -60,7 +63,7 @@ OverlapResult Physics::GetOverlap(const Shape &A, const Shape &B) noexcept {
             if (overlap < minO) { minaxis = axis; minO = overlap; }
         }
 
-        return {minaxis, minO};
+        return {worldspace(minaxis, A.pose.rot), minO};
     } else if (A.type == ShapeType::Ball && B.type == ShapeType::Ball) {
         vec3 disp = (A.pose - B.pose).pos;
         float r = A.r + B.r;
@@ -76,7 +79,7 @@ OverlapResult Physics::GetOverlap(const Shape &A, const Shape &B) noexcept {
         if (B.type == ShapeType::Box) std::swap(Box, Ball);
         pose rel = localspace(Ball.pose, Box.pose);
 
-        vec3 h = Box.ext * .5f;
+        vec3 h = Box.ext;
         vec3 near = clamp(rel.pos, -h, h);
 
         if (dot(near, near) < eps) near = vec3{eps};
@@ -100,7 +103,7 @@ OverlapResult Physics::GetOverlap(const Shape &A, const Shape &B) noexcept {
                 minaxis = (dst < 0.f) ? -axis : axis;
             }
         }
-        return {minaxis, minO};
+        return {worldspace(minaxis, Box.pose.rot), minO};
     }
 }
 
@@ -129,13 +132,14 @@ mat3 worldInertia(const mat3& R, vec3 i) noexcept {
 Shape GetShape(const Body &A, const Mesh &M) noexcept {
     switch (A.shapetype) {
         case Physics::ShapeType::Box:
-            return {A.pose, M.ext * A.scale};
+            return {A.pose, abs(M.ext * A.scale)};
         case Physics::ShapeType::Ball:
-            return {A.pose, compMin(M.ext * A.scale)};
+            return {A.pose, compMin(abs(M.ext * A.scale))};
     }
+    return {A.pose, vec3{0.f}};
 }
 
-void Physics::Collide(Body &A, Body &B, float dt) noexcept {
+void Physics::Collide(Body &A, Body &B, float) noexcept {
     const Mesh &meshA = World::meshes[A.meshid], 
                &meshB = World::meshes[B.meshid];
 
@@ -144,22 +148,25 @@ void Physics::Collide(Body &A, Body &B, float dt) noexcept {
     auto result = GetOverlap(shapeA, shapeB);
     if (result.overlap < eps) return;
 
-    float iMassNet = (A.GetiMass() * B.GetiMass());
-    if (iMassNet < eps) return;
-    iMassNet = 1.f / iMassNet;
-
-    float shareA = A.GetiMass() * iMassNet;
-    float shareB = B.GetiMass() * iMassNet;
+    float invMassA = A.GetiMass(), invMassB = B.GetiMass();
+    float invMassSum = invMassA + invMassB;
+    if (invMassSum <= 0.f) return;
 
     vec3 centerDelta = B.pose.pos - A.pose.pos;
-    vec3 n = len2(centerDelta) > eps ? normalize(centerDelta) : xaxis;
-    vec3 common = n * (dot(n, A.vel * A.GetMass()) - dot(n, B.vel * B.GetMass()));
+    vec3 n = len2(result.axis) > eps ? normalize(result.axis) : xaxis;
+    if (dot(centerDelta, n) < 0.f) n = -n;
 
-    A.Impulse(-common * shareA, n * shapeA.r);
-    B.Impulse(common * shareB, -n * shapeB.r);
+    float penetration = max(result.overlap - .001f, 0.f);
+    vec3 correction = n * (.8f * penetration / invMassSum);
+    A.pose -= correction * invMassA;
+    B.pose += correction * invMassB;
 
-    A.pose += (vec3)result * shareA;
-    B.pose -= (vec3)result * shareB;
+    float relativeSpeed = dot(B.vel - A.vel, n);
+    if (relativeSpeed < 0.f) {
+        float impulse = -relativeSpeed / invMassSum;
+        A.vel -= n * (impulse * invMassA);
+        B.vel += n * (impulse * invMassB);
+    }
 }
 
 void SpatialSeperator::seperate(const set<Body>& values) {
@@ -170,8 +177,9 @@ void SpatialSeperator::seperate(const set<Body>& values) {
     for (uint i{0}; i < values.size(); i++) {
         const auto& val = values.dataindex(i);
         const Body& body = val;
-        float radius = abs(World::meshes[body.meshid]->ext.x * body.scale.x);
-        positions.emplace(body.pose.pos, vec3{radius}, val.GetId());
+        vec3 ext = abs(World::meshes[body.meshid].ext * body.scale);
+        float radius = length(ext);
+        positions.emplace(body.pose.pos, vec3{radius}, val.id);
     }
 
     auto build = [&](auto&& build, uint first, uint last) -> uint {

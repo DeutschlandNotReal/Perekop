@@ -1,4 +1,3 @@
-#pragma once
 #include <PK/Physics/body.hpp>
 using namespace pk;
 using namespace pk::Physics;
@@ -38,5 +37,5 @@ void Body::ImpulseLocal(vec3 force) noexcept {
 }
 
 void Body::ImpulseLocal(vec3 force, vec3 O) noexcept {
-    Impulse(worldspace(force, pose), worldspace(O, pose) - pose.pos);
+    Impulse(worldspace(force, pose), worldspace(O, pose.rot));
 }

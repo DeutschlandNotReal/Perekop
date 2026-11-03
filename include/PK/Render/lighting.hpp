@@ -3,8 +3,7 @@
 #include <PK/Render/renderer.hpp>
 
 namespace pk::Lighting {
-    inline Camera Camera;
-    inline pose   Light;
+    inline pose Light;
     inline Render::Renderer Renderer;
     inline Render::Texture Material;
 

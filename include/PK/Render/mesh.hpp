@@ -28,8 +28,7 @@ namespace pk {
             void Refresh();
 
             Mesh() noexcept = default;
-            //Mesh(const std::filesystem::path& glb) noexcept;
-
+  
             Mesh(Mesh&&) noexcept;
             Mesh& operator=(Mesh&&) noexcept;
 
@@ -42,10 +41,18 @@ namespace pk {
 
             ~Mesh() noexcept;
 
-            // accepts .glb only!!
-            using importcallback = std::function<void(Mesh&& mesh, std::string_view name, pose pose)>;
-            static void Import(const std::filesystem::path&, importcallback) noexcept;
-
             static Mesh Merge(const Mesh& A, const Mesh& B, pose poseA, pose poseB) noexcept;
+    };
+
+    class MeshImporter {
+        public:
+            enum class glbValue { Mesh, Material };
+            struct MeshData     { Mesh* mesh; pose pose; };
+            struct MaterialData {};
+
+            using callback = std::function<void(glbValue, std::string_view, void*)>;
+
+            // .glb format
+            static void Import(const std::filesystem::path&, callback callback) noexcept;  
     };
 }

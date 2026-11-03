@@ -21,7 +21,7 @@ namespace pk {
     template <typename T = char>
     [[nodiscard]] constexpr T* alloc(uint n) {
         // rounded to nearest align
-        uint len = sizeof(T) * n + alignof(T) & ~(alignof(T) - 1);
+        uint len = sizeof(T) * n + (alignof(T) & ~(alignof(T) - 1));
 
         T* ptr = (T*)::operator new(len, std::align_val_t(alignof(T)));
         return ptr;

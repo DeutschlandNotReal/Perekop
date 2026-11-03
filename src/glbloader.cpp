@@ -1,11 +1,9 @@
-#pragma once
 #include <PK/Render/mesh.hpp>
 #include <cgltf.h>
 using namespace pk;
 
 namespace {
-
-void LoadMesh(cgltf_mesh &gmesh, pose pose, Mesh::importcallback callback, vec3 scale) noexcept {
+void LoadMesh(cgltf_mesh &gmesh, pose pose, MeshImporter::callback callback, vec3 scale) noexcept {
     for (uint pid{0}; pid < gmesh.primitives_count; pid++) {
         Mesh mesh;
         auto& vtx = mesh.vtx;
@@ -53,53 +51,38 @@ void LoadMesh(cgltf_mesh &gmesh, pose pose, Mesh::importcallback callback, vec3 
 
         for (Mesh::Vertex &v : vtx) v.pos -= centre;
 
-        callback(std::move(mesh), gmesh.name, pose + worldspace(centre, pose.rot));
+        pk::pose meshPose = pose + worldspace(centre, pose.rot);
+        MeshImporter::MeshData data{.mesh = &mesh, .pose = meshPose};
+
+        callback(MeshImporter::glbValue::Mesh, gmesh.name, &data);
     }
 }
 
+void ProcessNode(cgltf_node* node, pose pose, vec3 scale, MeshImporter::callback callback) noexcept {
+    if (node->has_matrix)
+        pose *= *(mat4*)node->matrix;
 
-void ProcessNode(cgltf_node* node, pose pose, vec3 scale, Mesh::importcallback callback) noexcept {
-    if (node->has_matrix) {
-        mat4 mat;
-        pk::copy((float*)&mat, node->matrix, 16);
+    if (node->has_rotation) 
+        pose *= *(quat*)node->rotation;
 
-        pose *= pk::pose(mat);        
-    }
+    if (node->has_translation) 
+        pose += *(vec3*)node->translation;
 
-    if (node->has_rotation) {
-        quat rot;
-        pk::copy((float*)&rot, node->rotation, 4);
-
-        pose *= rot;
-    }
-
-    if (node->has_translation) {
-        vec3 t;
-        pk::copy((float*)&t, node->translation, 3);
-
-        pose += t;
-    }
-
-    if (node->has_scale) {
-        vec3 scl;
-        pk::copy((float*)&scl, node->scale, 3);
-        
-        scale *= scl;
-    }
+    if (node->has_scale) 
+        scale *= *(vec3*)node->scale;
 
     pose.rot = normalize(pose.rot);
 
-    if (node->mesh) LoadMesh(*node->mesh, pose, callback, scale);
+    if (node->mesh) 
+        LoadMesh(*node->mesh, pose, callback, scale);
 
-
-    for (uint child{0}; child < node->children_count; child++) {
+    for (uint child{0}; child < node->children_count; child++) 
         ProcessNode(node->children[child], pose, scale, callback);
-    }
 }
 
 }
 
-void Mesh::Import(const std::filesystem::path& path, Mesh::importcallback callback) noexcept {
+void MeshImporter::Import(const std::filesystem::path& path, MeshImporter::callback callback) noexcept {
     cgltf_options options{};
     cgltf_data* data{nullptr};
     auto spath = path.string();
@@ -114,11 +97,11 @@ void Mesh::Import(const std::filesystem::path& path, Mesh::importcallback callba
 
     printf("Importing %S\n", path.c_str());
 
-    for (int sceneid{0}; sceneid < data->scenes_count; sceneid++) {
+    for (cgltf_size sceneid{0}; sceneid < data->scenes_count; sceneid++) {
         cgltf_scene& scene = data->scenes[sceneid];
         
 
-        for (int nid{0}; nid < scene.nodes_count; nid++)
+        for (cgltf_size nid{0}; nid < scene.nodes_count; nid++)
             ProcessNode(scene.nodes[nid], pose{}, vec3{1.f}, callback);
     }
     

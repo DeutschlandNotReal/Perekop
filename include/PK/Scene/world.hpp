@@ -12,9 +12,8 @@
 namespace pk::World {
     inline set<Mesh>  meshes;
     inline set<Model> models;
-    inline set<Physics::Body> bodies;
+    inline set<Body>  bodies;
     inline set<Physics::Joint> joints;
-    inline set<Physics::CollisionGroup> collisiongroups;
 
     inline Physics::SpatialSeperator bodySeparator;
 }

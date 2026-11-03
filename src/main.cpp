@@ -62,7 +62,7 @@ void init() {
     OnLaunch();
     
     glfwSetWindowRefreshCallback(glfw_window, [](GLFWwindow*){
-        Perekop::OnRender();
+        Perekop::RenderStep();
     });
 }
 
@@ -77,7 +77,7 @@ int main() {
         float elapsed = FrameTimer.Elapsed();
 
         if (elapsed >= dt) {
-            dt = 1.0 / fps;
+            dt = 1.f / fps;
             glfwPollEvents();
             int ticks = elapsed * fps;
             FrameTimer.Roll(ticks * dt);
@@ -90,7 +90,6 @@ int main() {
             }
             
             RenderStep();
-            OnRender();
         }
         std::this_thread::yield();
     }

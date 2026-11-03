@@ -16,6 +16,7 @@
 using namespace pk;
 using namespace pk::Physics;
 inline constexpr float inf = std::numeric_limits<float>::infinity();
+inline constexpr float dragK{.01f};
 
 ray worldspace(ray r, pose p) noexcept {
     return {worldspace(r.pos, p), worldspace(r.dir, p.rot)};
@@ -84,122 +85,62 @@ vec3 plane::Project(vec3 point) const noexcept {
     return point - Distance(point) * nor;
 }
 
-vec3 Physics::GetGravity(vec3) noexcept {
-    //return vec3{0.f, -9.81f, 0.f};
-    return vec3{0.f};
+vec3 Physics::GetGravity(vec3 o) noexcept {
+    return dot(o, o) != 0.f ? normalize(o) * -9.81f : o;
 }
 
 float t{0};
-void correct(Body& A, Body& B, vec3 dsp, float x) noexcept {
-    float invMA{A.GetiMass()}, invMB{B.GetiMass()};
-    float L{length(dsp)};
-
-    vec3 k = (L - x) / ((invMA + invMB) * L) * dsp;
-
-    A.pose += k * invMA;
-    B.pose -= k * invMB;
-}
-
-constexpr float blend{.5f};
-void correctvel(Body& A, Body& B, vec3 dsp, float x, float idt) noexcept {
-    float invMA{A.GetiMass()}, invMB{B.GetiMass()};
-    float L{length(dsp)};
-
-    vec3 k = (L - x) * idt * blend / ((invMA + invMB) * L) * dsp;
-
-    A.vel = (1.f - blend) * A.vel * k * invMA;
-    B.vel = (1.f - blend) * B.vel * k * invMB ;
-}
 
 void Perekop::PhysicsStep(float dt) noexcept {
     t += dt;
-    float idt = 1.f / dt;
 
     // collisions
     World::bodySeparator.seperate(World::bodies);
     for (auto &entry : World::bodies) {
         Body &a = entry;
-        float radius = abs(World::meshes[a.meshid]->ext.x * a.scale.x);
+        vec3 ext = abs(World::meshes[a.meshid].ext * a.scale);
+        float radius = length(ext);
 
         for (uint id : World::bodySeparator.near(a.pose.pos, vec3{radius})) {
             Body &b = World::bodies[id];
-            if (id <= entry.GetId() || !a.colgroup || !b.colgroup) continue;
-            auto& colgroup = World::collisiongroups[a.colgroup];
-
-            if (a.colgroup == b.colgroup && !colgroup->selfCollide) continue;
+            if (id <= entry.id || !a.collidable || !b.collidable) continue;
+            if (a.collisionId == b.collisionId) continue;
             
             Physics::Collide(a, World::bodies[id], dt);
         }
     }
 
-    // joints
-    for (const Joint &J : World::joints) {
-        if (!World::bodies.valid(J.bodyA) || !World::bodies.valid(J.bodyB)) continue;
-
-        Body &A = World::bodies[J.bodyA], &B = World::bodies[J.bodyB];
-
-        vec3 attA{worldspace(J.attA, A.pose)}, attB{worldspace(J.attB, B.pose)};
-        vec3 dsp{attB-attA};
-
-        switch (J.type) {
-            case JointType::Spring: {
-                float x{length(dsp)};
-
-                if (x < .01f) continue;
-                vec3 rA = attA - A.pose.pos;
-                vec3 rB = attB - B.pose.pos;
-                vec3 F = dsp * (J.stiffness * (x - J.length) / x);
-
-                A.Impulse(F, rA);
-                B.Impulse(-F, rB);
-                break;
-            };
-
-            case JointType::Rope: {
-                float x2{dot(dsp, dsp)};
-                if (x2 <= J.length * J.length || x2 < (.01f * .01f)) continue;
-                float x{sqrt(x2)};
-
-                vec3 rA = attA - A.pose.pos;
-                vec3 rB = attB - B.pose.pos;
-                vec3 F = dsp * (J.stiffness * (x - J.length) / x);
-
-                A.Impulse(F, rA);
-                B.Impulse(-F, rB);
-
-                //correct(A, B, dsp, J.length);
-                //correct(A, B, dsp, J.length); 
-
-                break;
-            }
-        }
-    }
+    Physics::SolveJoints(dt);
 
     // integrator
-    float hdt = dt * .5f;
-    for (Physics::Body &body : World::bodies) {
+    for (Body &body : World::bodies) {
         float inverseMass = body.GetiMass();
         if (inverseMass > 0.f) {
             float iMdt = inverseMass * dt;
 
-            vec3 dVel = body.F * iMdt + GetGravity(body.pose.pos) * dt;
+            vec3 drag = -dragK * length(body.vel) * body.vel;
+            vec3 dVel = (body.F + drag) * iMdt + GetGravity(body.pose.pos) * dt;
             body.vel  += dVel;
-            body.pose += body.vel * dt + dVel * hdt;
+            body.pose += body.vel * dt; // + dVel * hdt;
 
-            const auto& mesh = *World::meshes[body.meshid];
+            const auto& mesh = World::meshes[body.meshid];
             vec3 inertia = mesh.invInertia / (body.scale * body.scale);
             mat3 rot = body.pose;
 
             vec3 dAVel = rot * inertia * (transpose(rot) * body.mom) * dt;
             body.avel += dAVel;
 
-            float a2 = dot(body.avel, body.avel);
+            vec3 avel = body.avel - dAVel * .5f;
+            float a2 = dot(avel, avel);
             if (a2 > 0.f) {
                 float a = sqrt(a2);
-                body.pose.rot *= angleAxis(a * dt, body.avel * (1.f / a) + dAVel * hdt);
+                body.pose.rot = angleAxis(a * dt, avel * (1.f / a)) * body.pose.rot;
             }
         }
 
+        body.pose.rot = normalize(body.pose.rot);
         body.F = body.mom = vec3{0.f};
     }
+
+    Physics::CorrectJoints();
 }

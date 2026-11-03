@@ -1,9 +1,14 @@
 #pragma once
+#include <PK/Physics/body.hpp>
+#include <PK/Core/set.hpp>
 #include <PK/Math/pose.hpp>
 
 namespace pk::Physics {
+    void SolveJoints(float dt) noexcept;
+    void CorrectJoints() noexcept;
+
     enum class JointType {
-        Spring, Solid, Angular, Rope
+        Spring, Weld, Hinge, Angular, Rope
     };
 
     class Joint {
@@ -14,14 +19,24 @@ namespace pk::Physics {
 
             union {
                 struct { float stiffness, length; }; // spring, rope
-                struct { float maxstrength; };       // solid
                 struct { float maxangle; };          // angular
             };
 
-            static Joint SolidType(float maxstrength) noexcept {
+            quat relRot{1.f, 0.f, 0.f, 0.f};
+            quat rotA{1.f, 0.f, 0.f, 0.f};
+            vec3 hingeAxisA{0.f}, hingeAxisB{0.f};
+
+            static Joint WeldType() noexcept {
                 Joint J;
-                J.type = JointType::Solid;
-                J.maxstrength = maxstrength;
+                J.type = JointType::Weld;
+                return J;
+            }
+
+            static Joint HingeType(vec3 axisA, vec3 axisB) noexcept {
+                Joint J;
+                J.type = JointType::Hinge;
+                J.hingeAxisA = normalize(axisA);
+                J.hingeAxisB = normalize(axisB);
                 return J;
             }
 
@@ -40,15 +55,26 @@ namespace pk::Physics {
                 return J;
             }
 
-            static Joint RopeType(float stiffness, float length) noexcept {
+            static Joint RopeType(float length) noexcept {
                 Joint J;
                 J.type = JointType::Rope;
-                J.stiffness = stiffness;
                 J.length = length;
                 return J;
             }
 
-            Joint& AttachA(uint BodyID, vec3 pos) noexcept { bodyA = BodyID; attA = pos; return *this; }
-            Joint& AttachB(uint BodyID, vec3 pos) noexcept { bodyB = BodyID; attB = pos; return *this; }
+            Joint& AttachA(entry<Body> body, vec3 pos) noexcept {
+                bodyA = body.id;
+                attA = pos;
+                rotA = body.pose.rot;
+                return *this;
+            }
+
+            Joint& AttachB(entry<Body> body, vec3 pos) noexcept {
+                bodyB = body.id;
+                attB = pos;
+                if (type == JointType::Weld)
+                    relRot = conjugate(rotA) * body.pose.rot;
+                return *this;
+            }
     };
 }

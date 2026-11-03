@@ -25,6 +25,8 @@ namespace pk {
             mat4 Projection() const noexcept;
     };
 
+    inline Camera* CurrentCamera{nullptr};
+
     vec3 worldspace(vec3, const Camera& space) noexcept;
     vec3 localspace(vec3, const Camera& space) noexcept;
 }

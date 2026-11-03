@@ -17,7 +17,7 @@ namespace pk::Render {
         friend struct Renderer;
         friend class VertexArray;
 
-        unsigned index{0};
+        uint index{0};
 
         public:
             Buffer() noexcept = default;

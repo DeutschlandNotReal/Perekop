@@ -4,29 +4,23 @@
 
 namespace pk {
     template <typename T> class set {
-        public: class entry {
-            uint id;
-            T val;
-
+        public: class entry : public T {
             public:
-                uint GetId() const noexcept { return id; }
+                const uint id{0};
+  
+                entry() noexcept = default;
 
-                operator const T&() const noexcept { return val; }
-                operator T&() noexcept { return val; }
+                template <typename... args> entry(uint id, args&&... arg) noexcept:
+                    T(std::forward<args>(arg)...), id(id) 
+                {}
 
-                const T& operator*() const noexcept { return val; }
-                T& operator*() noexcept { return val; }
-
-                const T* operator->() const noexcept { return &val; }
-                T* operator->() noexcept { return &val; }
-
-                template <typename... args>
-                entry(uint id, args&&... arg) noexcept: id(id), val(std::forward<args>(arg)...) {}
+                explicit operator bool() const noexcept { return id != 0; }
+                bool operator!() const noexcept { return id == 0; }
         };
 
         private:
-            pk::vector<entry> data;
-            pk::vector<uint> index;
+            vector<entry> data;
+            vector<uint> index;
 
         public:
             entry* begin() noexcept { return data.begin(); }
@@ -68,4 +62,6 @@ namespace pk {
                     new (data + pos) T(std::move(data.back()));
             }
     };
+
+    template <typename T> using entry = set<T>::entry&;
 }

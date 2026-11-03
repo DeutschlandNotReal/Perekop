@@ -8,16 +8,16 @@ using namespace pk;
 using namespace Perekop;
 
 
-void Draw(pose pose, uint meshid, vec3 scale, const mat4& camera) noexcept {
+void Draw(const Model& model, const mat4& camera) noexcept {
     using namespace Render;
-    const Mesh &mesh = World::meshes[meshid];
+    const Mesh &mesh = World::meshes[model.meshid];
 
     Shader &shader = mesh.material->shader;
     shader.Use();
     shader.GetUniform("camera")   = camera;
     shader.GetUniform("lightPos") = Lighting::Light.pos;
-    shader.GetUniform("model")    = (mat4) pose;
-    shader.GetUniform("scale")    = scale;
+    shader.GetUniform("model")    = (mat4) model.pose;
+    shader.GetUniform("scale")    = model.scale;
 
     shader.SetTexture("T", 0, mesh.material->textures[0]);
 
@@ -30,17 +30,20 @@ void Draw(pose pose, uint meshid, vec3 scale, const mat4& camera) noexcept {
 
 void Perekop::RenderStep() noexcept {
     using namespace Render;
+    PreRender();
+    if (!CurrentCamera) return;
 
-    const mat4 VP = Lighting::Camera.Projection() * Lighting::Camera.View();
+    const mat4 VP = CurrentCamera->Projection() * CurrentCamera->View();
     Lighting::Renderer.Viewport();
     Lighting::Renderer.Fill({.15f, .15f, .15f});
     Lighting::Renderer.Clear((int)Render::ClearTarget::Depth | (int)Render::ClearTarget::Colour);
 
     for (const Model &model : World::models)
-        Draw(model.pose, model.meshid, model.scale, VP);
+        Draw(model, VP);
 
-    for (const Physics::Body &body : World::bodies)
-        Draw(body.pose, body.meshid, body.scale, VP);
+    for (const Body &body : World::bodies)
+        Draw(body, VP);
 
     Lighting::Renderer.Swap();
+    PostRender();
 }

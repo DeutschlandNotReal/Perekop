@@ -13,7 +13,7 @@ namespace pk::Render {
         friend struct Renderer;
         friend class Shader;
 
-        unsigned index{0};
+        uint index{0};
 
         public:
             ShaderStage(ShaderType type, const std::filesystem::path&) noexcept;
@@ -26,16 +26,16 @@ namespace pk::Render {
 
     class Shader {
         friend struct Renderer;
-        unsigned index{0};
+        uint index{0};
         
         public:
             class Uniform {
                 friend Shader;
                 friend struct Renderer;
 
-                unsigned program{0}, index{0};
+                uint program{0}, index{0};
 
-                Uniform(unsigned Program, std::string_view name) noexcept;
+                Uniform(uint program, std::string_view name) noexcept;
             
                 public:
                     int    operator=(int)    noexcept;
@@ -46,7 +46,7 @@ namespace pk::Render {
                     mat3   operator=(mat3)   noexcept;
                     mat4   operator=(mat4)   noexcept;
 
-                    unsigned GetIndex() const noexcept {
+                    uint GetIndex() const noexcept {
                         return index;
                     }
             };
@@ -56,6 +56,6 @@ namespace pk::Render {
 
             void Use() const noexcept;
             Uniform GetUniform(std::string_view name) const noexcept;
-            void SetTexture(std::string_view name, unsigned slot, const class Texture&) noexcept;
+            void SetTexture(std::string_view name, uint slot, const class Texture&) noexcept;
     };
 }

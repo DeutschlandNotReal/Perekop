@@ -6,8 +6,10 @@ namespace Perekop {
     // defined by game
     extern void OnLaunch();
     extern void OnExit();
-    extern void OnStep(double dt);
-    extern void OnRender();
+    extern void OnStep(float dt);
+
+    extern void PreRender();
+    extern void PostRender();
 
     // defined by engine
     extern void ExitGame();

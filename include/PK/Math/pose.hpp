@@ -42,6 +42,10 @@ namespace pk {
         [[nodiscard]] static pose LookAlong(vec3 from, vec3 along, vec3 up = {0, 1, 0}) noexcept {
             return {from, quatLookAt(along, up)};
         }
+
+        [[nodiscard]] static pose Slerp(pose a, pose b, float t) noexcept {
+            return {mix(a.pos, b.pos, t), glm::slerp(a.rot, b.rot, t)};
+        }
         
         [[nodiscard]] static pose FromEuler(vec3 pos, vec3 euler) noexcept {
             return {pos, euler};
@@ -55,6 +59,7 @@ namespace pk {
         pose& operator-=(vec3 v) noexcept { pos -= v; return *this; }
         pose& operator*=(quat r) noexcept { rot *= r; return *this; }
         pose& operator*=(pose p) noexcept { pos += rot * p.pos; rot *= p.rot; return *this; }
+        pose& operator*=(mat4 m) noexcept { pos += m[3]; rot *= quat{m}; return *this; }
     };
 
     [[nodiscard]] inline pose operator-(pose a, pose b) noexcept { return (a -= b.pos); }
@@ -62,6 +67,7 @@ namespace pk {
     [[nodiscard]] inline pose operator-(pose p, vec3 v) noexcept { return p -= v; }
     [[nodiscard]] inline pose operator*(pose p, quat r) noexcept { return p *= r; }
     [[nodiscard]] inline pose operator*(pose a, pose b) noexcept { return a *= b; }
+    [[nodiscard]] inline pose operator*(pose a, mat4 b) noexcept { return a *= b; }
 
     [[nodiscard]] inline vec3 worldspace(vec3 v, pose space) noexcept { return space.rot * v + space.pos; }
     [[nodiscard]] inline vec3 worldspace(vec3 v, quat space) noexcept { return space * v; }

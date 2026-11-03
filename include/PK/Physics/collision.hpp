@@ -3,13 +3,6 @@
 #include <PK/Core/set.hpp>
 
 namespace pk::Physics {
-    struct CollisionGroup {
-        vector<uint> modelIds;
-        bool selfCollide{false};
-    
-        vector<uint> otherCollides{};
-    };
-
     class SpatialSeperator {
         struct Entry {
             vec3 centre, ext;

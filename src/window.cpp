@@ -138,6 +138,8 @@ void Perekop::WindowBegin() noexcept {
 
     glfwSetCursorPosCallback(glfw_window, [](GLFWwindow*, double x, double y){
         vec2 delta = vec2{x, y} - std::exchange(Mouse::LastPosition, {x, y});
+
+        if (dot(delta, delta) == 0.f) return;
         
         if (Mouse::SkipMove) 
             Mouse::SkipMove = false;

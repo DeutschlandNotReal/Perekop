@@ -23,10 +23,15 @@ void Mesh::Load() {
     
     if (!vtx.empty()) {
         vec3 minv = vtx[0].pos, maxv = vtx[0].pos;
+        vec3 mean{0.f};
 
-        for (const Vertex& vertex : vtx) {
-            minv = min(minv, vertex.pos);
-            maxv = max(maxv, vertex.pos);
+        for (const Vertex& v : vtx) mean += v.pos;
+        mean /= vtx.size();
+
+        for (Vertex& v : vtx) {
+            v.pos -= mean;
+            minv = min(minv, v.pos);
+            maxv = max(maxv, v.pos);
         }
 
         centre = (maxv + minv) * .5f;
@@ -47,15 +52,15 @@ void Mesh::Unload() {
     EBO.Delete();
 }
 
-vec3 Mesh::GetEdge(unsigned V0, unsigned V1) noexcept {
+vec3 Mesh::GetEdge(uint V0, uint V1) noexcept {
     return vtx[V1].pos - vtx[V0].pos;
 }
 
-float Mesh::GetArea(unsigned V0, unsigned V1, unsigned V2) noexcept {
+float Mesh::GetArea(uint V0, uint V1, uint V2) noexcept {
     return .5f * length(cross(GetEdge(V0, V1), GetEdge(V1, V2)));
 }
 
-float Mesh::GetVolume(unsigned a, unsigned b, unsigned c, unsigned d) noexcept {
+float Mesh::GetVolume(uint a, uint b, uint c, uint d) noexcept {
     return (1.f / 6.f) * (
         dot(vtx[a].pos, cross(vtx[b].pos, vtx[c].pos)) +
         dot(vtx[b].pos, cross(vtx[c].pos, vtx[d].pos))

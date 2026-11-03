@@ -7,15 +7,15 @@ namespace pk::Render {
         friend struct Renderer;
         friend class Buffer;
 
-        unsigned index{0};
+        uint index{0};
 
         public:
             struct Builder {
-                unsigned index{0};
-                unsigned binding{0};
+                uint index{0};
+                uint binding{0};
                 size_t offset{0};
 
-                Builder& SetBD(unsigned Binding, unsigned Divisor) noexcept;
+                Builder& SetBD(uint Binding, uint Divisor) noexcept;
                 Builder& Float(int n = 1) noexcept;
                 Builder& Uint() noexcept;
                 Builder& Int() noexcept;
@@ -25,6 +25,6 @@ namespace pk::Render {
             static VertexArray generate() noexcept;
 
             void Bind() noexcept;
-            void BindBuffer(unsigned Binding, const Buffer&, BufferTarget Target, size_t stride) noexcept;
+            void BindBuffer(uint Binding, const Buffer&, BufferTarget Target, size_t stride) noexcept;
     };
 }
