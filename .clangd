@@ -12,9 +12,9 @@ CompileFlags:
   Add:
     - -std=c++23
     - -xc++
-    - -I../include
-    - -I../lib
-    - -I../lib/glm
-    - -I../lib/glad/include
-    - -I../lib/glfw/include
-    - -I../lib/freetype/include
+    - -I../Engine/include
+    - -I../Engine/lib
+    - -I../Engine/lib/glm
+    - -I../Engine/lib/glad/include
+    - -I../Engine/lib/glfw/include
+    - -I../Engine/lib/freetype/include
