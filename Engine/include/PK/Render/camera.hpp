@@ -5,9 +5,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace pk {
-    class camera {
-        friend vec3 worldspace(vec3, const camera&) noexcept;
-        friend vec3 localspace(vec3, const camera&) noexcept;
+    class Camera {
+        friend vec3 worldspace(vec3, const Camera&) noexcept;
+        friend vec3 localspace(vec3, const Camera&) noexcept;
 
         float tfov, degfov;
         public:
@@ -21,12 +21,12 @@ namespace pk {
                 tfov = tan(radians((degfov = newfov) * .5f));
             }
 
-            camera() noexcept { fov(70.f); }
+            Camera() noexcept { fov(70.f); }
 
             mat4 view() const noexcept;
             mat4 projection() const noexcept;
     };
 
-    vec3 worldspace(vec3, const camera& space) noexcept;
-    vec3 localspace(vec3, const camera& space) noexcept;
+    vec3 worldspace(vec3, const Camera& space) noexcept;
+    vec3 localspace(vec3, const Camera& space) noexcept;
 }

@@ -1,15 +1,15 @@
-#include <PK/Render/mesh.hpp>
+#include <PK/Render/Mesh.hpp>
 
 #include <cgltf.h>
 
 using namespace pk;
 
 namespace {
-void LoadMesh(cgltf_mesh &gmesh, pose pose, meshImporter::callback callback, vec3 scale) noexcept {
+void LoadMesh(cgltf_mesh &gmesh, pose pose, MeshImporter::callback callback, vec3 scale) noexcept {
     for (uint pid{0}; pid < gmesh.primitives_count; pid++) {
-        mesh mesh;
-        auto& vtx = mesh.vtx;
-        auto& ind = mesh.ind;
+        Mesh Mesh;
+        auto& vtx = Mesh.vtx;
+        auto& ind = Mesh.ind;
 
         cgltf_accessor *pos{nullptr}, *nor{nullptr}, *uv{nullptr};
         const auto& primitive = gmesh.primitives[pid];
@@ -30,12 +30,12 @@ void LoadMesh(cgltf_mesh &gmesh, pose pose, meshImporter::callback callback, vec
         vec3 centre{0.f};
         vtx.reserve(vtx.size() + pos->count);
         for (uint vid{0}; vid < pos->count; vid++) {
-            mesh::vertex& vertex = vtx.emplace();
-            cgltf_accessor_read_float(pos, vid, &vertex.pos.x, 3);
+            Mesh::Vertex& Vertex = vtx.emplace();
+            cgltf_accessor_read_float(pos, vid, &Vertex.pos.x, 3);
 
-            centre += vertex.pos *= scale;
-            if (nor) cgltf_accessor_read_float(nor, vid, &vertex.nor.x, 3);
-            if (uv)  cgltf_accessor_read_float(uv, vid, &vertex.uv.x, 2);
+            centre += Vertex.pos *= scale;
+            if (nor) cgltf_accessor_read_float(nor, vid, &Vertex.nor.x, 3);
+            if (uv)  cgltf_accessor_read_float(uv, vid, &Vertex.uv.x, 2);
         } 
         centre /= (float) vtx.size();
 
@@ -51,14 +51,14 @@ void LoadMesh(cgltf_mesh &gmesh, pose pose, meshImporter::callback callback, vec
             for (uint vid{0}; vid < vtx.size(); vid++) ind.push(vid);
         }
 
-        for (mesh::vertex &v : vtx) v.pos -= centre;
-        meshImporter::meshData data{.mesh = &mesh, .pose = pose + worldspace(centre, pose.rot)};
+        for (Mesh::Vertex &v : vtx) v.pos -= centre;
+        MeshImporter::meshData data{.Mesh = &Mesh, .pose = pose + worldspace(centre, pose.rot)};
 
-        callback(meshImporter::glbValue::mesh, gmesh.name, &data);
+        callback(MeshImporter::DataType::Mesh, gmesh.name, &data);
     }
 }
 
-void ProcessNode(cgltf_node* node, pose pose, vec3 scale, meshImporter::callback callback) noexcept {
+void ProcessNode(cgltf_node* node, pose pose, vec3 scale, MeshImporter::callback callback) noexcept {
     if (node->has_matrix)
         pose *= *(mat4*)node->matrix;
 
@@ -82,7 +82,7 @@ void ProcessNode(cgltf_node* node, pose pose, vec3 scale, meshImporter::callback
 
 }
 
-void meshImporter::import(const std::filesystem::path& path, meshImporter::callback callback) noexcept {
+void MeshImporter::import(const std::filesystem::path& path, MeshImporter::callback callback) noexcept {
     cgltf_options options{};
     cgltf_data* data{nullptr};
     auto spath = path.string();

@@ -50,8 +50,10 @@ namespace pk {
     template <typename T>
     constexpr void move(T* dst, T* src, uint n) {
         if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
-            if (dst <= src) for (uint i = 0; i < n; i++) pk::move(dst + i, src + i);
-            else            for (uint i = n; i-- > 0;)   pk::move(dst + i, src + i);
+            if (dst <= src) 
+                for (uint i{0}; i < n; ++i) pk::move(dst + i, src + i);
+            else
+                for (uint i{n}; i-- > 0;) pk::move(dst + i, src + i);
         }
         else if (n) std::memmove(dst, src, n * sizeof(T));
     }

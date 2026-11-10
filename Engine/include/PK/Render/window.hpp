@@ -1,7 +1,7 @@
 #pragma once
 #include <PK/Math/pose.hpp>
 #include <PK/Util/events.hpp>
-#include <PK/Render/camera.hpp>
+#include <PK/Render/Camera.hpp>
 
 #include <functional>
 #include <string_view>
@@ -15,10 +15,6 @@ namespace pk {
     class window {
         GLFWwindow* handle{nullptr};
         void installCallbacks() noexcept;
-        GLFWwindow* native() const noexcept { return handle; }
-
-        listeners<> refreshListeners;
-        listeners<vec2> resizeListeners;
 
         public:
             class input {
@@ -27,16 +23,16 @@ namespace pk {
                 vec2 lastPosition{0.f};
                 bool skipMove{false};
 
-                listeners<vec2> mouseMoveListeners;
-                listeners<float> mouseScrollListeners;
-                listeners<mouseButton> mousePressListeners;
-                listeners<mouseButton> mouseReleaseListeners;
-                listeners<int> keyPressListeners;
-                listeners<int> keyReleaseListeners;
-
                 explicit input(window& owner) noexcept: owner(&owner) {}
 
                 public:
+                    Event<window, vec2>         onMove;
+                    Event<window, float>        onScroll;
+                    Event<window, mouseButton>  onMouseDown;
+                    Event<window, mouseButton>  onMouseUp;
+                    Event<window, int>          onKeyDown;
+                    Event<window, int>          onKeyUp;
+
                     void setPosition(vec2) noexcept;
                     void lockMouse() noexcept;
                     void unlockMouse() noexcept;
@@ -45,17 +41,10 @@ namespace pk {
                     pose mousePose() const noexcept;
                     bool mouseHeld(mouseButton) const noexcept;
                     bool keyHeld(int) const noexcept;
-
-                    void bindMove(consumer<vec2>) noexcept;
-                    void bindScroll(consumer<float>) noexcept;
-                    void bindMPress(consumer<mouseButton>) noexcept;
-                    void bindMRelease(consumer<mouseButton>) noexcept;
-                    void bindKPress(consumer<int>) noexcept;
-                    void bindKRelease(consumer<int>) noexcept;
             };
 
             input input;
-            camera* mainCamera{nullptr};
+            Camera* mainCamera{nullptr};
 
             window() noexcept;
             window(const window&) = delete;
@@ -72,9 +61,9 @@ namespace pk {
             static ProcAddress getProcAddress(const char* name) noexcept;
             static void pollEvents() noexcept;
 
-            void connectRefresh(consumer<>) noexcept;
-            void connectResize(consumer<vec2>) noexcept;
-
+            Event<window>        onRefresh;
+            Event<window,vec2>   onResize;
+    
             void setTitle(std::string_view) noexcept;
             bool setIcon(const std::filesystem::path&) noexcept;
             void setSize(vec2) noexcept;

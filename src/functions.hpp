@@ -7,23 +7,23 @@ namespace PKG {
         void render();
         void assets();
         void world();
-        void camera();
+        void Camera();
 
         inline auto runorder = {
             *assets,
             *window,
             *render,
             *world,
-            *camera
+            *Camera
         };
     }
 
     namespace onStep {
-        void camera(float);
+        void Camera(float);
         void world(float);
 
         inline auto runorder = {
-            *camera,
+            *Camera,
             *world
         };
     }

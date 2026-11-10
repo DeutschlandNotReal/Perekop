@@ -1,25 +1,23 @@
-#define PK_INTERNAL
 #include "./internal.hpp"
 
 #define CGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 
+#include <PK/tick.hpp>
 #include <PK/Util/file.hpp>
-#include <PK/Render/mesh.hpp>
+#include <PK/Render/Mesh.hpp>
 #include <PK/Render/window.hpp>
 #include <PK/Util/time.hpp>
 
 #include <stb_image.h>
 #include <cgltf.h>
-#include <chrono>
-#include <thread>
 #include <glad/glad.h>
 #include <cstdio>
 
 using namespace pk;
 using namespace Perekop;
 
-bool init() {
+bool begin() {
     if (!window::init()) {
         std::fputs("Failed to initialize GLFW\n", stderr);
         return false;
@@ -40,44 +38,31 @@ bool init() {
     mainWindow.show();
     glEnable(GL_DEPTH_TEST);
 
-    meshVAO = vtxAttribute::generate();
+    meshVAO = VertexArr::generate();
     meshVAO.bind();
-    vtxAttribute::Builder()
+    VertexArr::Builder()
         .vec(3) // pos
         .vec(3) // nor
         .vec(2) // uv
-        .setBD(1, 1)
-        .mat(4) // transform
-        .vec(4) // scale
     ;
 
-    renderBegin();
-    
-    mainWindow.connectRefresh([] {
-        Perekop::renderStep();
-    });
+    init::render();
+
+    mainWindow.onRefresh.bind([]{ step::render(); });
 
     Perekop::onInit();
 
     return true;
 }
 
-void step(float dt) {
-    Perekop::onStep(dt);
-}
-
-void exit() {
-    Perekop::onExit();
-}
-
 int main() {
-    if (!init()) {
+    if (!begin()) {
         mainWindow.exit();
         window::terminate();
         return 1;
     }
 
-    time::tracker<float, 4> timer;
+    time::Tracker<float, 4> timer;
     constexpr int maxSteps{4};
     float dt = 1.f / fps;
 
@@ -90,17 +75,17 @@ int main() {
             int ticks = pk::min((int)(fdt / dt), maxSteps);
             
             for (int i{0}; i < ticks; ++i) {
-                Perekop::physicsStep(dt);
-                step(dt);
+                step::physics(dt);
+                Perekop::onStep(dt);
             }
 
-            renderStep();
+            step::render();
         };
 
         time::sleepms(1);
     }
 
-    exit(); 
+    Perekop::onExit(); 
     mainWindow.exit();
     window::terminate();
     return 0;

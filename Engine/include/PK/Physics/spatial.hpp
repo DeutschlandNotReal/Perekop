@@ -1,7 +1,7 @@
 #pragma once
 #include <PK/Math/pose.hpp>
 #include <PK/Core/vector.hpp>
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Core/set.hpp>
 #include <PK/Physics/AABB.hpp>
 #include <PK/Util/events.hpp>
@@ -9,7 +9,7 @@
 namespace pk {
     class bodySeperator {
         struct identry {
-            setID id; AABB ext;
+            uint id; AABB ext;
         };
 
         array<identry> ids;
@@ -22,7 +22,7 @@ namespace pk {
         vector<node> nodes;
 
         public:
-            void seperate(const set<body>& bodies);
-            void traverse(AABB box, consumer<setID, vec3> checker);
+            void seperate(const set<Body>& bodies);
+            void traverse(AABB box, consumer<uint, vec3> checker);
     };
 }

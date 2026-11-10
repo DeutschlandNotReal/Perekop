@@ -1,16 +1,16 @@
 #pragma once
-#include <PK/Render/Resources/texture.hpp>
+#include <PK/Render/Resources/Texture.hpp>
 #include <PK/Render/Resources/shader.hpp>
 #include <PK/Core/array.hpp>
 
 namespace pk {
-    struct renderer;
+    struct Renderer;
 
     class Material {
-        friend renderer;
+        friend Renderer;
         
         public:
-            array<texture, 1> textures;
+            array<Texture, 1> textures;
             shader shader;    
     };
 }

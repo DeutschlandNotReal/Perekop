@@ -1,4 +1,4 @@
-#include <PK/Render/mesh.hpp>
+#include <PK/Render/Mesh.hpp>
 #include <PK/tick.hpp>
 #include <PK/world.hpp>
 
@@ -15,35 +15,36 @@ using namespace pk;
 void PKG::onInit::assets() {
     printf("assetloader init\n");
 
-    meshImporter::import(world::assets/"models/zelensky.glb", [](meshImporter::glbValue type, std::string_view name, void* rawdata) {
-        if (type != meshImporter::glbValue::mesh) return;
+    MeshImporter::import(world::assets/"models/zelensky.glb", [](MeshImporter::DataType type, std::string_view name, void* rawdata) {
+        if (type != MeshImporter::DataType::Mesh) return;
 
-        auto& data = *static_cast<meshImporter::meshData*>(rawdata);
-        std::printf(" loading mesh '%*s' (vtx: %i, ind: %i)\n",
-            static_cast<int>(name.size()), name.data(), data.mesh->vtx.size(), data.mesh->ind.size());
+        auto& data = *static_cast<MeshImporter::meshData*>(rawdata);
+        std::printf(" loading Mesh '%*s' (vtx: %i, ind: %i)\n",
+            static_cast<int>(name.size()), name.data(), data.Mesh->vtx.size(), data.Mesh->ind.size());
 
-        auto& mesh = world::meshes.create(std::move(*data.mesh));
-        mesh.material = &PKG::material;
-        mesh.load();
+        auto& Mesh = MeshHandle::set.create(std::move(*data.Mesh));
+        Mesh.material = &PKG::material;
+        Mesh.load();
 
-        if (name == "propeller") PKG::propeller = mesh.id;
-        if (name == "hull") PKG::hull = mesh.id;
+        if (name == "propeller") PKG::propeller = Mesh.getID();
+        if (name == "hull") PKG::hull = Mesh.getID();
 
-        model model{.meshid = mesh.id, .pose = data.pose, .scale = vec3{1.f}};
+        
+        Model model{.meshid = Mesh.getID(), .pose = data.pose, .scale = vec3{1.f}};
         PKG::placements.push(model);
     });
 
 
     /*
-    meshImporter::import(world::assets/"models/arrow.glb", [](meshImporter::glbValue type, std::string_view name, void* rawdata) {
-        if (type != meshImporter::glbValue::mesh) return;
+    MeshImporter::import(world::assets/"models/arrow.glb", [](MeshImporter::DataType type, std::string_view name, void* rawdata) {
+        if (type != MeshImporter::DataType::Mesh) return;
 
         std::printf(" arrow? %*s\n", static_cast<int>(name.size()), name.data());
-        auto& data = *static_cast<meshImporter::meshData*>(rawdata);
-        auto& mesh = world::meshes.create(std::move(*data.mesh));
-        mesh.material = &PKG::material;
-        mesh.load();
-        PKG::guide = mesh.id;
+        auto& data = *static_cast<MeshImporter::meshData*>(rawdata);
+        auto& Mesh = world::meshes.create(std::move(*data.Mesh));
+        Mesh.material = &PKG::material;
+        Mesh.load();
+        PKG::guide = Mesh.id;
     });
     */
 

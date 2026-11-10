@@ -5,12 +5,12 @@
 
 namespace pk {
     enum class shaderType {
-        vertex   = 0x8B31,
+        Vertex   = 0x8B31,
         fragment = 0x8B30
     };
 
     class shaderStage {
-        friend struct renderer;
+        friend struct Renderer;
         friend class shader;
 
         uint index{0};
@@ -25,13 +25,13 @@ namespace pk {
     };
 
     class shader {
-        friend struct renderer;
+        friend struct Renderer;
         uint index{0};
         
         public:
             class uniform {
                 friend shader;
-                friend struct renderer;
+                friend struct Renderer;
 
                 uint program{0}, index{0};
 
@@ -56,6 +56,6 @@ namespace pk {
 
             void use() const noexcept;
             uniform getUniform(std::string_view name) const noexcept;
-            void setTexture(std::string_view name, uint slot, const class texture&) noexcept;
+            void setTexture(std::string_view name, uint slot, const class Texture&) noexcept;
     };
 }

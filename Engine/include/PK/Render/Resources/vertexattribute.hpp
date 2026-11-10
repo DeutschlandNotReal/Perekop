@@ -3,8 +3,8 @@
 #include <cstddef>
 
 namespace pk {
-    class vtxAttribute {
-        friend struct renderer;
+    class VertexArr {
+        friend struct Renderer;
         friend class buffer;
 
         uint index{0};
@@ -23,7 +23,7 @@ namespace pk {
                 Builder&  mat(int d)   noexcept;
             };
 
-            static vtxAttribute generate() noexcept;
+            static VertexArr generate() noexcept;
 
             void bind() noexcept;
             void bindBuffer(uint Binding, const buffer&, bufferTar target, size_t stride) noexcept;

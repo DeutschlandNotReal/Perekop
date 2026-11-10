@@ -1,12 +1,12 @@
 #pragma once
 
-#include <PK/Render/camera.hpp>
-#include <PK/Render/renderer.hpp>
+#include <PK/Render/Camera.hpp>
+#include <PK/Render/Renderer.hpp>
 
 namespace pk::lighting {
     inline pose light;
-    inline renderer renderer;
-    inline texture material;
+    inline Renderer Renderer;
+    inline Texture material;
 
     namespace shaderData {
         inline mat4 cameraMatrix;

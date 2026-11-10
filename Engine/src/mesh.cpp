@@ -1,9 +1,6 @@
-#define PK_INTERNAL
-#include "./internal.hpp"
-
 #include <PK/Util/file.hpp>
-#include <PK/Render/mesh.hpp>
-#include <PK/Physics/body.hpp>
+#include <PK/Render/Mesh.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Math/clamp.hpp>
 
 #include <glad/glad.h>
@@ -15,20 +12,20 @@ using namespace pk;
 using std::string_view;
 using std::string;
 
-bool mesh::loaded() const noexcept { return VBO && EBO; }
-void mesh::refresh() { if (loaded()) { unload(); load(); }}
+bool Mesh::loaded() const noexcept { return VBO && EBO; }
+void Mesh::refresh() { if (loaded()) { unload(); load(); }}
 
-void mesh::load() {
+void Mesh::load() {
     invInertia = vec3{0.f};
     
     if (!vtx.empty()) {
         vec3 minv = vtx[0].pos, maxv = vtx[0].pos;
         vec3 mean{0.f};
 
-        for (const vertex& v : vtx) mean += v.pos;
+        for (const Vertex& v : vtx) mean += v.pos;
         mean /= vtx.size();
 
-        for (vertex& v : vtx) {
+        for (Vertex& v : vtx) {
             v.pos -= mean;
             minv = pk::min(minv, v.pos);
             maxv = pk::max(maxv, v.pos);
@@ -46,27 +43,27 @@ void mesh::load() {
     EBO.upload(bufferTar::element, bufferUse::staticUsage, ind);
 }
 
-void mesh::unload() {
+void Mesh::unload() {
     VBO.destroy();
     EBO.destroy();
 }
 
-vec3 mesh::getEdge(uint V0, uint V1) noexcept {
+vec3 Mesh::getEdge(uint V0, uint V1) noexcept {
     return vtx[V1].pos - vtx[V0].pos;
 }
 
-float mesh::getArea(uint V0, uint V1, uint V2) noexcept {
+float Mesh::getArea(uint V0, uint V1, uint V2) noexcept {
     return .5f * length(cross(getEdge(V0, V1), getEdge(V1, V2)));
 }
 
-float mesh::getVolume(uint a, uint b, uint c, uint d) noexcept {
+float Mesh::getVolume(uint a, uint b, uint c, uint d) noexcept {
     return (1.f / 6.f) * (
         dot(vtx[a].pos, cross(vtx[b].pos, vtx[c].pos)) +
         dot(vtx[b].pos, cross(vtx[c].pos, vtx[d].pos))
     );
 }
 
-mesh::mesh(mesh&& b) noexcept: 
+Mesh::Mesh(Mesh&& b) noexcept: 
     VBO(std::move(b.VBO)),
     EBO(std::move(b.EBO)),
     material(b.material),
@@ -76,7 +73,7 @@ mesh::mesh(mesh&& b) noexcept:
     invInertia(b.invInertia)
 {}
 
-mesh& mesh::operator=(mesh&& b) noexcept {
+Mesh& Mesh::operator=(Mesh&& b) noexcept {
     if (this == &b) return *this;
     if (loaded()) unload();
 
@@ -90,7 +87,7 @@ mesh& mesh::operator=(mesh&& b) noexcept {
     return *this;
 }
 
-mesh& mesh::operator=(const mesh& b) noexcept {
+Mesh& Mesh::operator=(const Mesh& b) noexcept {
     if (this == &b) return *this;
     if (loaded()) unload();
 
@@ -103,7 +100,7 @@ mesh& mesh::operator=(const mesh& b) noexcept {
     return *this;
 }
 
-mesh::mesh(const mesh& b) noexcept: 
+Mesh::Mesh(const Mesh& b) noexcept: 
     material{b.material},
     vtx{b.vtx},
     ind{b.ind},
@@ -111,4 +108,4 @@ mesh::mesh(const mesh& b) noexcept:
     invInertia{b.invInertia}
 {}
 
-mesh::~mesh() noexcept { unload(); }
+Mesh::~Mesh() noexcept { unload(); }

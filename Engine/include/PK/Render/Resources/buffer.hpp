@@ -14,7 +14,7 @@ namespace pk {
     };
 
     class buffer {
-        friend struct renderer;
+        friend struct Renderer;
 
         public:
             uint index{0};

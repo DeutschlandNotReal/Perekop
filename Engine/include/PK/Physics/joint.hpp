@@ -1,26 +1,31 @@
 #pragma once
 
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Core/set.hpp>
 #include <PK/Math/pose.hpp>
 
-namespace pk::physics {
+namespace pk {
     void solveJoints(float dt) noexcept;
     void correctJoints() noexcept;
 
     enum class jointType {
-        spring, weld, hinge, angular, rope
+        spring, weld, rope
     };
 
-    class joint {
+    class Joint {
         public:
+            struct attachment {
+                id<BodyHandle> bodyid; 
+                vec3 pos{0.f};
+            };
+
             jointType type;
-            uint bodyid[2] = {0, 0};
-            vec3 points[2] = {vec3{0}, vec3{0}};
+
+            attachment A, B;
 
             union {
                 struct { float stiffness, length; }; // spring, rope
-                struct { float maxangle; };          // angular
+                //struct { float maxangle; };          // angular
             };
 
             quat rel{1, 0, 0, 0}, rot0{1, 0, 0, 0};
@@ -30,20 +35,13 @@ namespace pk::physics {
 
             vec3 hingeAxes[2] = {vec3{0}, vec3{0}};
 
-            static joint makeWeld() noexcept {
+            static Joint makeWeld() noexcept {
                 return {
                     .type = jointType::weld
                 };
             }
 
-            static joint makeHinge(vec3 axisA, vec3 axisB) noexcept {
-                return {
-                    .type = jointType::hinge, 
-                    .hingeAxes = {normalize(axisA), normalize(axisB)}
-                };
-            }
-
-            static joint makeSpring(float stiffness, float length) noexcept {
+            static Joint makeSpring(float stiffness, float length) noexcept {
                 return {
                     .type = jointType::spring,
                     .stiffness = stiffness,
@@ -51,34 +49,29 @@ namespace pk::physics {
                 };
             }
 
-            static joint makeAngular(float maxangle) noexcept {
-                return {
-                    .type = jointType::angular,
-                    .maxangle = maxangle
-                };
-            }
-
-            static joint makeRope(float length) noexcept {
+            static Joint makeRope(float length) noexcept {
                 return {
                     .type = jointType::rope,
                     .length = length
                 };
             }
 
-            joint& attach0(entry<body> body, vec3 pos) noexcept {
-                bodyid[0] = body.id;
-                points[0] = pos;
-                rotA = body.pose.rot;
+            Joint& attach0(BodyHandle &Body, vec3 pos) noexcept {
+                A = {.bodyid = Body.getID(), .pos = pos};
+                
+                rotA = Body.pose.rot;
                 return *this;
             }
 
-            joint& attach1(entry<body> body, vec3 pos) noexcept {
-                bodyid[1] = body.id;
-                points[1] = pos;
+            Joint& attach1(BodyHandle &Body, vec3 pos) noexcept {
+                B = {.bodyid = Body.getID(), .pos = pos};
+        
                 if (type == jointType::weld)
-                    relRot = conjugate(rotA) * body.pose.rot;
+                    relRot = conjugate(rotA) * Body.pose.rot;
                 
                 return *this;
             }
     };
+
+    using JointHandle = handle<Joint>;
 }

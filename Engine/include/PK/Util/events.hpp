@@ -9,23 +9,18 @@ namespace pk {
     template <typename... T>
     using consumer = std::function<void(T...)>;
 
-    template <typename... T>
-    using listeners = vector<consumer<T...>>;
+    template <typename T, typename... args> class Event {
+        friend T;
+        using f = consumer<args...>;
+        vector<f> listeners;
 
-    template <typename... T>
-    struct nconsumer { 
-        std::string_view name; 
-        consumer<T...> f;
-        nconsumer() noexcept = default;
-        nconsumer(std::string_view name, consumer<T...> f): name(name), f(f) {}
+        void invoke(args... arg) {
+            for (auto& fx : listeners) fx(std::forward<args>(arg)...);
+        }
+
+        public:
+            void bind(f&& fx) {
+                listeners.push(std::forward(fx));
+            }
     };
-
-    template <typename... T>
-    using nlisteners = vector<nconsumer<T...>>;
-
-    template <typename... T, typename... A>
-    void invokeListeners(const listeners<T...>& callbacks, A&&... args) noexcept {
-        for (const auto& callback : callbacks)
-            callback(std::forward<A>(args)...);
-    }
 }

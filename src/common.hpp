@@ -1,11 +1,10 @@
 #pragma once
-#include <PK/Render/mesh.hpp>
-#include <PK/Core/setID.hpp>
-#include <PK/Physics/model.hpp>
+#include <PK/Render/Mesh.hpp>
+#include <PK/Physics/Model.hpp>
 
 namespace PKG {
-    inline pk::setID propeller, hull, guide;
+    inline pk::id<pk::MeshHandle> propeller, hull;
     inline pk::Material material;
 
-    inline pk::vector<pk::model> placements;
+    inline pk::vector<pk::Model> placements;
 }

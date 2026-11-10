@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Core/set.hpp>
 
 namespace pk::physics {
@@ -10,7 +10,7 @@ namespace pk::physics {
         uint count{0};
     };
 
-    colContacts getContacts(const body&, const body&, vec3 normal) noexcept;
+    colContacts getContacts(const Body&, const Body&, vec3 normal) noexcept;
     
-    void collide(body& A, body& B, float dt) noexcept;
+    void collide(Body& A, Body& B, float dt) noexcept;
 }

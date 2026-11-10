@@ -1,4 +1,4 @@
-#include <PK/Physics/joint.hpp>
+#include <PK/Physics/Joint.hpp>
 #include <PK/Math/clamp.hpp>
 #include <PK/tick.hpp>
 #include <PK/world.hpp>
@@ -13,46 +13,48 @@ namespace {
     constexpr vec3 initialVelocity{0.f, 0.f, -3.f};
     constexpr float liftCoefficient{.02f};
 
-    void spawnPlacement(pose at, span<const model> models) {
-        vector<uint> bodyIds;
-        bodyIds.reserve(models.size());
+    void spawnPlacement(pose at, span<const Model> models) {
+        vector<id<BodyHandle>> bids;
+        bids.reserve(models.size());
+  
+        id<BodyHandle> hullid;
+        for (const Model& placement : models) {
+            auto& Model = ModelHandle::set.create();
+            Model.setMesh(placement.getMesh());
+            Model.scale = placement.scale;
 
-        setID hullbody;
-        for (const model& model : models) {
-            auto& body = world::bodies.create();
-            body.pose = worldspace(model.pose, at);
-            body.meshid = model.meshid;
-            body.scale = model.scale;
-            body.vel = initialVelocity;
-            body.iMass = 1.f / 2.f;
+            auto& Body = BodyHandle::set.create();
+            Body.setModel(Model.getID());
+            Body.vel = initialVelocity;
+            Body.iMass = 1.f / 2.f;
 
-            if (body.meshid == PKG::hull) hullbody = body.id;
-            bodyIds.push(body.id);
+            if (Model.getMesh() == PKG::hull) hullid = Body.getID();
+
+            bids.push(Body.getID());
         }
 
-        auto& hullobj = world::bodies[hullbody];
+        BodyHandle hullbody = *hullid;
 
-        for (uint id : bodyIds) {
-            auto& body = world::bodies[id];
-            body.collisionId = hullbody;
+        for (auto id : bids) {
+            if (id == hullid) continue;
+            BodyHandle *body = id;
+            if (!id) continue;
 
-            if (id == hullbody) continue;
-
-            vec3 anchor = (hullobj.pose.pos + body.pose.pos) * .5f;
-            world::joints.create(joint::makeWeld())
-                .attach0(hullobj, anchor)
-                .attach1(body, anchor);
+            vec3 anchor = (hullbody.pose.pos + body->pose.pos) * .5f;
+            JointHandle::set.create(Joint::makeWeld())
+                .attach0(hullbody, anchor)
+                .attach1(*body, anchor)
         }
     }
 }
 
 void PKG::onInit::world() {
-    spawnPlacement({{4.f, 8.f, 0.f}}, span<const model>{PKG::placements});
+    spawnPlacement({{4.f, 8.f, 0.f}}, span<const Model>{PKG::placements});
 }
 
 void PKG::onStep::world(float dt) {
-  for (body& body : world::bodies) {
-        if (body.meshid != PKG::hull || body.iMass == 0.f) continue;
+  for (BodyHandle& body : BodyHandle::set) {
+        if (body.tag != 4) continue; 
 
         vec3 W = getWeight(body.pose.pos);
 

@@ -13,7 +13,7 @@ void PKG::onInit::render() {
 
     
     PKG::material.shader = {
-        {shaderType::vertex, world::assets / "shaders/vert.glsl"},
+        {shaderType::Vertex, world::assets / "shaders/vert.glsl"},
         {shaderType::fragment, world::assets / "shaders/frag.glsl"}
     };
 

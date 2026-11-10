@@ -1,6 +1,6 @@
 #pragma once
 #include <PK/Physics/shape.hpp>
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Physics/AABB.hpp>
 
 namespace pk::physics {
@@ -10,5 +10,5 @@ namespace pk::physics {
         operator vec3() const noexcept { return axis * overlap; }
     };
     
-    overlapResult getOverlap(const body&, const body&, AABB, AABB) noexcept;
+    overlapResult getOverlap(const Body&, const Body&, AABB, AABB) noexcept;
 };

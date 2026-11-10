@@ -2,8 +2,4 @@ build/
 .cache/
 compile_commands.json
 Perekop.exe
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extentions.json
+.vscode/

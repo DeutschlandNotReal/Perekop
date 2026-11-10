@@ -1,7 +1,3 @@
-#define PK_INTERNAL
-#include "./internal.hpp"
-
-#include <algorithm>
 #include <PK/Core/array.hpp>
 #include <PK/Physics/collision.hpp>
 #include <PK/Physics/overlap.hpp>
@@ -23,7 +19,7 @@ constexpr vec3 xaxis{1,0,0},
 
 float len2(vec3 v) noexcept { return dot(v, v); }
 
-overlapResult physics::getOverlap(const body& bodyA, const body& bodyB, AABB boundA, AABB boundB) noexcept {
+overlapResult physics::getOverlap(const Body& bodyA, const Body& bodyB, AABB boundA, AABB boundB) noexcept {
 
     if (bodyA.shapeType == shapeType::precise || bodyB.shapeType == shapeType::precise) {
         return {};
@@ -56,7 +52,7 @@ overlapResult physics::getOverlap(const body& bodyA, const body& bodyB, AABB bou
             if (axisLength2 < eps2) continue;
             axis *= 1.f / sqrt(axisLength2);
 
-            // cheeky analytical way rather than trying every vertex for cube
+            // cheeky analytical way rather than trying every Vertex for cube
             float extOA = dot(hA, abs(axis));
             float extOB = dot(hB, abs(tR * axis));
 
@@ -82,7 +78,7 @@ overlapResult physics::getOverlap(const body& bodyA, const body& bodyB, AABB bou
 
         return {axis, r - dst};
     } else {
-        auto f = ([](const body& box, const body& ball, AABB boxext, AABB ballext)->overlapResult{
+        auto f = ([](const Body& box, const Body& ball, AABB boxext, AABB ballext)->overlapResult{
             pose rel = localspace(ball.pose, box.pose);
 
             vec3 h = boxext.getExtents();
@@ -119,34 +115,8 @@ overlapResult physics::getOverlap(const body& bodyA, const body& bodyB, AABB bou
     }
 }
 
-mat3 worldInertia(const mat3& R, vec3 i) noexcept {
-    mat3 T{R[0] * i.x, R[1] * i.y, R[2] * i.z};
-
-    // ludicrous way to write R * i * transpose(R)
-    // but a lil bit faster (opposite values are equal)
-
-    float 
-        x {T[0].x*R[0].x + T[1].x*R[0].y + T[2].x*R[0].z},
-        y {T[0].y*R[1].x + T[1].y*R[1].y + T[2].y*R[1].z},
-        z {T[0].z*R[2].x + T[1].z*R[2].y + T[2].z*R[2].z},
-
-        a {T[0].x*R[1].x + T[1].x*R[1].y + T[2].x*R[1].z},
-        b {T[0].x*R[2].x + T[1].x*R[2].y + T[2].x*R[2].z},
-        c {T[0].y*R[2].x + T[1].y*R[2].y + T[2].y*R[2].z};
-
-    return mat3{
-        x, a, b,
-        a, y, c,
-        b, c, z 
-    };
-}
-
-
-void physics::collide(body &A, body &B, float) noexcept {
-    const mesh &meshA = world::meshes[A.meshid], 
-               &meshB = world::meshes[B.meshid];
-    
-    overlapResult result = getOverlap(A, B, meshA.box, meshB.box);
+void physics::collide(Body &A, Body &B, float) noexcept {
+    overlapResult result = getOverlap(A, B, A.box, B.box);
     if (result.overlap < eps) return;
 
     float invMassSum = A.iMass + B.iMass;
@@ -162,9 +132,9 @@ void physics::collide(body &A, body &B, float) noexcept {
 
     mat3 invIA{0.f}, invIB{0.f};
 
-    if (A.iMass > 0.f) invIA = worldInertia(A.pose, meshA.invInertia * (A.iMass / (A.scale * A.scale)));
+    if (A.iMass > 0.f) invIA = A.getWorldInertia();
 
-    if (B.iMass > 0.f) invIB = worldInertia(B.pose, meshB.invInertia * (B.iMass / (B.scale * B.scale)));
+    if (B.iMass > 0.f) invIB = B.getWorldInertia();
 
     vec3 rA = centerDelta * .5f;
     vec3 rB = -centerDelta * .5f;

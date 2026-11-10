@@ -1,5 +1,5 @@
 #include <PK/Render/window.hpp>
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/tick.hpp>
 
 #include "./gamecam.hpp"
@@ -19,19 +19,19 @@ void PKG::GameCam::init() noexcept{
     vec3 euler = rel.eulerAngles();
     pitch = euler.x; yaw = euler.y;
 
-    mainWindow.input.bindMPress([](mouseButton button){
+    mainWindow.input.onMouseDown.bind([](mouseButton button){
         if (button == mouseButton::right) mainWindow.input.lockMouse();
     });
 
-    mainWindow.input.bindMRelease([](mouseButton button){
+    mainWindow.input.onMouseUp.bind([](mouseButton button){
         if (button == mouseButton::right) mainWindow.input.unlockMouse();
-    });
+    }); 
 
-    mainWindow.input.bindScroll([&](auto x){
+    mainWindow.input.onScroll.bind([&](auto x){
         rel += worldspace(vec3{0, 0, -x}, rel.rot);
     });
 
-    mainWindow.input.bindMove([&](vec2 delta){
+    mainWindow.input.onMove.bind([&](vec2 delta){
         if (!mainWindow.input.mouseHeld(mouseButton::right)) return;
 
         vec2 size = mainWindow.size();
@@ -44,6 +44,7 @@ void PKG::GameCam::init() noexcept{
         pitch = clamp(pitch - delta.y * yfov, -maxpitch, maxpitch);
         yaw -= delta.x * rfov;
     });
+
 }
 
 void PKG::GameCam::step(float dt) noexcept {
@@ -58,21 +59,15 @@ void PKG::GameCam::step(float dt) noexcept {
 
     pk::pose target;
     bool hasTarget = false;
-    if (fid) switch (ftype) {
-        case FollowType::model:
-            if (world::models.valid(fid)) {
-                target = world::models[fid].pose;
-                hasTarget = true;
-            }
-            break;
-        case FollowType::body:
-            if (world::bodies.valid(fid)) {
-                target = world::bodies[fid].pose;
-                hasTarget = true;
-            }
-            break;
-        case FollowType::none:
-            break;
+
+    if (follow) {
+        Model* model = follow;
+        if (!model) { 
+            follow = nullid; 
+        } else {
+            target = model->pose;
+            hasTarget = true;
+        }
     }
 
     if (type == Type::direct || !hasTarget)
@@ -105,44 +100,28 @@ void PKG::GameCam::step(float dt) noexcept {
         pose = desired;
 };
 
-void PKG::GameCam::target(entry<model> tar) noexcept {
-    ftype = FollowType::model;
-    fid = tar.id;
+void PKG::GameCam::target(ModelHandle &tar) noexcept {
+    follow = tar.getID();
     if (type != Type::direct) {
-        rel = localspace(pose, world::models[tar.id].pose);
-        vec3 euler = rel.eulerAngles();
-        pitch = euler.x; yaw = euler.y;
-    }
-}
-
-void PKG::GameCam::target(entry<body> tar) noexcept {
-    ftype = FollowType::body;
-    fid = tar.id;
-    if (type != Type::direct) {
-        rel = localspace(pose, world::bodies[tar.id].pose);
+        rel = localspace(pose, tar.pose);
         vec3 euler = rel.eulerAngles();
         pitch = euler.x; yaw = euler.y;
     }
 }
 
 void PKG::GameCam::target() noexcept {
-    ftype = FollowType::none;
-    fid = 0;
+    follow = nullid;
     rel = pose;
     vec3 euler = rel.eulerAngles();
     pitch = euler.x; yaw = euler.y;
 }
 
-void PKG::onInit::camera() {
-    printf("Gamecam init\n");
+void PKG::onInit::Camera() {
     mainWindow.mainCamera = &gcamera;
     gcamera.pose = pose::lookAt({0, 8, 25}, {0, 0, 0});
     gcamera.init();
-    printf("Gamecam init end\n");
 }
 
-void PKG::onStep::camera(float dt) {
-    printf("Gamecam step\n");
+void PKG::onStep::Camera(float dt) {
     gcamera.step(dt);
-    printf("Gamecam step end\n");
 }

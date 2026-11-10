@@ -13,8 +13,15 @@ namespace pk {
             return {.min = centre, .max = centre};
         }
 
-        static constexpr AABB merge(AABB i, AABB j) noexcept {
+        static constexpr AABB combine(AABB i, AABB j) noexcept {
             return {.min = glm::min(i.min, j.min), .max = glm::max(i.max, j.max)};
+        }
+
+        static constexpr AABB overlap(AABB i, AABB j) noexcept {
+            return {
+                .min = glm::max(i.min, j.min), 
+                .max = glm::min(i.max, j.max)
+            };
         }
 
         bool occupies(vec3 p) const noexcept {
@@ -30,6 +37,8 @@ namespace pk {
                 min.y <= other.max.y && max.y >= other.min.y &&
                 min.z <= other.max.z && max.z >= other.min.z;
         }
+
+        float volume() const noexcept { return (max.x - min.x) * (max.y - min.y) * (max.z - min.z); }
 
         vec3 getExtents() const noexcept { return .5f * (max-min); }
         vec3 getCentre() const noexcept { return .5f * (min+max); }

@@ -11,7 +11,7 @@ namespace pk::time {
         std::this_thread::sleep_for(std::chrono::milliseconds(time));
     }
 
-    template <typename U, unsigned short L = 1> class tracker {
+    template <typename U, unsigned short L = 1> class Tracker {
         short ptr{-1}; U records[L]{};
         public:
             void begin(U offset = 0) noexcept {

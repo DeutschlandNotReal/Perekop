@@ -1,7 +1,6 @@
-#define PK_INTERNAL
 #include "./internal.hpp"
 
-#include <PK/Render/renderer.hpp>
+#include <PK/Render/Renderer.hpp>
 #include <PK/Render/window.hpp>
 #include <PK/Util/file.hpp>
 
@@ -12,21 +11,21 @@
 using std::string;
 using namespace pk;
 
-void Perekop::renderBegin() noexcept {
+void Perekop::init::render() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 }
 
-vtxAttribute::Builder&
-vtxAttribute::Builder::setBD(uint bind, uint div) noexcept {
+VertexArr::Builder&
+VertexArr::Builder::setBD(uint bind, uint div) noexcept {
     binding = bind;
     offset = 0;
     glVertexBindingDivisor(bind, div);
     return *this;
 }
 
-vtxAttribute::Builder&
-vtxAttribute::Builder::vec(int n) noexcept {
+VertexArr::Builder&
+VertexArr::Builder::vec(int n) noexcept {
     glVertexAttribFormat(index, n, GL_FLOAT, GL_FALSE, offset);
     glVertexAttribBinding(index, binding);
     glEnableVertexAttribArray(index);
@@ -37,8 +36,8 @@ vtxAttribute::Builder::vec(int n) noexcept {
     return *this;
 }
 
-vtxAttribute::Builder&
-vtxAttribute::Builder::uvec(int n) noexcept {
+VertexArr::Builder&
+VertexArr::Builder::uvec(int n) noexcept {
     glVertexAttribIFormat(index, n, GL_UNSIGNED_INT, offset);
     glVertexAttribBinding(index, binding);
     glEnableVertexAttribArray(index);
@@ -49,8 +48,8 @@ vtxAttribute::Builder::uvec(int n) noexcept {
     return *this;
 }
 
-vtxAttribute::Builder&
-vtxAttribute::Builder::ivec(int n) noexcept {
+VertexArr::Builder&
+VertexArr::Builder::ivec(int n) noexcept {
     glVertexAttribIFormat(index, n, GL_INT, offset);
     glVertexAttribBinding(index, binding);
     glEnableVertexAttribArray(index);
@@ -61,24 +60,24 @@ vtxAttribute::Builder::ivec(int n) noexcept {
     return *this;
 }
 
-vtxAttribute::Builder&
-vtxAttribute::Builder::mat(int n) noexcept {
+VertexArr::Builder&
+VertexArr::Builder::mat(int n) noexcept {
     for (int i{0}; i<n; i++) this->vec(n);
 
     return *this;
 }
 
-vtxAttribute vtxAttribute::generate() noexcept {
-    vtxAttribute array;
+VertexArr VertexArr::generate() noexcept {
+    VertexArr array;
     glGenVertexArrays(1, &array.index);
     return array;
 }
 
-void vtxAttribute::bind() noexcept {
+void VertexArr::bind() noexcept {
     glBindVertexArray(index);
 }
 
-void vtxAttribute::bindBuffer(unsigned Binding, const buffer& buffer, bufferTar target, size_t stride) noexcept {
+void VertexArr::bindBuffer(unsigned Binding, const buffer& buffer, bufferTar target, size_t stride) noexcept {
     if (target == bufferTar::element) {
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.index);
         return;
@@ -228,14 +227,14 @@ shader::uniform shader::getUniform(std::string_view name) const noexcept {
     return {index, name};
 }
 
-void shader::setTexture(std::string_view name, unsigned slot, const texture& texture) noexcept {
+void shader::setTexture(std::string_view name, unsigned slot, const Texture& Texture) noexcept {
     glUseProgram(index);
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, texture.index);
+    glBindTexture(GL_TEXTURE_2D, Texture.index);
     glUniform1i(glGetUniformLocation(index, name.data()), (GLint)slot);
 }
 
-texture::texture(const path& path) noexcept {
+Texture::Texture(const path& path) noexcept {
     int channels;
     uchar* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
 
@@ -252,35 +251,35 @@ texture::texture(const path& path) noexcept {
     stbi_image_free(data);
 }
 
-void renderer::drawElems(int indices, primitiveMode mode) noexcept {
+void Renderer::drawElems(int indices, PrimMode mode) noexcept {
     glDrawElements((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr);
 }
 
-void renderer::drawArrays(int vertices, primitiveMode mode) noexcept {
+void Renderer::drawArrays(int vertices, PrimMode mode) noexcept {
     glDrawArrays((GLenum)mode, 0, vertices);
 }
 
-void renderer::drawElemsInstanced(int indices, int entities, primitiveMode mode) noexcept {
+void Renderer::drawElemsInstanced(int indices, int entities, PrimMode mode) noexcept {
     glDrawElementsInstanced((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr, entities);
 }
 
-void renderer::drawArraysInstanced(int vertices, int entities, primitiveMode mode) noexcept {
+void Renderer::drawArraysInstanced(int vertices, int entities, PrimMode mode) noexcept {
     glDrawArraysInstanced((GLenum)mode, 0, vertices, entities);
 }
 
-void renderer::setMode(rasterMode mode) noexcept {
+void Renderer::setMode(RasterMode mode) noexcept {
     glPolygonMode(GL_FRONT_AND_BACK, (GLenum)mode);
 }
 
-void renderer::fill(vec3 colour) noexcept {
+void Renderer::fill(vec3 colour) noexcept {
     glClearColor(colour.x, colour.y, colour.z, 1.0f);
 }
 
-void renderer::clear(int flags) noexcept {
+void Renderer::clear(int flags) noexcept {
     glClear((GLbitfield)flags);
 }
 
-void renderer::viewport() noexcept {
+void Renderer::viewport() noexcept {
     glDrawBuffer(GL_BACK);
 
     int width, height;
@@ -291,6 +290,6 @@ void renderer::viewport() noexcept {
     glViewport(0, 0, width, height);
 }
 
-void renderer::swap() noexcept {
+void Renderer::swap() noexcept {
     mainWindow.swapBuffers();
 }

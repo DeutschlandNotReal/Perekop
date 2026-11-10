@@ -1,15 +1,13 @@
-#define PK_INTERNAL
 #include "./internal.hpp"
 #define GLM_ENABLE_EXPERIMENTAL
 
 #include <PK/Physics/overlap.hpp>
 #include <PK/Physics/plane.hpp>
 #include <PK/Physics/ray.hpp>
-#include <PK/Physics/body.hpp>
+#include <PK/Physics/Body.hpp>
 #include <PK/Math/clamp.hpp>
 #include <PK/world.hpp>
 
-#include <cmath>
 #include <limits>
 #include <glm/gtx/component_wise.hpp>
 
@@ -89,37 +87,41 @@ vec3 pk::getWeight(vec3 o) noexcept {
     return dot(o, o) != 0.f ? normalize(o) * -9.81f : o;
 }
 
-void Perekop::physicsStep(float dt) noexcept {
-    physics::solveJoints(dt);
+void Perekop::step::physics(float dt) {
+    solveJoints(dt);
 
     // integrator
-    for (body &body : world::bodies) {
-        if (body.iMass > 0.f) {
-            float iMdt = body.iMass * dt;
+    for (BodyHandle &Body : getset<BodyHandle>) {
+        if (Body.iMass > 0.f) {
+            float iMdt = Body.iMass * dt;
 
-            vec3 drag = -dragK * length(body.vel) * body.vel;
-            vec3 dVel = body.force * iMdt + (drag + getWeight(body.pose.pos)) * dt;
-            body.vel  += dVel;
-            body.pose += body.vel * dt; // + dVel * hdt;
+            vec3 drag = -dragK * length(Body.vel) * Body.vel;
+            vec3 dVel = Body.force * iMdt + (drag + getWeight(Body.pose.pos)) * dt;
+            Body.vel  += dVel;
 
-            const auto& mesh = world::meshes[body.meshid];
-            vec3 inertia = mesh.invInertia / (body.scale * body.scale);
-            mat3 rot = body.pose;
+            vec3 dPos = Body.vel * dt;
+            Body.pose += dPos;
 
-            vec3 dAVel = rot * (inertia * body.iMass) * (transpose(rot) * body.torque) * dt;
-            body.avel += dAVel;
+            mat3 rot = Body.pose;
 
-            vec3 angularVelocity = body.avel - dAVel * .5f;
-            float a2 = dot(angularVelocity, angularVelocity);
+            vec3 dAVel = rot * (Body.getInertia() * Body.iMass) * (transpose(rot) * Body.torque) * dt;
+            Body.avel += dAVel;
+
+            vec3 dRot = Body.avel - dAVel * .5f;
+            float a2 = dot(dRot, dRot);
+            
             if (a2 > 0.f) {
                 float a = sqrt(a2);
-                body.pose.rot = angleAxis(a * dt, angularVelocity * (1.f / a)) * body.pose.rot;
+                Body.pose.rot = angleAxis(a * dt, dRot * (1.f / a)) * Body.pose.rot;
             }
+
+            Model* m = Body.getModel();
+            if (m) m->pose = Body.pose;
         }
 
-        body.pose.rot = normalize(body.pose.rot);
-        body.force = body.torque = vec3{0.f};
+        Body.pose.rot = normalize(Body.pose.rot);
+        Body.force = Body.torque = vec3{0.f};
     }
 
-    physics::correctJoints();
+    correctJoints();
 }

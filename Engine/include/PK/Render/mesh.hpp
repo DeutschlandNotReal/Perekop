@@ -1,25 +1,25 @@
 #pragma once
 
 #include <PK/Core/vector.hpp>
-#include <PK/Render/renderer.hpp>
+#include <PK/Render/Renderer.hpp>
 #include <PK/Render/Resources/material.hpp>
 #include <PK/Physics/AABB.hpp>
-
 #include <filesystem>
+#include <PK/Core/set.hpp>
 
 namespace pk {
-    inline vtxAttribute meshVAO;
+    inline VertexArr meshVAO;
 
-    class mesh {
+    class Mesh {
         public:
-            struct vertex { 
+            struct Vertex { 
                 vec3 pos{0.f}, nor{0.f}; vec2 uv{.0f};
             };
 
             buffer VBO, EBO;
             Material* material{nullptr};
 
-            vector<vertex> vtx;
+            vector<Vertex> vtx;
             vector<uint> ind;
             AABB box;
             vec3 invInertia{0.f};
@@ -30,28 +30,30 @@ namespace pk {
     
             void refresh();
 
-            mesh() noexcept = default;
+            Mesh() noexcept = default;
   
-            mesh(mesh&&) noexcept;
-            mesh& operator=(mesh&&) noexcept;
+            Mesh(Mesh&&) noexcept;
+            Mesh& operator=(Mesh&&) noexcept;
 
-            mesh(const mesh&) noexcept;
-            mesh& operator=(const mesh&) noexcept;
+            Mesh(const Mesh&) noexcept;
+            Mesh& operator=(const Mesh&) noexcept;
 
             vec3 getEdge(uint V0, uint V1) noexcept;
             float getArea(uint V0, uint V1, uint V2) noexcept;
             float getVolume(uint V0, uint V1, uint V2, uint V3) noexcept;
 
-            ~mesh() noexcept;
+            ~Mesh() noexcept;
     };
 
-    class meshImporter {
+    using MeshHandle = handle<Mesh>;
+ 
+    class MeshImporter {
         public:
-            enum class glbValue { mesh, material };
-            struct meshData     { mesh* mesh; pose pose; };
+            enum class DataType { Mesh, material };
+            struct meshData     { Mesh* Mesh; pose pose; };
             struct materialData {};
 
-            using callback = std::function<void(glbValue, std::string_view, void*)>;
+            using callback = std::function<void(DataType, std::string_view, void*)>;
 
             // .glb format
             static void import(const std::filesystem::path&, callback callback) noexcept;

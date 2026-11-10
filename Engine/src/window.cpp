@@ -1,6 +1,6 @@
 #define PK_INTERNAL
 
-#include <PK/Render/camera.hpp>
+#include <PK/Render/Camera.hpp>
 #include <PK/Render/window.hpp>
 
 #include <glad/glad.h>
@@ -31,51 +31,59 @@ bool window::create(int width, int height, const char* title) noexcept {
 
 void window::installCallbacks() noexcept {
     glfwSetWindowSizeCallback(handle, [](GLFWwindow* native, int width, int height) {
-        auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
+        auto* self = (window*)glfwGetWindowUserPointer(native);
         if (!self) return;
+
         glViewport(0, 0, width, height);
-        invokeListeners(self->resizeListeners, vec2{static_cast<float>(width), static_cast<float>(height)});
+        self->onResize.invoke({width, height});
     });
 
     glfwSetWindowRefreshCallback(handle, [](GLFWwindow* native) {
         auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
         if (!self) return;
-        invokeListeners(self->refreshListeners);
+
+        self->onRefresh.invoke();
     });
 
     glfwSetKeyCallback(handle, [](GLFWwindow* native, int key, int, int action, int) {
-        auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
+        auto* self = (window*)glfwGetWindowUserPointer(native);
         if (!self) return;
+        
         if (action == GLFW_PRESS)
-            invokeListeners(self->input.keyPressListeners, key);
+            self->input.onKeyDown.invoke(key);
         else if (action == GLFW_RELEASE)
-            invokeListeners(self->input.keyReleaseListeners, key);
+            self->input.onKeyUp.invoke(key);
     });
 
     glfwSetMouseButtonCallback(handle, [](GLFWwindow* native, int button, int action, int) {
-        auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
+        auto* self = (window*)glfwGetWindowUserPointer(native);
         if (!self) return;
      
         if (action == GLFW_PRESS)
-            invokeListeners(self->input.mousePressListeners, (mouseButton)button);
+            self->input.onMouseDown.invoke((mouseButton) button);
         else if (action == GLFW_RELEASE)
-            invokeListeners(self->input.mouseReleaseListeners, (mouseButton)button);
+            self->input.onMouseUp.invoke((mouseButton) button);
     });
 
     glfwSetScrollCallback(handle, [](GLFWwindow* native, double, double y) {
-        auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
+        auto* self = (window*)glfwGetWindowUserPointer(native);
+
         if (!self) return;
-        invokeListeners(self->input.mouseScrollListeners, static_cast<float>(y));
+        self->input.onScroll.invoke(y);
     });
 
     glfwSetCursorPosCallback(handle, [](GLFWwindow* native, double x, double y) {
-        auto* self = static_cast<window*>(glfwGetWindowUserPointer(native));
+         auto* self = (window*)glfwGetWindowUserPointer(native);
         if (!self) return;
-        vec2 position{static_cast<float>(x), static_cast<float>(y)};
-        vec2 delta = position - std::exchange(self->input.lastPosition, position);
+        vec2 position{x, y};
+
+        vec2 delta = position - exchange(self->input.lastPosition, position);
+
         if (dot(delta, delta) == 0.f) return;
-        if (std::exchange(self->input.skipMove, false)) return;
-        invokeListeners(self->input.mouseMoveListeners, delta);
+
+        if (exchange(self->input.skipMove, false)) return;
+
+        self->input.onMove.invoke(delta);
     });
 }
 
@@ -101,17 +109,9 @@ void window::pollEvents() noexcept {
     glfwPollEvents();
 }
 
-void window::connectRefresh(consumer<> listener) noexcept {
-    refreshListeners.push(std::move(listener));
-}
-
-void window::connectResize(consumer<vec2> listener) noexcept {
-    resizeListeners.push(std::move(listener));
-}
-
 void window::setTitle(std::string_view title) noexcept {
     std::string owned{title};
-    glfwSetWindowTitle(native(), owned.c_str());
+    glfwSetWindowTitle(handle, owned.c_str());
 }
 
 bool window::setIcon(const std::filesystem::path& path) noexcept {
@@ -123,27 +123,27 @@ bool window::setIcon(const std::filesystem::path& path) noexcept {
     if (!pixels) return false;
 
     GLFWimage image{width, height, pixels};
-    glfwSetWindowIcon(native(), 1, &image);
+    glfwSetWindowIcon(handle, 1, &image);
     stbi_image_free(pixels);
     return true;
 }
 
 void window::setSize(vec2 size) noexcept {
-    glfwSetWindowSize(native(), static_cast<int>(size.x), static_cast<int>(size.y));
+    glfwSetWindowSize(handle, static_cast<int>(size.x), static_cast<int>(size.y));
 }
 
 vec2 window::size() const noexcept {
     int width, height;
-    glfwGetWindowSize(native(), &width, &height);
+    glfwGetWindowSize(handle, &width, &height);
     return {static_cast<float>(width), static_cast<float>(height)};
 }
 
 void window::maximize() noexcept {
-    glfwMaximizeWindow(native());
+    glfwMaximizeWindow(handle);
 }
 
 void window::minimize() noexcept {
-    glfwIconifyWindow(native());
+    glfwIconifyWindow(handle);
 }
 
 void window::exit() noexcept {
@@ -153,15 +153,15 @@ void window::exit() noexcept {
 }
 
 void window::show() noexcept {
-    glfwShowWindow(native());
+    glfwShowWindow(handle);
 }
 
 bool window::shouldClose() const noexcept {
-    return !handle || glfwWindowShouldClose(native());
+    return !handle || glfwWindowShouldClose(handle);
 }
 
 void window::makeContextCurrent() noexcept {
-    glfwMakeContextCurrent(native());
+    glfwMakeContextCurrent(handle);
 }
 
 void window::swapInterval(int interval) noexcept {
@@ -169,57 +169,33 @@ void window::swapInterval(int interval) noexcept {
 }
 
 void window::swapBuffers() noexcept {
-    glfwSwapBuffers(native());
+    glfwSwapBuffers(handle);
 }
 
-void window::input::bindMove(consumer<vec2> listener) noexcept {
-    mouseMoveListeners.push(std::move(listener));
-}
-
-void window::input::bindScroll(consumer<float> listener) noexcept {
-    mouseScrollListeners.push(std::move(listener));
-}
-
-void window::input::bindMPress(consumer<mouseButton> listener) noexcept {
-    mousePressListeners.push(std::move(listener));
-}
-
-void window::input::bindMRelease(consumer<mouseButton> listener) noexcept {
-    mouseReleaseListeners.push(std::move(listener));
-}
-
-void window::input::bindKPress(consumer<int> listener) noexcept {
-    keyPressListeners.push(std::move(listener));
-}
-
-void window::input::bindKRelease(consumer<int> listener) noexcept {
-    keyReleaseListeners.push(std::move(listener));
-}
-
-void window::input::setPosition(vec2 position) noexcept {
-    lastPosition = position;
-    glfwSetCursorPos(owner->native(), static_cast<double>(position.x), static_cast<double>(position.y));
+void window::input::setPosition(vec2 pos) noexcept {
+    lastPosition = pos;
+    glfwSetCursorPos(owner->handle, pos.x, pos.y);
 }
 
 void window::input::lockMouse() noexcept {
     if (mouseLocked()) return;
     skipMove = true;
-    glfwSetInputMode(owner->native(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(owner->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 }
 
 void window::input::unlockMouse() noexcept {
     skipMove = false;
-    glfwSetInputMode(owner->native(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    glfwSetInputMode(owner->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
 
 bool window::input::mouseLocked() const noexcept {
-    return glfwGetInputMode(owner->native(), GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+    return glfwGetInputMode(owner->handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 }
 
 vec2 window::input::mousePosition() const noexcept {
     double x, y;
-    glfwGetCursorPos(owner->native(), &x, &y);
-    return {static_cast<float>(x), static_cast<float>(y)};
+    glfwGetCursorPos(owner->handle, &x, &y);
+    return {x, y};
 }
 
 pose window::input::mousePose() const noexcept {
@@ -235,9 +211,9 @@ pose window::input::mousePose() const noexcept {
 }
 
 bool window::input::mouseHeld(mouseButton button) const noexcept {
-    return glfwGetMouseButton(owner->native(), static_cast<int>(button)) == GLFW_PRESS;
+    return glfwGetMouseButton(owner->handle, (int)button) == GLFW_PRESS;
 }
 
 bool window::input::keyHeld(int key) const noexcept {
-    return glfwGetKey(owner->native(), key) == GLFW_PRESS;
+    return glfwGetKey(owner->handle, key) == GLFW_PRESS;
 }

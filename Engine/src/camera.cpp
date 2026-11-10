@@ -1,10 +1,10 @@
-#include <PK/Render/camera.hpp>
+#include <PK/Render/Camera.hpp>
 #include <PK/Render/window.hpp>
 using namespace pk;
 
-mat4 camera::view() const noexcept { return pose.inverse(); }
+mat4 Camera::view() const noexcept { return pose.inverse(); }
 
-mat4 camera::projection() const noexcept {
+mat4 Camera::projection() const noexcept {
     float rdepth = -1.f / ( max - min );
     float cotfov = 1.f / tfov;
     vec2 size = mainWindow.size();
@@ -16,7 +16,7 @@ mat4 camera::projection() const noexcept {
     };
 }
 
-vec3 pk::worldspace(vec3 v, const camera& cam) noexcept {
+vec3 pk::worldspace(vec3 v, const Camera& cam) noexcept {
     float ztan = v.z * cam.tanFov();
     vec2 size = mainWindow.size();
 
@@ -26,7 +26,7 @@ vec3 pk::worldspace(vec3 v, const camera& cam) noexcept {
     return worldspace(-v, cam.pose);
 }
 
-vec3 pk::localspace(vec3 v, const camera& cam) noexcept {
+vec3 pk::localspace(vec3 v, const Camera& cam) noexcept {
     v = localspace(v, cam.pose);
     float cotinvz = .5f / (v.z * -cam.tanFov());
     vec2 size = mainWindow.size();
