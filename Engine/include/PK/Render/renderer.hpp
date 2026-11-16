@@ -1,8 +1,8 @@
 #pragma once
 
 #include <PK/Render/Resources/shader.hpp>
-#include <PK/Render/Resources/Texture.hpp>
-#include <PK/Render/Resources/vertexattribute.hpp>
+#include <PK/Render/Resources/texture.hpp>
+#include <PK/Render/Resources/vertexarr.hpp>
 
 namespace pk {
     enum class RasterMode {
@@ -22,11 +22,20 @@ namespace pk {
         colour = 0x4000
     };
 
+    struct Wirebox {
+        mat3 rot;
+        vec3 ext,
+             pos;
+        vec4 col;
+    };
+
     struct Renderer {
         void drawElems(int indices, PrimMode mode = PrimMode::trigs) noexcept;
         void drawArrays(int vertices, PrimMode mode = PrimMode::trigs) noexcept;
         void drawElemsInstanced(int indices, int entities, PrimMode mode = PrimMode::trigs) noexcept;
         void drawArraysInstanced(int vertices, int entities, PrimMode mode = PrimMode::trigs) noexcept;
+
+        void drawWireboxes(const span<Wirebox>) noexcept;
 
         void setMode(RasterMode mode) noexcept;
         void fill(vec3 colour) noexcept;

@@ -2,7 +2,9 @@
 
 #include <PK/Render/Renderer.hpp>
 #include <PK/Render/window.hpp>
+#include <PK/Render/Resources/framebuffer.hpp>
 #include <PK/Util/file.hpp>
+#include <PK/debug.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -11,11 +13,7 @@
 using std::string;
 using namespace pk;
 
-void Perekop::init::render() {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-}
-
+// VertexARr
 VertexArr::Builder&
 VertexArr::Builder::setBD(uint bind, uint div) noexcept {
     binding = bind;
@@ -77,43 +75,33 @@ void VertexArr::bind() noexcept {
     glBindVertexArray(index);
 }
 
-void VertexArr::bindBuffer(unsigned Binding, const buffer& buffer, bufferTar target, size_t stride) noexcept {
-    if (target == bufferTar::element) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffer.index);
+void VertexArr::bindBuffer(unsigned Binding, Buffer glBuffer, BufferTar target, size_t stride) noexcept {
+    if (target == BufferTar::element) {
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer.getIndex());
         return;
     }
 
-    glBindVertexBuffer(Binding, buffer.index, 0, (GLsizei)stride);
+    glBindVertexBuffer(Binding, glBuffer.getIndex(), 0, (GLsizei)stride);
 }
 
-buffer buffer::generate() noexcept {
-    buffer buffer;
-    glGenBuffers(1, &buffer.index);
-    return buffer;
+// Buffer
+void Buffer::generate() noexcept {
+    if (index) { warn("attempted to generate buffer twice"); return; }
+    glGenBuffers(1, &index);
 }
 
-void buffer::upload(bufferTar target, bufferUse usage, span<> data) noexcept {
+void Buffer::upload(BufferTar target, BufferUse usage, span<> data) noexcept {
     glBindBuffer((GLenum)target, index);
     glBufferData((GLenum)target, (GLsizeiptr)data.size(), data.begin(), (GLenum)usage);
 }
 
-void buffer::destroy() noexcept {
+void Buffer::destroy() noexcept {
     if (!index) return;
     glDeleteBuffers(1, &index);
     index = 0;
 }
 
-buffer::buffer(buffer&& buffer) noexcept:
-    index(std::exchange(buffer.index, 0))
-{}
-
-buffer& buffer::operator=(buffer&& buffer) noexcept {
-    if (this == &buffer) return *this;
-    destroy();
-    index = std::exchange(buffer.index, 0);
-    return *this;
-}
-
+// ShaderStage
 shaderStage::shaderStage(shaderType type, const path& path) noexcept {
     string source = readFile(path);
 
@@ -131,7 +119,7 @@ shaderStage::shaderStage(shaderType type, const path& path) noexcept {
     if (!success) {
         char log[4096];
         glGetShaderInfoLog(index, 4096, nullptr, log);
-        printf("\033[31mShader failed to compile:\n%s\n\033[0m", log);
+        warn(std::format("Shader stage failed to compile: \n{}", log));
     }
 }
 
@@ -150,11 +138,12 @@ shaderStage::shaderStage(shaderType type, std::string_view source) noexcept {
     if (!success) {
         char log[4096];
         glGetShaderInfoLog(index, 4096, nullptr, log);
-        printf("\033[31mShader failed to compile:\n%s\n\033[0m", log);
+        warn(std::format("Shader failed to compile: \n{}", log));
     }
 }
 
-shader::shader(std::initializer_list<shaderStage> stages) noexcept {
+// Shader
+Shader::Shader(std::initializer_list<shaderStage> stages) noexcept {
     index = glCreateProgram();
 
     for (const shaderStage& stage : stages)
@@ -168,72 +157,75 @@ shader::shader(std::initializer_list<shaderStage> stages) noexcept {
     if (!success) {
         char log[4096];
         glGetProgramInfoLog(index, 4096, nullptr, log);
-        printf("\033[31mShader program failed to link:\n%s\n\033[0m", log);
+        warn(std::format("Shader failed to link: \n", log));
     }
 }
 
-void shader::use() const noexcept {
+void Shader::use() const noexcept {
     glUseProgram(index);
 }
 
-shader::uniform::uniform(unsigned Program, std::string_view name) noexcept:
-    program(Program),
-    index((unsigned)glGetUniformLocation(Program, name.data()))
-{}
+// Shader Uniforms
+Shader::uniform::uniform(uint prog, std::string_view name, std::source_location loc) noexcept: program(prog) {
+    index = (uint) glGetUniformLocation(prog, name.data());
 
-int shader::uniform::operator=(int value) noexcept {
+    if (index == ~0u) warn(std::format("Cannot find uniform {}", name), loc);
+};
+
+int Shader::uniform::operator=(int value) noexcept {
     glUseProgram(program);
     glUniform1i((GLint)index, value);
     return value;
 }
 
-float shader::uniform::operator=(float value) noexcept {
+float Shader::uniform::operator=(float value) noexcept {
     glUseProgram(program);
     glUniform1f((GLint)index, value);
     return value;
 }
 
-vec2 shader::uniform::operator=(vec2 value) noexcept {
+vec2 Shader::uniform::operator=(vec2 value) noexcept {
     glUseProgram(program);
     glUniform2fv((GLint)index, 1, (float*)&value);
     return value;
 }
 
-vec3 shader::uniform::operator=(vec3 value) noexcept {
+vec3 Shader::uniform::operator=(vec3 value) noexcept {
     glUseProgram(program);
     glUniform3fv((GLint)index, 1, (float*)&value);
     return value;
 }
 
-vec4 shader::uniform::operator=(vec4 value) noexcept {
+vec4 Shader::uniform::operator=(vec4 value) noexcept {
     glUseProgram(program);
     glUniform4fv((GLint)index, 1, (float*)&value);
     return value;
 }
 
-mat3 shader::uniform::operator=(mat3 value) noexcept {
+mat3 Shader::uniform::operator=(mat3 value) noexcept {
     glUseProgram(program);
     glUniformMatrix3fv((GLint)index, 1, GL_FALSE, (float*)&value);
     return value;
 }
 
-mat4 shader::uniform::operator=(mat4 value) noexcept {
+mat4 Shader::uniform::operator=(mat4 value) noexcept {
     glUseProgram(program);
     glUniformMatrix4fv((GLint)index, 1, GL_FALSE, (float*)&value);
     return value;
 }
 
-shader::uniform shader::getUniform(std::string_view name) const noexcept {
-    return {index, name};
+Shader::uniform Shader::getUniform(std::string_view name, std::source_location loc) const noexcept {
+    return {index, name, loc};
 }
 
-void shader::setTexture(std::string_view name, unsigned slot, const Texture& Texture) noexcept {
+void Shader::setTexture(std::string_view name, unsigned slot, const Texture& Texture) noexcept {
     glUseProgram(index);
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, Texture.index);
+    glBindTexture(GL_TEXTURE_2D, Texture.getIndex());
     glUniform1i(glGetUniformLocation(index, name.data()), (GLint)slot);
 }
 
+// texture
 Texture::Texture(const path& path) noexcept {
     int channels;
     uchar* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
@@ -251,6 +243,54 @@ Texture::Texture(const path& path) noexcept {
     stbi_image_free(data);
 }
 
+void Texture::allocate(
+    int width,
+    int height,
+    uint internalFormat
+) {
+    w = width;
+    h = height;
+
+    glBindTexture(GL_TEXTURE_2D, index);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        internalFormat,
+        w,
+        h,
+        0,
+        GL_RGBA,
+        GL_FLOAT,
+        nullptr
+    );
+
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MIN_FILTER,
+        GL_LINEAR
+    );
+
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_MAG_FILTER,
+        GL_LINEAR
+    );
+
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_WRAP_S,
+        GL_CLAMP_TO_EDGE
+    );
+
+    glTexParameteri(
+        GL_TEXTURE_2D,
+        GL_TEXTURE_WRAP_T,
+        GL_CLAMP_TO_EDGE
+    );
+}
+
+// renderer
 void Renderer::drawElems(int indices, PrimMode mode) noexcept {
     glDrawElements((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr);
 }
@@ -281,15 +321,105 @@ void Renderer::clear(int flags) noexcept {
 
 void Renderer::viewport() noexcept {
     glDrawBuffer(GL_BACK);
-
-    int width, height;
-    auto size = mainWindow.size();
-    width = static_cast<int>(size.x);
-    height = static_cast<int>(size.y);
-
-    glViewport(0, 0, width, height);
+    auto size = Window::main.size();
+  
+    glViewport(0, 0, size.x, size.y);
 }
 
 void Renderer::swap() noexcept {
-    mainWindow.swapBuffers();
+    glfwSwapBuffers(Window::main);
+}
+
+// framebuffer
+void Framebuffer::generate() {
+    if (index) { warn("attempted to generate framebuffer twice"); return; }
+
+    glGenFramebuffers(1, &index);
+}
+
+void Framebuffer::bind() const noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, index);
+}
+
+void Framebuffer::unbind() noexcept {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Framebuffer::attach(Texture& texture, uint slot) {
+    glFramebufferTexture2D(
+        GL_FRAMEBUFFER,
+        GL_COLOR_ATTACHMENT0 + slot,
+        GL_TEXTURE_2D,
+        texture.getIndex(),
+        0
+    );
+}
+
+void Framebuffer::attach(Renderbuffer& rb) {
+    glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER,
+        GL_DEPTH_STENCIL_ATTACHMENT,
+        GL_RENDERBUFFER,
+        rb.getIndex()
+    );
+}
+
+bool Framebuffer::complete() const noexcept {
+    return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
+}
+
+void Framebuffer::destroy() {
+    if (!index) return;
+
+    glDeleteFramebuffers(1, &index);
+    index = 0;
+}
+
+// renderbuffer
+void Renderbuffer::generate() {
+    if (index) { warn("attempted to generate renderbuffer twice"); return; }
+
+    glGenRenderbuffers(1, &index);
+}
+
+pk::Shader boxshader;
+pk::Buffer boxIBO;
+pk::VertexArr boxarr;
+
+void Renderer::drawWireboxes(const span<Wirebox> boxes) noexcept {
+    if (boxes.size() == 0 || !Window::main.camera) return;
+
+    Camera& cam = *Window::main.camera;
+
+    boxshader.use();
+    boxshader.getUniform("camera") = cam.projection() * cam.view();
+
+    boxarr.bind();
+    boxIBO.upload(BufferTar::array, BufferUse::dynamic, boxes);
+    boxarr.bindBuffer(1, boxIBO, BufferTar::array, sizeof(Wirebox));
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+
+    drawArraysInstanced(36, boxes.size(), PrimMode::trigs);
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+}
+
+#include <PK/world.hpp>
+void Perekop::init::render() {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    boxshader = {
+        shaderStage(shaderType::Vertex, world::assets/"shaders/cubevert.glsl"),
+        shaderStage(shaderType::fragment, world::assets/"shaders/cubefrag.glsl")
+    };
+
+    boxIBO.generate();
+    boxarr = VertexArr::generate();
+    boxarr.bind();
+    VertexArr::Builder().setBD(1, 1).mat(3).vec(3).vec(3).vec(4);
 }

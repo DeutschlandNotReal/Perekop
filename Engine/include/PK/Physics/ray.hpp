@@ -1,20 +1,18 @@
 #pragma once
 #include <PK/Math/pose.hpp>
+#include <PK/Math/extra.hpp>
 
 namespace pk {
     struct ray { 
-        vec3 pos, dir;
-        ray() noexcept: pos{0}, dir{0,0,-1} {}
-        ray(vec3 pos, vec3 dir) noexcept: pos{pos}, dir{dir} {}
-        ray(pose pose) noexcept: pos{pose.pos}, dir{pose.forward()} {}
+        vec3 pos{0.f}, dir{0.f, 0.f, -1.f};
+        vec3 invdir{rcp(dir)};
+
+        ray() noexcept = default;
+        ray(vec3 pos, vec3 dir) noexcept: pos{pos}, dir{dir}, invdir{rcp(dir)} {}
 
         static ray lookAt(vec3 pos, vec3 at) noexcept {
             return {pos, at - pos}; 
         }
-
-        // values in local space
-        float intersectCube(vec3 ext, vec3 localpos) const noexcept;
-        float intersectBall(float r, vec3 localpos) const noexcept;
     };
     
     [[nodiscard]] ray worldspace(ray, pose) noexcept;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 #include <PK/Math/typedef.hpp>
 #include <PK/Core/vector.hpp>
 #include <PK/Core/algorithm.hpp>

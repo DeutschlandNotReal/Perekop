@@ -8,20 +8,20 @@ namespace pk {
     void solveJoints(float dt) noexcept;
     void correctJoints() noexcept;
 
-    enum class jointType {
+    enum class JointType {
         spring, weld, rope
     };
 
     class Joint {
         public:
-            struct attachment {
-                id<BodyHandle> bodyid; 
+            struct Attachment {
+                BodyID bodyID; 
                 vec3 pos{0.f};
             };
 
-            jointType type;
+            JointType type;
 
-            attachment A, B;
+            Attachment A, B;
 
             union {
                 struct { float stiffness, length; }; // spring, rope
@@ -37,13 +37,13 @@ namespace pk {
 
             static Joint makeWeld() noexcept {
                 return {
-                    .type = jointType::weld
+                    .type = JointType::weld
                 };
             }
 
             static Joint makeSpring(float stiffness, float length) noexcept {
                 return {
-                    .type = jointType::spring,
+                    .type = JointType::spring,
                     .stiffness = stiffness,
                     .length = length
                 };
@@ -51,22 +51,22 @@ namespace pk {
 
             static Joint makeRope(float length) noexcept {
                 return {
-                    .type = jointType::rope,
+                    .type = JointType::rope,
                     .length = length
                 };
             }
 
             Joint& attach0(BodyHandle &Body, vec3 pos) noexcept {
-                A = {.bodyid = Body.getID(), .pos = pos};
+                A = {.bodyID = Body.getID(), .pos = pos};
                 
                 rotA = Body.pose.rot;
                 return *this;
             }
 
             Joint& attach1(BodyHandle &Body, vec3 pos) noexcept {
-                B = {.bodyid = Body.getID(), .pos = pos};
+                B = {.bodyID = Body.getID(), .pos = pos};
         
-                if (type == jointType::weld)
+                if (type == JointType::weld)
                     relRot = conjugate(rotA) * Body.pose.rot;
                 
                 return *this;
@@ -74,4 +74,5 @@ namespace pk {
     };
 
     using JointHandle = handle<Joint>;
+    using JointID     = SID<Joint>;
 }

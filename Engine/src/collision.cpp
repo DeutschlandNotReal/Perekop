@@ -2,7 +2,7 @@
 #include <PK/Physics/collision.hpp>
 #include <PK/Physics/overlap.hpp>
 #include <PK/world.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/component_wise.hpp>
@@ -56,7 +56,7 @@ overlapResult physics::getOverlap(const Body& bodyA, const Body& bodyB, AABB bou
             float extOA = dot(hA, abs(axis));
             float extOB = dot(hB, abs(tR * axis));
 
-            float dst = abs(dot(disp.pos, axis));
+            float dst = glm::abs(dot(disp.pos, axis));
             float overlap = (extOA + extOB) - dst;
 
             if (overlap < -eps) return {};
@@ -98,7 +98,7 @@ overlapResult physics::getOverlap(const Body& bodyA, const Body& bodyB, AABB bou
 
                 float extBox = dot(h, abs(axis));
                 float dst = dot(rel.pos, axis);
-                float overlap = (extBox + length(ballext.getExtents())) - abs(dst);
+                float overlap = (extBox + length(ballext.getExtents())) - glm::abs(dst);
       
                 if (overlap < -eps) return {};
 

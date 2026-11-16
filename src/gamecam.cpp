@@ -19,22 +19,23 @@ void PKG::GameCam::init() noexcept{
     vec3 euler = rel.eulerAngles();
     pitch = euler.x; yaw = euler.y;
 
-    mainWindow.input.onMouseDown.bind([](mouseButton button){
-        if (button == mouseButton::right) mainWindow.input.lockMouse();
+    Window::main.onMouseDown.bind([](MouseKey button){
+        if (button == MouseKey::right) Window::main.setMouseLocked(true);
     });
 
-    mainWindow.input.onMouseUp.bind([](mouseButton button){
-        if (button == mouseButton::right) mainWindow.input.unlockMouse();
+
+    Window::main.onMouseUp.bind([](MouseKey button){
+        if (button == MouseKey::right) Window::main.setMouseLocked(false);
     }); 
 
-    mainWindow.input.onScroll.bind([&](auto x){
+    Window::main.onMouseScroll.bind([&](auto x){
         rel += worldspace(vec3{0, 0, -x}, rel.rot);
     });
 
-    mainWindow.input.onMove.bind([&](vec2 delta){
-        if (!mainWindow.input.mouseHeld(mouseButton::right)) return;
+    Window::main.onMouseMove.bind([&](vec2 delta){
+        if (!Window::main.held(MouseKey::right)) return;
 
-        vec2 size = mainWindow.size();
+        vec2 size = Window::main.size();
         if (size.x <= 0.f || size.y <= 0.f) return;
 
         delta /= size;
@@ -50,18 +51,18 @@ void PKG::GameCam::init() noexcept{
 void PKG::GameCam::step(float dt) noexcept {
     vec3 delta{0};
 
-    if (mainWindow.input.keyHeld('S')) delta += vec3{0,0,1};
-    if (mainWindow.input.keyHeld('W')) delta -= vec3{0,0,1};
-    if (mainWindow.input.keyHeld('D')) delta += vec3{1,0,0};
-    if (mainWindow.input.keyHeld('A')) delta -= vec3{1,0,0};
-    if (mainWindow.input.keyHeld('E')) delta += vec3{0,1,0};
-    if (mainWindow.input.keyHeld('Q')) delta -= vec3{0,1,0};
+    if (Window::main.held('S')) delta += vec3{0,0,1};
+    if (Window::main.held('W')) delta -= vec3{0,0,1};
+    if (Window::main.held('D')) delta += vec3{1,0,0};
+    if (Window::main.held('A')) delta -= vec3{1,0,0};
+    if (Window::main.held('E')) delta += vec3{0,1,0};
+    if (Window::main.held('Q')) delta -= vec3{0,1,0};
 
     pk::pose target;
     bool hasTarget = false;
 
     if (follow) {
-        Model* model = follow;
+        Model* model = follow.get();
         if (!model) { 
             follow = nullid; 
         } else {
@@ -117,7 +118,7 @@ void PKG::GameCam::target() noexcept {
 }
 
 void PKG::onInit::Camera() {
-    mainWindow.mainCamera = &gcamera;
+    Window::main.camera = &gcamera;
     gcamera.pose = pose::lookAt({0, 8, 25}, {0, 0, 0});
     gcamera.init();
 }

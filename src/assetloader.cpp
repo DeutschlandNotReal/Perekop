@@ -13,25 +13,24 @@ using namespace pk;
 
 
 void PKG::onInit::assets() {
-    printf("assetloader init\n");
+    MeshImporter::import(world::assets/"models/zelensky.glb", [](MeshImporter::Data info) {
+        if (info.type != MeshImporter::Data::MeshType) return;
 
-    MeshImporter::import(world::assets/"models/zelensky.glb", [](MeshImporter::DataType type, std::string_view name, void* rawdata) {
-        if (type != MeshImporter::DataType::Mesh) return;
+        Mesh& datamesh = *info.meshdata.ptr;
+        pose pose = info.meshdata.pose;
 
-        auto& data = *static_cast<MeshImporter::meshData*>(rawdata);
-        std::printf(" loading Mesh '%*s' (vtx: %i, ind: %i)\n",
-            static_cast<int>(name.size()), name.data(), data.Mesh->vtx.size(), data.Mesh->ind.size());
+        MeshHandle& mesh = MeshHandle::create(std::move(datamesh));
+        pk::success(std::format("Imported mesh '{}' (i: {}, v: {}, uid: {})", info.name, mesh.ind.size(), mesh.vtx.size(), (uint) mesh.getID()));
 
-        auto& Mesh = MeshHandle::set.create(std::move(*data.Mesh));
-        Mesh.material = &PKG::material;
-        Mesh.load();
+        mesh.material = &PKG::material;
+        mesh.load();
 
-        if (name == "propeller") PKG::propeller = Mesh.getID();
-        if (name == "hull") PKG::hull = Mesh.getID();
-
+        if (info.name == "propeller") PKG::propeller = mesh.getID();
+        if (info.name == "hull") PKG::hull = mesh.getID();
         
-        Model model{.meshid = Mesh.getID(), .pose = data.pose, .scale = vec3{1.f}};
-        PKG::placements.push(model);
+        Model model{.meshID = mesh.getID(), .pose = pose, .scale = vec3{1.f}, .bounds = mesh.box};
+
+        PKG::placements.push(std::move(model));
     });
 
 
@@ -47,6 +46,4 @@ void PKG::onInit::assets() {
         PKG::guide = Mesh.id;
     });
     */
-
-    printf("assetloader init finish\n");
 }

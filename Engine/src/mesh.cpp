@@ -1,7 +1,7 @@
 #include <PK/Util/file.hpp>
 #include <PK/Render/Mesh.hpp>
 #include <PK/Physics/Body.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -12,35 +12,33 @@ using namespace pk;
 using std::string_view;
 using std::string;
 
-bool Mesh::loaded() const noexcept { return VBO && EBO; }
+bool Mesh::loaded() const noexcept { return VBO.getIndex() && EBO.getIndex(); }
 void Mesh::refresh() { if (loaded()) { unload(); load(); }}
 
 void Mesh::load() {
     invInertia = vec3{0.f};
     
     if (!vtx.empty()) {
-        vec3 minv = vtx[0].pos, maxv = vtx[0].pos;
-        vec3 mean{0.f};
+        vec3 l, h;
+        l = h  = vtx[0].pos;
 
-        for (const Vertex& v : vtx) mean += v.pos;
-        mean /= vtx.size();
-
-        for (Vertex& v : vtx) {
-            v.pos -= mean;
-            minv = pk::min(minv, v.pos);
-            maxv = pk::max(maxv, v.pos);
+        for (uint vid{1}; vid < vtx.size(); vid++) {
+            vec3 p = vtx[vid].pos;
+            l = min(l, p);
+            h = max(h, p);
         }
 
-        box = {.min = minv, .max = maxv};
+        box = {.min = l, .max = h};
         invInertia = inverseInertia(vtx);
     }
 
     if (loaded()) return;
 
-    VBO = buffer::generate();
-    EBO = buffer::generate();
-    VBO.upload(bufferTar::array, bufferUse::staticUsage, vtx);
-    EBO.upload(bufferTar::element, bufferUse::staticUsage, ind);
+    VBO.generate();
+    EBO.generate();
+
+    VBO.upload(BufferTar::array, BufferUse::staticUsage, vtx);
+    EBO.upload(BufferTar::element, BufferUse::staticUsage, ind);
 }
 
 void Mesh::unload() {

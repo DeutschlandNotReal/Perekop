@@ -10,60 +10,45 @@
 struct GLFWwindow;
 
 namespace pk {
-    enum class mouseButton { left = 0, right, middle };
+    enum class MouseKey { left = 0, right, middle };
 
-    class window {
+    class Window {
         GLFWwindow* handle{nullptr};
-        void installCallbacks() noexcept;
+
+        vec2 lmpos  {0.f}; // last mouse position
+        bool nomove {false};
 
         public:
-            class input {
-                friend class window;
-                window* owner;
-                vec2 lastPosition{0.f};
-                bool skipMove{false};
+            Event<vec2>     onMouseMove;
+            Event<float>    onMouseScroll;
+            Event<MouseKey> onMouseDown;
+            Event<MouseKey> onMouseUp;
+            Event<int>      onKeyDown;
+            Event<int>      onKeyUp;
+            Event<>         onRefresh;
+            Event<vec2>     onResize;
 
-                explicit input(window& owner) noexcept: owner(&owner) {}
+            Window() = default;
+            Window(const Window&) = delete;
+            Window& operator=(const Window&) = delete;
+            ~Window() noexcept;
 
-                public:
-                    Event<window, vec2>         onMove;
-                    Event<window, float>        onScroll;
-                    Event<window, mouseButton>  onMouseDown;
-                    Event<window, mouseButton>  onMouseUp;
-                    Event<window, int>          onKeyDown;
-                    Event<window, int>          onKeyUp;
+            operator GLFWwindow*() const noexcept { return handle; }
 
-                    void setPosition(vec2) noexcept;
-                    void lockMouse() noexcept;
-                    void unlockMouse() noexcept;
-                    bool mouseLocked() const noexcept;
-                    vec2 mousePosition() const noexcept;
-                    pose mousePose() const noexcept;
-                    bool mouseHeld(mouseButton) const noexcept;
-                    bool keyHeld(int) const noexcept;
-            };
+            Camera* camera{nullptr};
+    
+            void mousePos(vec2) noexcept;
+            vec2 mousePos()     const noexcept;
+            pose mousePose()    const noexcept;
 
-            input input;
-            Camera* mainCamera{nullptr};
+            bool held(int key) const noexcept;
+            bool held(MouseKey key) const noexcept;
 
-            window() noexcept;
-            window(const window&) = delete;
-            window& operator=(const window&) = delete;
-            ~window() noexcept;
+            void setMouseLocked(bool) noexcept;
+            bool isMouseLocked() const noexcept;
 
-            bool valid() const noexcept { return handle != nullptr; }
             bool create(int width, int height, const char* title) noexcept;
 
-            static bool init() noexcept;
-            static void terminate() noexcept;
-            static void setContextVersion(int major, int minor) noexcept;
-            using ProcAddress = void (*)(void);
-            static ProcAddress getProcAddress(const char* name) noexcept;
-            static void pollEvents() noexcept;
-
-            Event<window>        onRefresh;
-            Event<window,vec2>   onResize;
-    
             void setTitle(std::string_view) noexcept;
             bool setIcon(const std::filesystem::path&) noexcept;
             void setSize(vec2) noexcept;
@@ -72,11 +57,11 @@ namespace pk {
             vec2 size() const noexcept;
             void exit() noexcept;
             void show() noexcept;
-            bool shouldClose() const noexcept;
+            bool closing() const noexcept;
             void makeContextCurrent() noexcept;
-            void swapInterval(int interval) noexcept;
-            void swapBuffers() noexcept;
+
+            static Window main;
     };
 
-    inline window mainWindow{};
+    inline constinit Window Window::main;
 }

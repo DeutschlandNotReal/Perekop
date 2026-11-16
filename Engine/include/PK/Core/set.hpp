@@ -1,114 +1,125 @@
 #pragma once
 
 #include <PK/Core/vector.hpp>
+#include <PK/debug.hpp>
 
 #include <utility>
 
 namespace pk {
-    template <typename T> class set;
+    template <typename T> class SID;
     template <typename T> class handle;
     static inline constexpr uint nullid{~0u};
   
-    template <typename T> class id {
-        friend set<T>;
-        uint val{nullid};
-            
-        uint getGen()   const noexcept { return (val >> 24) & 0x7F; }
-        uint getIndex() const noexcept { return val & 0xFFFFF; }
-        void upGen() noexcept { val += (0xFFFFF + 1); }
-        bool invalid()  const noexcept { return val & 0x80000000; }
-        void validate() noexcept { val &= 0x7FFFFFFF; }
-        void invalidate() noexcept { val |= 0x80000000; }
-
-        public: 
-            id() noexcept = default;
-            id(uint x) noexcept: val(x) {}
-            explicit operator bool() const noexcept { return val != nullid; }
-            bool operator!() const noexcept { return val == nullid; }
-
-            operator T*() noexcept { return handle<T>::set[val]; }
-            operator const T*() const noexcept { return handle<T>::set[val]; }
-    };
-
     template <typename T> class set {
-        friend id<T>;
-        vector<T> data;
-        vector<uint> index;
-        id<T> free;
+        friend SID<T>;
 
-        constexpr id<T> testID(id<T> i) const noexcept {
-            id<T> x = i.getIndex();
-            if (i.invalid() || x.getIndex() > index.size()) return ~0u;
+        vector<handle<T>> data;
+        vector<SID<T>> index;
+        SID<T> free;
 
-            id<T> dpos = index[x];
+        constexpr SID<T> find(SID<T> idt) const noexcept {
+            if (!idt || idt.gen & 128 || idt.inx > index.size()) return nullid;
+        
+            SID<T> dpos = index[idt.inx];
 
-            if (dpos.invalid() || dpos.getGen() != i.getGen()) return ~0u;
-  
+            if (dpos.gen != idt.gen || dpos > data.size()) return nullid;
+          
             return dpos;
-        }
+        };
 
         public:
             constexpr auto* begin(this auto&& s) noexcept { return s.data.begin(); }
             constexpr auto* end(this auto&& s)   noexcept { return s.data.end(); }
 
             constexpr uint size() const noexcept { return data.size(); }
-            constexpr bool valid(uint id) const noexcept { return testID(id); }
 
-            constexpr auto* operator[](this auto&& v, id<T> i) noexcept { 
-                id<T> index = v.testID(i);
-                if (index.invalid()) return nullptr;
-
-                return &v.data[index];
+            constexpr auto* operator[](this auto&& v, SID<T> i) noexcept { 
+                SID<T> dpos = v.find(i);
+            
+                return dpos ? v.data.begin() + dpos.inx : nullptr;
             }
 
             template <typename... args>
-            T& create(args&&... arg) {
-                id<T> id;
-                if (free.invalid()) {
-                    id = index.size();
-                } else {
-                    id = free;
-                    free = index[free.getIndex()];
+            handle<T>& create(args&&... arg) requires(std::is_constructible_v<T, args...>) {
+                SID<T> id;
 
-                    id.validate();
-                    id.upGen();
+                if (free.inx == 0xFFFFFF) {
+                    id = {index.size(), 0u};
+                    index.emplace(data.size(), 0u);
+                } else {
+                    SID<T>& slot = index[free.inx];
+                    id = {free.inx, (slot.gen + 1u) & 127u};
+                    free = {slot.inx, 0u};
+                    slot = {data.size(), id.gen};
                 }
 
-                data.emplace(id, std::forward<args>(arg)...);
-                index.push(data.size() - 1);
-                return data.back();
+                handle<T>& item = data.emplace(std::forward<args>(arg)...);
+                item.ID = id;
+                return item;
             }
 
-            void destroy(id<T> i) {
-                id<T> dpos = testID(i);
+            void destroy(SID<T> i) {
+                SID<T> dpos = find(i);
                 if (!dpos) return;
 
-                index[i.getIndex()] = free;
-                free = i.invalidate();
+                if (dpos.inx != data.size() - 1) {
+                    handle<T>& back = data.back();
+                    index[back.getID().inx] = {dpos.inx, back.getID().gen};
+                    data[dpos.inx] = std::move(back);
+                }
+                data.pop();
 
-                T back = std::move(data.back());
-                index[back.id.getIndex()] = i.getIndex();
-                data[dpos] = std::move(back);
-                data.pop();                
+                index[i.inx] = {free.inx, i.gen | 128u};
+                free = {i.inx, 0u};
             }
     };
-
-    template <typename T> 
-    static inline auto& getset = []()->set<handle<T>>&{ static set<handle<T>> set; return set; }();
 
     template <typename T>
     class handle: public T {
         friend set<T>;
-        id<T> uid;
+        SID<T> ID;
 
         public:
+            inline static constinit set<T> items;
 
             template <typename... args>
-            handle(args&&... arg) : T(std::forward<args>(arg)...) {}
+            handle(args&&... arg) requires(std::is_constructible_v<T, args...>): T(std::forward<args>(arg)...) {}
 
-            const id<handle<T>> getID() const noexcept { return uid; }
-            id<handle<T>> getID() noexcept { return uid; }
+            const SID<T> getID() const noexcept { return ID; }
+            SID<T> getID() noexcept { return ID; }
 
-            inline static set<handle<T>> &set = getset<T>;
+            template <typename... args>
+            inline static handle& create(args... arg) requires (std::is_constructible_v<T, args...>) { 
+                return items.create(std::forward<args>(arg)...);
+            }
+
+            void destroy() { 
+                return items.destroy(ID); 
+            }
+    };
+
+    
+    template <typename T> class SID {
+        friend set<T>;
+
+        union {
+            struct { uint inx : 24, gen : 8; };
+
+            uint x{nullid};
+        };
+
+        public: 
+            SID() noexcept = default;
+            SID(uint x) noexcept: x(x) {}
+            SID(uint inx, uint gen) noexcept: inx(inx), gen(gen) {}
+
+            operator uint() const noexcept { return x; }
+
+            auto* get() const noexcept {
+                return handle<T>::items[*this];
+            }
+
+            explicit operator bool() const noexcept { return x != nullid; }
+            bool operator!()         const noexcept { return x == nullid; }
     };
 }

@@ -13,8 +13,8 @@ void PKG::onInit::render() {
 
     
     PKG::material.shader = {
-        {shaderType::Vertex, world::assets / "shaders/vert.glsl"},
-        {shaderType::fragment, world::assets / "shaders/frag.glsl"}
+        {shaderType::Vertex,   world::assets/"shaders/vert.glsl"},
+        {shaderType::fragment, world::assets/"shaders/frag.glsl"}
     };
 
     PKG::material.textures[0] = lighting::material = world::assets/"images/test.jpg";

@@ -10,7 +10,7 @@ namespace PKG {
             pk::pose rel;
             enum class Type { direct, orbit, follow };
             Type type{Type::orbit};
-            pk::id<pk::ModelHandle> follow;
+            pk::ModelID follow;
 
             void init() noexcept;
             void step(float dt) noexcept;

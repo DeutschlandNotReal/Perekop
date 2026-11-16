@@ -1,7 +1,10 @@
 #include <PK/Physics/Joint.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 #include <PK/tick.hpp>
 #include <PK/world.hpp>
+#include <PK/Math/random.hpp>
+
+#include <PK/Math/format.hpp>
 
 #include "./common.hpp"
 #include "./functions.hpp"
@@ -9,52 +12,72 @@
 using namespace pk;
 using namespace physics;
 
+#include <PK/debug.hpp>
 namespace {
     constexpr vec3 initialVelocity{0.f, 0.f, -3.f};
     constexpr float liftCoefficient{.02f};
 
-    void spawnPlacement(pose at, span<const Model> models) {
-        vector<id<BodyHandle>> bids;
+    void place(pose at, span<const Model> models, vec3 vel = vec3{0.f}) {
+        vector<BodyID> bids;
         bids.reserve(models.size());
   
-        id<BodyHandle> hullid;
+        BodyID hullid;
         for (const Model& placement : models) {
-            auto& Model = ModelHandle::set.create();
-            Model.setMesh(placement.getMesh());
+            auto& Model = ModelHandle::create();
+            Model.meshID = placement.meshID;
             Model.scale = placement.scale;
+            Model.bounds = placement.bounds;
 
-            auto& Body = BodyHandle::set.create();
-            Body.setModel(Model.getID());
-            Body.vel = initialVelocity;
-            Body.iMass = 1.f / 2.f;
+            BodyHandle& body = BodyHandle::create();
+            body.modelID = Model.getID();
+            body.iMass = 1.f/2.f;
+            body.pose = worldspace(placement.pose, at);
 
-            if (Model.getMesh() == PKG::hull) hullid = Body.getID();
+            if (Model.meshID == PKG::hull) {hullid = body.getID(); body.tag = 4; }
 
-            bids.push(Body.getID());
+            bids.push(body.getID());
+            
+            body.vel = vel;
         }
 
-        BodyHandle hullbody = *hullid;
+        BodyHandle &hullbody = *hullid.get();
 
-        for (auto id : bids) {
+        for (BodyID id : bids) {
             if (id == hullid) continue;
-            BodyHandle *body = id;
-            if (!id) continue;
+            BodyHandle *body = id.get();
+            if (!body) continue;
 
             vec3 anchor = (hullbody.pose.pos + body->pose.pos) * .5f;
-            JointHandle::set.create(Joint::makeWeld())
+
+            JointID jid = JointHandle::create(Joint::makeWeld()
                 .attach0(hullbody, anchor)
                 .attach1(*body, anchor)
-        }
+            ).getID();
+        } 
     }
 }
 
 void PKG::onInit::world() {
-    spawnPlacement({{4.f, 8.f, 0.f}}, span<const Model>{PKG::placements});
+    std::random_device rd;
+    RNG rng{rd()};
+
+    int k = 100;
+    while (k-- > 0) {
+        vec3 pos   = randomvec(rng, vec3{-500}, vec3{500});
+        vec3 look  = randomvec(rng, vec3{-50}, vec3{50});
+        
+        vec3 vel = 10.f * cross(getWeight(pos), vec3{0, 1, 0});
+
+        place(pose::lookAt(pos, look), PKG::placements, vel);
+    }
 }
 
+#include <PK/Render/window.hpp>
+
 void PKG::onStep::world(float dt) {
-  for (BodyHandle& body : BodyHandle::set) {
-        if (body.tag != 4) continue; 
+    vec3& campos = Window::main.camera->pose.pos; 
+    for (BodyHandle& body : BodyHandle::items) {
+        if (body.tag != 4) continue;         
 
         vec3 W = getWeight(body.pose.pos);
 
@@ -67,5 +90,5 @@ void PKG::onStep::world(float dt) {
         float lift2 = dot(lift, lift);
 
         body.impulse(lift / sqrt(lift2) * (sqrt(v2) / body.iMass * liftCoefficient));
-    }
+    } 
 }

@@ -7,5 +7,5 @@
 using namespace pk;
 
 void PKG::onInit::window() {
-    pk::mainWindow.setIcon(world::assets/"images/icon.ico");
+    Window::main.setIcon(world::assets/"images/icon.png");
 }

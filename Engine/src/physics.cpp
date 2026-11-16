@@ -5,7 +5,7 @@
 #include <PK/Physics/plane.hpp>
 #include <PK/Physics/ray.hpp>
 #include <PK/Physics/Body.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 #include <PK/world.hpp>
 
 #include <limits>
@@ -13,8 +13,7 @@
 
 using namespace pk;
 using namespace pk::physics;
-inline constexpr float inf = std::numeric_limits<float>::infinity();
-inline constexpr float dragK{.005f};
+inline constexpr float inf = std::numeric_limits<float>::infinity(); 
 
 ray worldspace(ray r, pose p) noexcept {
     return {worldspace(r.pos, p), worldspace(r.dir, p.rot)};
@@ -48,33 +47,6 @@ plane localspace(plane p, vec3 s) noexcept {
     return {localspace(p.pos, s), p.nor};
 }
 
-float ray::intersectCube(vec3 ext, vec3 localpos) const noexcept {
-    vec3 p = pos - localpos;
-    vec3 inv = 1.f / dir;
-
-    vec3 a = (-ext - p) * inv;
-    vec3 b = ( ext - p) * inv;
-
-    float enter = compMax(pk::min(a, b));
-    float exit  = compMin(pk::max(a, b));
-
-    return (enter > exit || exit < 0) ? inf : pk::max(enter, 0.f);
-}
-
-float ray::intersectBall(float r, vec3 localpos) const noexcept {
-    vec3 oc = pos - localpos;
-
-    float b = dot(oc, dir);
-    float h = r * r - dot(oc, oc) + b * b;
-
-    if (h < 0) return inf;
-
-    float s = sqrt(h);
-    float t = b - s;
-
-    return t >= 0 ? t : b + s;
-}
-
 float plane::distance(vec3 point) const noexcept {
     return dot(point - pos, nor);
 }
@@ -88,40 +60,37 @@ vec3 pk::getWeight(vec3 o) noexcept {
 }
 
 void Perekop::step::physics(float dt) {
-    solveJoints(dt);
+    //solveJoints(dt);
 
     // integrator
-    for (BodyHandle &Body : getset<BodyHandle>) {
-        if (Body.iMass > 0.f) {
-            float iMdt = Body.iMass * dt;
+    float hdt2 = .5f * dt * dt;
+    for (BodyHandle &body : BodyHandle::items) {
+        if (body.iMass > 0.f) {
+            vec3 acc = body.force * body.iMass + getWeight(body.pose.pos);
+            body.vel += acc * dt;
 
-            vec3 drag = -dragK * length(Body.vel) * Body.vel;
-            vec3 dVel = Body.force * iMdt + (drag + getWeight(Body.pose.pos)) * dt;
-            Body.vel  += dVel;
+            body.pose += body.vel * dt + acc * hdt2;
 
-            vec3 dPos = Body.vel * dt;
-            Body.pose += dPos;
+            mat3 rot = (mat3) body.pose;
 
-            mat3 rot = Body.pose;
+            vec3 dAvel = rot * (body.inertia * body.iMass) * (transpose(rot) * body.torque) * dt;
+            body.avel += dAvel;
 
-            vec3 dAVel = rot * (Body.getInertia() * Body.iMass) * (transpose(rot) * Body.torque) * dt;
-            Body.avel += dAVel;
-
-            vec3 dRot = Body.avel - dAVel * .5f;
+            vec3 dRot = body.avel - dAvel * .5f;
             float a2 = dot(dRot, dRot);
             
             if (a2 > 0.f) {
                 float a = sqrt(a2);
-                Body.pose.rot = angleAxis(a * dt, dRot * (1.f / a)) * Body.pose.rot;
+                body.pose.rot = angleAxis(a * dt, dRot * (1.f / a)) * body.pose.rot;
             }
-
-            Model* m = Body.getModel();
-            if (m) m->pose = Body.pose;
         }
 
-        Body.pose.rot = normalize(Body.pose.rot);
-        Body.force = Body.torque = vec3{0.f};
+        ModelHandle* m = body.modelID.get();
+        if (m) m->pose = body.pose;   
+
+        body.pose.rot = normalize(body.pose.rot);
+        body.torque = body.force = vec3{0.f};
     }
 
-    correctJoints();
+    //correctJoints();
 }

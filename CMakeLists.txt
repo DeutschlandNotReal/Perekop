@@ -36,6 +36,7 @@ target_link_libraries(Perekop PRIVATE
     glfw
     freetype
     OpenGL::GL
+    stdc++exp
 )
 
 if(MSVC)

@@ -1,14 +1,16 @@
 #pragma once
 
 #include <PK/Core/vector.hpp>
-#include <PK/Render/Renderer.hpp>
-#include <PK/Render/Resources/material.hpp>
 #include <PK/Physics/AABB.hpp>
 #include <filesystem>
 #include <PK/Core/set.hpp>
 
+#include <PK/Render/Resources/vertexarr.hpp>
+#include <PK/Render/Resources/buffer.hpp>
+
 namespace pk {
     inline VertexArr meshVAO;
+    class Material;
 
     class Mesh {
         public:
@@ -16,7 +18,7 @@ namespace pk {
                 vec3 pos{0.f}, nor{0.f}; vec2 uv{.0f};
             };
 
-            buffer VBO, EBO;
+            Buffer VBO, EBO;
             Material* material{nullptr};
 
             vector<Vertex> vtx;
@@ -46,14 +48,20 @@ namespace pk {
     };
 
     using MeshHandle = handle<Mesh>;
+    using MeshID     = SID<Mesh>;
  
     class MeshImporter {
         public:
-            enum class DataType { Mesh, material };
-            struct meshData     { Mesh* Mesh; pose pose; };
-            struct materialData {};
+            struct Data {
+                enum Type { MeshType, MatType };
+                std::string_view name;
+                Type type;
+                union {
+                    struct { Mesh* ptr; pose pose; } meshdata;
+                };
+            };
 
-            using callback = std::function<void(DataType, std::string_view, void*)>;
+            using callback = std::function<void(Data)>;
 
             // .glb format
             static void import(const std::filesystem::path&, callback callback) noexcept;

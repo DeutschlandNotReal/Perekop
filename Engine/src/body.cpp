@@ -1,5 +1,5 @@
 #include <PK/Physics/Body.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 #include <PK/world.hpp>
 using namespace pk;
 
@@ -52,9 +52,4 @@ mat3 Body::getWorldInertia() const noexcept {
         a, y, c,
         b, c, z 
     };
-}
-
-void Body::setModel(id<Model> mid) {
-    modelid = mid;
-    
 }

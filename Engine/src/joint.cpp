@@ -2,7 +2,7 @@
 #include "./internal.hpp"
 
 #include <PK/Physics/joint.hpp>
-#include <PK/Math/clamp.hpp>
+#include <PK/Math/extra.hpp>
 #include <PK/world.hpp>
 
 #include <cmath>
@@ -31,13 +31,14 @@ void solveJoints(float dt) noexcept {
     float idt = 1.f / dt;
 
     for (uint iteration{0}; iteration < 8; iteration++) {
-        for (JointHandle& J : getset<JointHandle>) {
-            if (iteration > 0 && J.type == jointType::spring) continue;
+        for (JointHandle& J : JointHandle::items) {
+            if (iteration > 0 && J.type == JointType::spring) continue;
 
             auto &AttA = J.A, &AttB = J.B;
 
-            Body& A = *AttA.bodyid, &B = *AttB.bodyid;
-
+            BodyHandle &A = *AttA.bodyID.get();
+            BodyHandle &B = *AttB.bodyID.get();
+            
             if (A.iMass * B.iMass == 0.f) continue;
 
             vec3 posA{worldspace(AttA.pos, A.pose)}, 
@@ -46,22 +47,23 @@ void solveJoints(float dt) noexcept {
             vec3 dsp{posB - posA};
 
             switch (J.type) {
-                case jointType::spring: {
+                case JointType::spring: {
                     float x{length(dsp)};
                     if (x < .01f) continue;
 
                     vec3 rA = posA - A.pose.pos;
                     vec3 rB = posB - B.pose.pos;
-                vec3 force = dsp * (J.stiffness * (x - J.length) / x);
+                    vec3 force = dsp * (J.stiffness * (x - J.length) / x);
                     A.impulse(force, rA);
                     B.impulse(-force, rB);
                     break;
                 }
-                case jointType::rope: { 
+                
+                case JointType::rope: { 
                     break;
                 }
                 
-                case jointType::weld: { 
+                case JointType::weld: { 
                     break;
                 }
             }

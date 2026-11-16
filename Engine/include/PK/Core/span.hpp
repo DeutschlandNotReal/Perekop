@@ -36,12 +36,8 @@ namespace pk {
                 for (uint i{0}; i < size(); i++) result[i] = f(data[i], std::forward(args...));
             }
 
-            span subspan(uint from, uint to) noexcept {
-                return {data+from, to-from};
-            }
-
-            const span subspan(uint from, uint to) const noexcept {
-                return {data + from, to-from};
+            auto subspan(this auto&& self, uint i, uint j) noexcept {
+                return span{self.data+i, j-i};
             }
     };
 

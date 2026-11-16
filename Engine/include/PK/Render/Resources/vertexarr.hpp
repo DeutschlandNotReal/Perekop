@@ -5,7 +5,7 @@
 namespace pk {
     class VertexArr {
         friend struct Renderer;
-        friend class buffer;
+        friend Buffer;
 
         uint index{0};
 
@@ -26,6 +26,6 @@ namespace pk {
             static VertexArr generate() noexcept;
 
             void bind() noexcept;
-            void bindBuffer(uint Binding, const buffer&, bufferTar target, size_t stride) noexcept;
+            void bindBuffer(uint bind, Buffer, BufferTar target, size_t stride) noexcept;
     };
 }

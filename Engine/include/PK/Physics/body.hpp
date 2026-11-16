@@ -9,10 +9,10 @@ namespace pk {
     vec3 inverseInertia(span<const Mesh::Vertex> vertices) noexcept;
 
     class Body {
-        vec3 inertia{0.f};
-        id<Model> modelid;
-
         public:
+            ModelID modelID;
+            vec3 inertia{0.f};
+
             pose pose;
             vec3 vel    {0},
                  avel   {0}, 
@@ -23,8 +23,6 @@ namespace pk {
             float iMass{0.f};
             int tag{0};
 
-            id<Model> getModel() const noexcept { return modelid; }
-            void setModel(id<Model> Model);
             
             physics::shapeType shapeType{physics::shapeType::box};
             void impulse(vec3 force, vec3 point = vec3{0.f}) noexcept;
@@ -43,6 +41,7 @@ namespace pk {
     };
 
     using BodyHandle = handle<Body>;
+    using BodyID     = SID<Body>;
 
     vec3 getWeight(vec3 O) noexcept;
 }

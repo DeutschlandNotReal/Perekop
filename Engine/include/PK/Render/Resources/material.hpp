@@ -11,6 +11,6 @@ namespace pk {
         
         public:
             array<Texture, 1> textures;
-            shader shader;    
+            Shader shader;    
     };
 }

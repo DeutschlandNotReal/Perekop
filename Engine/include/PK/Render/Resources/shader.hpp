@@ -2,6 +2,8 @@
 #include <PK/Math/pose.hpp>
 #include <filesystem>
 #include <initializer_list>
+#include <PK/Render/Resources/texture.hpp>
+#include <source_location>
 
 namespace pk {
     enum class shaderType {
@@ -24,18 +26,18 @@ namespace pk {
             }
     };
 
-    class shader {
+    class Shader {
         friend struct Renderer;
         uint index{0};
         
         public:
             class uniform {
-                friend shader;
+                friend Shader;
                 friend struct Renderer;
 
                 uint program{0}, index{0};
 
-                uniform(uint program, std::string_view name) noexcept;
+                uniform(uint program, std::string_view name, std::source_location loc = std::source_location::current()) noexcept;
             
                 public:
                     int   operator=(int)   noexcept;
@@ -51,11 +53,11 @@ namespace pk {
                     }
             };
 
-            shader() noexcept = default;
-            shader(std::initializer_list<shaderStage> stages) noexcept;
+            Shader() noexcept = default;
+            Shader(std::initializer_list<shaderStage> stages) noexcept;
 
             void use() const noexcept;
-            uniform getUniform(std::string_view name) const noexcept;
-            void setTexture(std::string_view name, uint slot, const class Texture&) noexcept;
+            uniform getUniform(std::string_view name, std::source_location loc = std::source_location::current()) const noexcept;
+            void setTexture(std::string_view name, uint slot, const Texture&) noexcept;
     };
 }

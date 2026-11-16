@@ -4,6 +4,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 
 #include <PK/tick.hpp>
+#include <PK/world.hpp>
 #include <PK/Util/file.hpp>
 #include <PK/Render/Mesh.hpp>
 #include <PK/Render/window.hpp>
@@ -12,30 +13,23 @@
 #include <stb_image.h>
 #include <cgltf.h>
 #include <glad/glad.h>
-#include <cstdio>
+#include <glfw/glfw3.h>
 
 using namespace pk;
 using namespace Perekop;
 
 bool begin() {
-    if (!window::init()) {
-        std::fputs("Failed to initialize GLFW\n", stderr);
-        return false;
-    }
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    window::setContextVersion(4, 3);
-    if (!mainWindow.create(720, 480, "Perekop")) {
-        std::fputs("Failed to create GLFW window\n", stderr);
-        return false;
-    }
+    Window::main.create(720, 480, "Perekop");
+    glfwMakeContextCurrent(Window::main);
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+    glfwSwapInterval(1);
 
-    mainWindow.makeContextCurrent();
-    if (!gladLoadGLLoader((GLADloadproc)window::getProcAddress)) {
-        std::fputs("Failed to load OpenGL functions\n", stderr);
-        return false;
-    }
-    mainWindow.swapInterval(1); // VSYNC!
-    mainWindow.show();
+    Window::main.show();
     glEnable(GL_DEPTH_TEST);
 
     meshVAO = VertexArr::generate();
@@ -47,8 +41,9 @@ bool begin() {
     ;
 
     init::render();
+    init::drawer();
 
-    mainWindow.onRefresh.bind([]{ step::render(); });
+    Window::main.onRefresh.bind([]{ step::drawer(0); });
 
     Perekop::onInit();
 
@@ -56,20 +51,16 @@ bool begin() {
 }
 
 int main() {
-    if (!begin()) {
-        mainWindow.exit();
-        window::terminate();
-        return 1;
-    }
+    begin();
 
     time::Tracker<float, 4> timer;
     constexpr int maxSteps{4};
     float dt = 1.f / fps;
 
     timer.begin();
-    while (!mainWindow.shouldClose()) {
+    while (!Window::main.closing()) {
         if (timer.elapsed() >= dt) {     
-            window::pollEvents();
+            glfwPollEvents();
             float fdt = timer.delta();
 
             int ticks = pk::min((int)(fdt / dt), maxSteps);
@@ -79,14 +70,19 @@ int main() {
                 Perekop::onStep(dt);
             }
 
-            step::render();
+            Perekop::ModelBVH.construct({
+                ModelHandle::items.begin(), 
+                ModelHandle::items.end()
+            });
+
+            step::drawer(fdt);
         };
 
         time::sleepms(1);
     }
 
     Perekop::onExit(); 
-    mainWindow.exit();
-    window::terminate();
+    Window::main.exit();
+    glfwTerminate();
     return 0;
 }

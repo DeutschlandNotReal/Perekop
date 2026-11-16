@@ -25,6 +25,7 @@ namespace pk {
 
     template <typename T>
     constexpr void move(T* dst, T* src) {
+        if (dst == src) return;
         std::construct_at(dst, std::move(*src));
         std::destroy_at(src);
     }
@@ -40,22 +41,34 @@ namespace pk {
     }
 
     template <typename T>
+    inline constexpr bool relocatable =
+        std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>;
+
+    template <typename T>
     constexpr void copy(T* dst, const T* src, uint n = 1) {
-        if (std::is_constant_evaluated() || ! std::is_trivially_copyable_v<T>) {
-            for (uint i = 0; i < n; i++) std::construct_at(dst + i, src[i]);
+        if constexpr (std::is_trivially_copyable_v<T>) {
+            if (!std::is_constant_evaluated()) {
+                if (n) std::memcpy(dst, src, n * sizeof(T));
+                return;
+            }
         }
-        else if (n) std::memcpy(dst, src, n * sizeof(T));
+        for (uint i{0}; i < n; ++i) std::construct_at(dst + i, src[i]);
     }
 
     template <typename T>
     constexpr void move(T* dst, T* src, uint n) {
-        if (std::is_constant_evaluated() || !std::is_trivially_copyable_v<T>) {
-            if (dst <= src) 
-                for (uint i{0}; i < n; ++i) pk::move(dst + i, src + i);
-            else
-                for (uint i{n}; i-- > 0;) pk::move(dst + i, src + i);
+        if constexpr (relocatable<T>) {
+            if (!std::is_constant_evaluated()) {
+                if (n) std::memmove(dst, src, n * sizeof(T));
+                return;
+            }
         }
-        else if (n) std::memmove(dst, src, n * sizeof(T));
+        if (dst == src) return;
+
+        if (dst < src)
+            for (uint i{0}; i < n; ++i) pk::move(dst + i, src + i);
+        else
+            for (uint i{n}; i-- > 0;) pk::move(dst + i, src + i);
     }
 
     template <typename T>

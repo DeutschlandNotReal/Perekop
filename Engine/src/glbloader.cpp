@@ -52,9 +52,17 @@ void LoadMesh(cgltf_mesh &gmesh, pose pose, MeshImporter::callback callback, vec
         }
 
         for (Mesh::Vertex &v : vtx) v.pos -= centre;
-        MeshImporter::meshData data{.Mesh = &Mesh, .pose = pose + worldspace(centre, pose.rot)};
 
-        callback(MeshImporter::DataType::Mesh, gmesh.name, &data);
+        callback(
+            MeshImporter::Data{
+                .name = gmesh.name,
+                .type = MeshImporter::Data::MeshType,
+                .meshdata = {
+                    .ptr = &Mesh,
+                    .pose = pose + worldspace(centre, pose.rot)
+                }
+            }
+        );
     }
 }
 
