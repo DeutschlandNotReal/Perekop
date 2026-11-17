@@ -12,13 +12,14 @@ using namespace pk;
 using std::string_view;
 using std::string;
 
-bool Mesh::loaded() const noexcept { return VBO.getIndex() && EBO.getIndex(); }
-void Mesh::refresh() { if (loaded()) { unload(); load(); }}
+bool Mesh::loaded() const noexcept {
+     return VBO.getIndex() && EBO.getIndex(); 
+}
 
-void Mesh::load() {
-    invInertia = vec3{0.f};
-    
-    if (!vtx.empty()) {
+void Mesh::synctraits() noexcept {
+    inertia = vec3{0.f};
+
+    if (vtx.size()) {
         vec3 l, h;
         l = h  = vtx[0].pos;
 
@@ -28,37 +29,22 @@ void Mesh::load() {
             h = max(h, p);
         }
 
-        box = {.min = l, .max = h};
-        invInertia = inverseInertia(vtx);
+        bounds = {.min = l, .max = h};
+        inertia = inverseInertia(vtx);
     }
-
+}
+void Mesh::load() {
     if (loaded()) return;
 
-    VBO.generate();
-    EBO.generate();
-
-    VBO.upload(BufferTar::array, BufferUse::staticUsage, vtx);
+    VBO = Buffer::create();
+    EBO = Buffer::create();
+ 
+    VBO.upload(BufferTar::array,   BufferUse::staticUsage, vtx);
     EBO.upload(BufferTar::element, BufferUse::staticUsage, ind);
 }
 
 void Mesh::unload() {
-    VBO.destroy();
-    EBO.destroy();
-}
-
-vec3 Mesh::getEdge(uint V0, uint V1) noexcept {
-    return vtx[V1].pos - vtx[V0].pos;
-}
-
-float Mesh::getArea(uint V0, uint V1, uint V2) noexcept {
-    return .5f * length(cross(getEdge(V0, V1), getEdge(V1, V2)));
-}
-
-float Mesh::getVolume(uint a, uint b, uint c, uint d) noexcept {
-    return (1.f / 6.f) * (
-        dot(vtx[a].pos, cross(vtx[b].pos, vtx[c].pos)) +
-        dot(vtx[b].pos, cross(vtx[c].pos, vtx[d].pos))
-    );
+    EBO={}, VBO={};
 }
 
 Mesh::Mesh(Mesh&& b) noexcept: 
@@ -67,43 +53,16 @@ Mesh::Mesh(Mesh&& b) noexcept:
     material(b.material),
     vtx(std::move(b.vtx)),
     ind(std::move(b.ind)),
-    box(b.box),
-    invInertia(b.invInertia)
+    tag(std::move(b.tag)),
+    bounds(b.bounds),
+    inertia(b.inertia)
 {}
 
 Mesh& Mesh::operator=(Mesh&& b) noexcept {
     if (this == &b) return *this;
-    if (loaded()) unload();
 
-    vtx = std::move(b.vtx);
-    ind = std::move(b.ind);
-    material = b.material;
-    box = b.box;
-    invInertia = b.invInertia;
-    VBO = std::move(b.VBO);
-    EBO = std::move(b.EBO);
+    this->~Mesh();
+    new (this) Mesh(std::move(b));
+    
     return *this;
 }
-
-Mesh& Mesh::operator=(const Mesh& b) noexcept {
-    if (this == &b) return *this;
-    if (loaded()) unload();
-
-    vtx = b.vtx;
-    ind = b.ind;
-    material = b.material;
-    box = b.box;
-    invInertia = b.invInertia;
-
-    return *this;
-}
-
-Mesh::Mesh(const Mesh& b) noexcept: 
-    material{b.material},
-    vtx{b.vtx},
-    ind{b.ind},
-    box{b.box},
-    invInertia{b.invInertia}
-{}
-
-Mesh::~Mesh() noexcept { unload(); }

@@ -4,11 +4,11 @@
 
 namespace pk {
     template <typename T, typename... U> constexpr T min(T x, U... y) noexcept {
-        return (glm::min(x, y), ...);
+        return ((x = glm::min(x, y)), ...);
     }
 
     template <typename T, typename... U> constexpr T max(T x, U... y) noexcept {
-        return (glm::max(x, y), ...);
+        return ((x = glm::max(x, y)), ...);
     }
 
     template <glm::length_t C, glm::length_t R, typename T, glm::qualifier Q>

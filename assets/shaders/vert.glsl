@@ -3,19 +3,11 @@ layout(location = 0) in vec3 v_pos;
 layout(location = 1) in vec3 v_nor;
 layout(location = 2) in vec2 v_uv;
 
-uniform mat4 model;
+uniform mat4 MVP;
 uniform vec3 scale;
-uniform mat4 camera;
-uniform vec3 tint;
-
 out vec2 f_uv;
-out vec3 f_normal;
-out vec3 f_tint;
 
 void main() {
-    vec4 world  = model * vec4(v_pos * scale * 15, 1.0);
-    gl_Position = camera * world;
-    f_uv        = v_uv;
-    f_normal    = normalize(mat3(model) * v_nor);
-    f_tint      = tint;
+    gl_Position = MVP * vec4(v_pos * scale, 1.0);
+    f_uv = v_uv;
 }

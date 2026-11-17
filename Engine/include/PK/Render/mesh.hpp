@@ -9,7 +9,6 @@
 #include <PK/Render/Resources/buffer.hpp>
 
 namespace pk {
-    inline VertexArr meshVAO;
     class Material;
 
     class Mesh {
@@ -18,33 +17,26 @@ namespace pk {
                 vec3 pos{0.f}, nor{0.f}; vec2 uv{.0f};
             };
 
+            static inline VertexArr VAO;
             Buffer VBO, EBO;
             Material* material{nullptr};
 
             vector<Vertex> vtx;
             vector<uint> ind;
-            AABB box;
-            vec3 invInertia{0.f};
+            int tag{0};
+            AABB bounds;
+            vec3 inertia{0.f};
 
             void load();
             void unload();
             bool loaded() const noexcept;
     
-            void refresh();
+            void synctraits() noexcept;
 
             Mesh() noexcept = default;
   
             Mesh(Mesh&&) noexcept;
             Mesh& operator=(Mesh&&) noexcept;
-
-            Mesh(const Mesh&) noexcept;
-            Mesh& operator=(const Mesh&) noexcept;
-
-            vec3 getEdge(uint V0, uint V1) noexcept;
-            float getArea(uint V0, uint V1, uint V2) noexcept;
-            float getVolume(uint V0, uint V1, uint V2, uint V3) noexcept;
-
-            ~Mesh() noexcept;
     };
 
     using MeshHandle = handle<Mesh>;

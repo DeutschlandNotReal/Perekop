@@ -53,3 +53,13 @@ mat3 Body::getWorldInertia() const noexcept {
         b, c, z 
     };
 }
+
+Body::Body(const ModelHandle& model) noexcept {
+    modelID = model.getID();
+    pose = model.pose;
+    MeshHandle* meshHandle = model.meshID.get();
+
+    if (!meshHandle) return;
+    MeshHandle& mesh = *meshHandle;
+    inertia = mesh.inertia;
+}

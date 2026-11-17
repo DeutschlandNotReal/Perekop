@@ -18,7 +18,7 @@
 using namespace pk;
 using namespace Perekop;
 
-bool begin() {
+void init() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -30,28 +30,15 @@ bool begin() {
     glfwSwapInterval(1);
 
     Window::main.show();
-    glEnable(GL_DEPTH_TEST);
+    initRender();
+    initDrawer();
 
-    meshVAO = VertexArr::generate();
-    meshVAO.bind();
-    VertexArr::Builder()
-        .vec(3) // pos
-        .vec(3) // nor
-        .vec(2) // uv
-    ;
-
-    init::render();
-    init::drawer();
-
-    Window::main.onRefresh.bind([]{ step::drawer(0); });
-
+    Window::main.onRefresh.bind(stepDrawer);
     Perekop::onInit();
-
-    return true;
 }
 
 int main() {
-    begin();
+    init();
 
     time::Tracker<float, 4> timer;
     constexpr int maxSteps{4};
@@ -64,18 +51,18 @@ int main() {
             float fdt = timer.delta();
 
             int ticks = pk::min((int)(fdt / dt), maxSteps);
-            
-            for (int i{0}; i < ticks; ++i) {
-                step::physics(dt);
-                Perekop::onStep(dt);
-            }
-
+        
             Perekop::ModelBVH.construct({
                 ModelHandle::items.begin(), 
                 ModelHandle::items.end()
             });
 
-            step::drawer(fdt);
+            for (int i{0}; i < ticks; ++i) {
+                Perekop::stepPhysics(dt);
+                Perekop::onStep(dt);
+            }
+
+            stepDrawer();
         };
 
         time::sleepms(1);

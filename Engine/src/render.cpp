@@ -13,140 +13,133 @@
 using std::string;
 using namespace pk;
 
-// VertexARr
-VertexArr::Builder&
-VertexArr::Builder::setBD(uint bind, uint div) noexcept {
+typedef void (*GLGenT)(int, unsigned int*);
+typedef void (*GLDelT)(int, const unsigned int*);
+
+struct glSetter { GLGenT* gen{nullptr}; GLDelT* del{nullptr}; };
+template <typename T> glSetter setter;
+
+template<> glSetter setter<VertexArr>   {&glGenVertexArrays, &glDeleteVertexArrays};
+template<> glSetter setter<Buffer>      {&glGenBuffers, &glDeleteBuffers};
+template<> glSetter setter<Texture>     {&glGenTextures, &glDeleteTextures}; 
+template<> glSetter setter<Framebuffer> {&glGenFramebuffers, &glDeleteFramebuffers};
+template<> glSetter setter<Renderbuffer>{&glGenRenderbuffers, &glDeleteRenderbuffers};
+
+template <typename T> T glResource<T>::create() {
+    T item;
+    (*setter<T>.gen)(1, &item.index);
+    return item;
+}
+
+template <typename T> glResource<T>::~glResource() {
+    if (index) (*setter<T>.del)(1, &index);
+    index = 0;
+}
+
+template <typename T> glResource<T>::glResource(glResource&& from) noexcept {
+    exchange(index, from.index, 0);
+}
+
+template <typename T> glResource<T>& glResource<T>::operator=(glResource&& from) noexcept {
+    if (index) (*setter<T>.del)(1, &index);
+    exchange(index, from.index, 0);
+    return *this;
+}
+
+VertexArr::Builder& VertexArr::Builder::setBD(uint bind, uint div) noexcept {
     binding = bind;
     offset = 0;
     glVertexBindingDivisor(bind, div);
     return *this;
 }
 
-VertexArr::Builder&
-VertexArr::Builder::vec(int n) noexcept {
+namespace {
+    void SetupAttribute(uint &index, ullong &offset, uint bind, uint size) noexcept {
+        glVertexAttribBinding(index, bind);
+        glEnableVertexAttribArray(index++);
+        offset += size;
+    }
+}
+
+VertexArr::Builder& VertexArr::Builder::vec(int n) noexcept {
     glVertexAttribFormat(index, n, GL_FLOAT, GL_FALSE, offset);
-    glVertexAttribBinding(index, binding);
-    glEnableVertexAttribArray(index);
-
-    ++index;
-    offset += sizeof(float) * n;
-
+    SetupAttribute(index, offset, binding, sizeof(float) * n);
     return *this;
 }
 
-VertexArr::Builder&
-VertexArr::Builder::uvec(int n) noexcept {
+VertexArr::Builder& VertexArr::Builder::uvec(int n) noexcept {
     glVertexAttribIFormat(index, n, GL_UNSIGNED_INT, offset);
-    glVertexAttribBinding(index, binding);
-    glEnableVertexAttribArray(index);
-
-    ++index;
-    offset += sizeof(uint) * n;
-
+    SetupAttribute(index, offset, binding, sizeof(uint) * n);
     return *this;
 }
 
-VertexArr::Builder&
-VertexArr::Builder::ivec(int n) noexcept {
+VertexArr::Builder& VertexArr::Builder::ivec(int n) noexcept {
     glVertexAttribIFormat(index, n, GL_INT, offset);
-    glVertexAttribBinding(index, binding);
-    glEnableVertexAttribArray(index);
-
-    ++index;
-    offset += sizeof(int) * n;
-
+    SetupAttribute(index, offset, binding, sizeof(int) * n);
     return *this;
 }
 
-VertexArr::Builder&
-VertexArr::Builder::mat(int n) noexcept {
+VertexArr::Builder& VertexArr::Builder::mat(int n) noexcept {
     for (int i{0}; i<n; i++) this->vec(n);
 
     return *this;
 }
 
-VertexArr VertexArr::generate() noexcept {
-    VertexArr array;
-    glGenVertexArrays(1, &array.index);
-    return array;
-}
 
-void VertexArr::bind() noexcept {
-    glBindVertexArray(index);
-}
+void VertexArr::bind() noexcept { glBindVertexArray(index); }
 
-void VertexArr::bindBuffer(unsigned Binding, Buffer glBuffer, BufferTar target, size_t stride) noexcept {
-    if (target == BufferTar::element) {
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer.getIndex());
-        return;
+void VertexArr::bindBuffer(uint bind, const Buffer& buf, BufferTar target, size_t stride) noexcept {
+    switch (target) {
+        case BufferTar::element: 
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buf.getIndex());
+            break;
+    
+        case BufferTar::array:
+            glBindVertexBuffer(bind, buf.getIndex(), 0, (GLsizei) stride);
+            break;
     }
-
-    glBindVertexBuffer(Binding, glBuffer.getIndex(), 0, (GLsizei)stride);
-}
-
-// Buffer
-void Buffer::generate() noexcept {
-    if (index) { warn("attempted to generate buffer twice"); return; }
-    glGenBuffers(1, &index);
 }
 
 void Buffer::upload(BufferTar target, BufferUse usage, span<> data) noexcept {
-    glBindBuffer((GLenum)target, index);
-    glBufferData((GLenum)target, (GLsizeiptr)data.size(), data.begin(), (GLenum)usage);
+    glBindBuffer((GLenum) target, index);
+    glBufferData((GLenum) target, data.size(), data.begin(), (GLenum) usage);
 }
 
-void Buffer::destroy() noexcept {
-    if (!index) return;
-    glDeleteBuffers(1, &index);
-    index = 0;
-}
+namespace {
+    void compileShaderStage(uint& index, std::string_view src, ShaderType type) {
+        index = glCreateShader((GLenum) type);
 
-// ShaderStage
-shaderStage::shaderStage(shaderType type, const path& path) noexcept {
-    string source = readFile(path);
+        const char* data{src.data()}; int size{(int) src.length()};
 
-    index = glCreateShader((GLenum)type);
+        glShaderSource(index, 1, &data, &size);
+        glCompileShader(index);
 
-    const char* data = source.data();
-    int size = (int)source.size();
+        int ok;
+        glGetShaderiv(index, GL_COMPILE_STATUS, &ok);
 
-    glShaderSource(index, 1, &data, &size);
-    glCompileShader(index);
+        if (!ok) {
+            char log[4096];
+            glGetShaderInfoLog(index, sizeof(log), nullptr, log);
 
-    int success;
-    glGetShaderiv(index, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        char log[4096];
-        glGetShaderInfoLog(index, 4096, nullptr, log);
-        warn(std::format("Shader stage failed to compile: \n{}", log));
+            warn(std::format("{} shader stage failed to compile: \n{}", type == ShaderType::vertex ? "Vertex" : "Fragment", log));
+        }
     }
 }
 
-shaderStage::shaderStage(shaderType type, std::string_view source) noexcept {
-    index = glCreateShader((GLenum)type);
+ShaderStage::ShaderStage(ShaderType type, const path& path) noexcept {
+    string src = readFile(path);
 
-    const char* data = source.data();
-    int size = (int)source.size();
-
-    glShaderSource(index, 1, &data, &size);
-    glCompileShader(index);
-
-    int success;
-    glGetShaderiv(index, GL_COMPILE_STATUS, &success);
-
-    if (!success) {
-        char log[4096];
-        glGetShaderInfoLog(index, 4096, nullptr, log);
-        warn(std::format("Shader failed to compile: \n{}", log));
-    }
+    compileShaderStage(index, src, type);
 }
 
-// Shader
-Shader::Shader(std::initializer_list<shaderStage> stages) noexcept {
+ShaderStage::ShaderStage(ShaderType type, std::string_view src) noexcept {
+    compileShaderStage(index, src, type);
+}
+
+Shader::Shader(std::initializer_list<ShaderStage> stages) noexcept {
     index = glCreateProgram();
 
-    for (const shaderStage& stage : stages)
+    for (const ShaderStage& stage : stages)
         glAttachShader(index, stage.getIndex());
 
     glLinkProgram(index);
@@ -157,7 +150,7 @@ Shader::Shader(std::initializer_list<shaderStage> stages) noexcept {
     if (!success) {
         char log[4096];
         glGetProgramInfoLog(index, 4096, nullptr, log);
-        warn(std::format("Shader failed to link: \n", log));
+        warn(std::format("Shader failed to link: \n{}", log));
     }
 }
 
@@ -165,72 +158,59 @@ void Shader::use() const noexcept {
     glUseProgram(index);
 }
 
-// Shader Uniforms
 Shader::uniform::uniform(uint prog, std::string_view name, std::source_location loc) noexcept: program(prog) {
     index = (uint) glGetUniformLocation(prog, name.data());
 
     if (index == ~0u) warn(std::format("Cannot find uniform {}", name), loc);
 };
 
-int Shader::uniform::operator=(int value) noexcept {
-    glUseProgram(program);
-    glUniform1i((GLint)index, value);
-    return value;
+int Shader::uniform::operator=(int val) noexcept {
+    glUniform1i(index, val); return val;
 }
 
-float Shader::uniform::operator=(float value) noexcept {
-    glUseProgram(program);
-    glUniform1f((GLint)index, value);
-    return value;
+float Shader::uniform::operator=(float val) noexcept {
+    glUniform1f(index, val); return val;
 }
 
-vec2 Shader::uniform::operator=(vec2 value) noexcept {
-    glUseProgram(program);
-    glUniform2fv((GLint)index, 1, (float*)&value);
-    return value;
+vec2 Shader::uniform::operator=(vec2 val) noexcept {
+    glUniform2fv(index, 1, &val.x); return val;
 }
 
-vec3 Shader::uniform::operator=(vec3 value) noexcept {
-    glUseProgram(program);
-    glUniform3fv((GLint)index, 1, (float*)&value);
-    return value;
+vec3 Shader::uniform::operator=(vec3 val) noexcept {
+    glUniform3fv(index, 1, &val.x); return val;
 }
 
-vec4 Shader::uniform::operator=(vec4 value) noexcept {
-    glUseProgram(program);
-    glUniform4fv((GLint)index, 1, (float*)&value);
-    return value;
+vec4 Shader::uniform::operator=(vec4 val) noexcept {
+    glUniform4fv(index, 1, &val.x); return val;
 }
 
-mat3 Shader::uniform::operator=(mat3 value) noexcept {
-    glUseProgram(program);
-    glUniformMatrix3fv((GLint)index, 1, GL_FALSE, (float*)&value);
-    return value;
+mat3 Shader::uniform::operator=(mat3 val) noexcept {
+    glUniformMatrix3fv(index, 1, GL_FALSE, &val[0][0]); return val;
 }
 
-mat4 Shader::uniform::operator=(mat4 value) noexcept {
-    glUseProgram(program);
-    glUniformMatrix4fv((GLint)index, 1, GL_FALSE, (float*)&value);
-    return value;
+mat4 Shader::uniform::operator=(mat4 val) noexcept {
+    glUniformMatrix4fv(index, 1, GL_FALSE, &val[0][0]); return val;
 }
 
 Shader::uniform Shader::getUniform(std::string_view name, std::source_location loc) const noexcept {
     return {index, name, loc};
 }
 
-void Shader::setTexture(std::string_view name, unsigned slot, const Texture& Texture) noexcept {
+void Shader::setTexture(std::string_view name, unsigned slot, glRefference<Texture> texture) noexcept {
     glUseProgram(index);
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, Texture.getIndex());
+    glBindTexture(GL_TEXTURE_2D, texture.getIndex());
     glUniform1i(glGetUniformLocation(index, name.data()), (GLint)slot);
 }
 
-// texture
 Texture::Texture(const path& path) noexcept {
     int channels;
     uchar* data = stbi_load(path.string().c_str(), &w, &h, &channels, 0);
 
-    if (!data) return;
+    if (!data) {
+        warn(std::format("No texture file {} found", path.string()));
+        return;
+    }
 
     int format = channels == 1 ? GL_RED : channels == 3 ? GL_RGB : GL_RGBA;
 
@@ -243,11 +223,7 @@ Texture::Texture(const path& path) noexcept {
     stbi_image_free(data);
 }
 
-void Texture::allocate(
-    int width,
-    int height,
-    uint internalFormat
-) {
+void Texture::allocate(int width, int height, uint format) {
     w = width;
     h = height;
 
@@ -256,7 +232,7 @@ void Texture::allocate(
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        internalFormat,
+        format,
         w,
         h,
         0,
@@ -265,59 +241,40 @@ void Texture::allocate(
         nullptr
     );
 
-    glTexParameteri(
-        GL_TEXTURE_2D,
-        GL_TEXTURE_MIN_FILTER,
-        GL_LINEAR
-    );
-
-    glTexParameteri(
-        GL_TEXTURE_2D,
-        GL_TEXTURE_MAG_FILTER,
-        GL_LINEAR
-    );
-
-    glTexParameteri(
-        GL_TEXTURE_2D,
-        GL_TEXTURE_WRAP_S,
-        GL_CLAMP_TO_EDGE
-    );
-
-    glTexParameteri(
-        GL_TEXTURE_2D,
-        GL_TEXTURE_WRAP_T,
-        GL_CLAMP_TO_EDGE
-    );
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-// renderer
-void Renderer::drawElems(int indices, PrimMode mode) noexcept {
-    glDrawElements((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr);
+void Renderer::draw(DrawMode dmode, int n, PrimMode pmode) noexcept {
+    switch (dmode) {
+        case DrawMode::element: glDrawElements(
+            (GLenum) pmode, n, GL_UNSIGNED_INT, nullptr
+        ); break;
+
+        case DrawMode::array: glDrawArrays(
+            (GLenum) pmode, 0, n
+        ); break;
+    }
 }
 
-void Renderer::drawArrays(int vertices, PrimMode mode) noexcept {
-    glDrawArrays((GLenum)mode, 0, vertices);
+void Renderer::drawInstanced(DrawMode dmode, int n, int entities, PrimMode pmode) noexcept {
+    switch (dmode) {
+        case DrawMode::element: glDrawElementsInstanced(
+            (GLenum) pmode, n, GL_UNSIGNED_INT, nullptr, entities
+        ); break;
+
+        case DrawMode::array: glDrawArraysInstanced(
+            (GLenum) pmode, 0, n, entities
+        ); break;
+    }
 }
 
-void Renderer::drawElemsInstanced(int indices, int entities, PrimMode mode) noexcept {
-    glDrawElementsInstanced((GLenum)mode, indices, GL_UNSIGNED_INT, nullptr, entities);
-}
-
-void Renderer::drawArraysInstanced(int vertices, int entities, PrimMode mode) noexcept {
-    glDrawArraysInstanced((GLenum)mode, 0, vertices, entities);
-}
-
-void Renderer::setMode(RasterMode mode) noexcept {
-    glPolygonMode(GL_FRONT_AND_BACK, (GLenum)mode);
-}
-
-void Renderer::fill(vec3 colour) noexcept {
-    glClearColor(colour.x, colour.y, colour.z, 1.0f);
-}
-
-void Renderer::clear(int flags) noexcept {
-    glClear((GLbitfield)flags);
-}
+void Renderer::setMode(RasterMode mode) noexcept { glPolygonMode(GL_FRONT_AND_BACK, (GLenum)mode); }
+void Renderer::fill(vec3 colour) noexcept { glClearColor(colour.x, colour.y, colour.z, 1.0f); }
+void Renderer::clear(int flags) noexcept { glClear((GLbitfield)flags); }
+void Renderer::swap() noexcept { glfwSwapBuffers(Window::main); }
 
 void Renderer::viewport() noexcept {
     glDrawBuffer(GL_BACK);
@@ -326,23 +283,8 @@ void Renderer::viewport() noexcept {
     glViewport(0, 0, size.x, size.y);
 }
 
-void Renderer::swap() noexcept {
-    glfwSwapBuffers(Window::main);
-}
-
-// framebuffer
-void Framebuffer::generate() {
-    if (index) { warn("attempted to generate framebuffer twice"); return; }
-
-    glGenFramebuffers(1, &index);
-}
-
 void Framebuffer::bind() const noexcept {
     glBindFramebuffer(GL_FRAMEBUFFER, index);
-}
-
-void Framebuffer::unbind() noexcept {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Framebuffer::attach(Texture& texture, uint slot) {
@@ -368,58 +310,20 @@ bool Framebuffer::complete() const noexcept {
     return glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE;
 }
 
-void Framebuffer::destroy() {
-    if (!index) return;
-
-    glDeleteFramebuffers(1, &index);
-    index = 0;
-}
-
-// renderbuffer
-void Renderbuffer::generate() {
-    if (index) { warn("attempted to generate renderbuffer twice"); return; }
-
-    glGenRenderbuffers(1, &index);
-}
-
-pk::Shader boxshader;
-pk::Buffer boxIBO;
-pk::VertexArr boxarr;
-
-void Renderer::drawWireboxes(const span<Wirebox> boxes) noexcept {
-    if (boxes.size() == 0 || !Window::main.camera) return;
-
-    Camera& cam = *Window::main.camera;
-
-    boxshader.use();
-    boxshader.getUniform("camera") = cam.projection() * cam.view();
-
-    boxarr.bind();
-    boxIBO.upload(BufferTar::array, BufferUse::dynamic, boxes);
-    boxarr.bindBuffer(1, boxIBO, BufferTar::array, sizeof(Wirebox));
-
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthMask(GL_FALSE);
-
-    drawArraysInstanced(36, boxes.size(), PrimMode::trigs);
-
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
-}
-
-#include <PK/world.hpp>
-void Perekop::init::render() {
+void Perekop::initRender() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
-    boxshader = {
-        shaderStage(shaderType::Vertex, world::assets/"shaders/cubevert.glsl"),
-        shaderStage(shaderType::fragment, world::assets/"shaders/cubefrag.glsl")
-    };
-
-    boxIBO.generate();
-    boxarr = VertexArr::generate();
-    boxarr.bind();
-    VertexArr::Builder().setBD(1, 1).mat(3).vec(3).vec(3).vec(4);
+    Mesh::VAO = VertexArr::create();
+    Mesh::VAO.config()
+        .vec(3) // pos
+        .vec(3) // nor
+        .vec(2) // uv
+    ();
 }
+
+template class pk::glResource<VertexArr>;
+template class pk::glResource<Buffer>;
+template class pk::glResource<Texture>;
+template class pk::glResource<Framebuffer>;
+template class pk::glResource<Renderbuffer>;

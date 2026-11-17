@@ -2,6 +2,7 @@
 
 #include <PK/Physics/Body.hpp>
 #include <PK/Core/set.hpp>
+#include <PK/Core/array.hpp>
 
 namespace pk::physics {
     struct colContacts {

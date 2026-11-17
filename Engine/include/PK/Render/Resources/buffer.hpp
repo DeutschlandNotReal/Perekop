@@ -1,5 +1,6 @@
 #pragma once
 #include <PK/Core/span.hpp>
+#include "./glresource.hpp"
 
 namespace pk {
     enum class BufferTar {
@@ -13,16 +14,10 @@ namespace pk {
         dynamic = 0x88E8
     };
 
-    class Buffer {
+    class Buffer : public glResource<Buffer> {
         friend struct Renderer;
-        uint index{0};
-
+   
         public:
-            uint getIndex() const noexcept { return index; }
-
-            Buffer() noexcept = default;
-            void generate() noexcept;
             void upload(BufferTar, BufferUse, span<> data) noexcept;
-            void destroy() noexcept;
     };
 }

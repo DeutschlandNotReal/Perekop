@@ -22,20 +22,24 @@ namespace pk {
         colour = 0x4000
     };
 
-    struct Wirebox {
-        mat3 rot;
-        vec3 ext,
-             pos;
-        vec4 col;
+    enum class DrawMode {
+        element = 0,
+        array   = 1
     };
 
     struct Renderer {
-        void drawElems(int indices, PrimMode mode = PrimMode::trigs) noexcept;
-        void drawArrays(int vertices, PrimMode mode = PrimMode::trigs) noexcept;
-        void drawElemsInstanced(int indices, int entities, PrimMode mode = PrimMode::trigs) noexcept;
-        void drawArraysInstanced(int vertices, int entities, PrimMode mode = PrimMode::trigs) noexcept;
+        void draw(
+            DrawMode, 
+            int n, 
+            PrimMode mode = PrimMode::trigs
+        ) noexcept;
 
-        void drawWireboxes(const span<Wirebox>) noexcept;
+        void drawInstanced(
+            DrawMode, 
+            int n, 
+            int instances,
+            PrimMode mode = PrimMode::trigs
+        ) noexcept;
 
         void setMode(RasterMode mode) noexcept;
         void fill(vec3 colour) noexcept;

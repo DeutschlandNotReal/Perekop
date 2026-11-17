@@ -10,7 +10,7 @@ namespace pk {
         friend Renderer;
         
         public:
-            array<Texture, 1> textures;
+            array<glRefference<Texture>, 1> textures;
             Shader shader;    
     };
 }

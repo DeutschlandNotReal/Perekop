@@ -148,3 +148,36 @@ ModelBVH::rayresult ModelBVH::cast(ray r) const noexcept {
     if (res.dst < noHit) res.pos = r.pos + r.dir * res.dst;
     return res;
 }
+
+ModelBVH::iterator::iterator(ModelBVH* bvh) noexcept : bvh{bvh} {
+    if (!bvh->nodes.empty())
+        nodestack[nodeptr++] = 0;
+}
+
+ModelBVH::iterator::iterator(const ModelBVH* bvh) noexcept
+    : iterator{const_cast<ModelBVH*>(bvh)} {}
+
+auto& ModelBVH::iterator::operator*(this auto&& v) noexcept {
+    return v.bvh->nodes[v.nodestack[v.nodeptr - 1]];
+}
+
+ModelBVH::iterator& ModelBVH::iterator::operator++() noexcept {
+    if (!nodeptr) return *this;
+
+    const node& n = bvh->nodes[nodestack[--nodeptr]];
+
+    if (!n.leaf) {
+        nodestack[nodeptr++] = n.rhs;
+        nodestack[nodeptr++] = n.lhs;
+    }
+
+    return *this;
+}
+
+bool ModelBVH::iterator::operator==(bool end) noexcept {
+    return (nodeptr == 0) == end;
+}
+
+bool ModelBVH::end() const noexcept {
+    return nodes.empty();
+}

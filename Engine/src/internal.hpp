@@ -5,6 +5,9 @@
 namespace Perekop {
     inline pk::ModelBVH ModelBVH;
 
-    namespace init { void drawer(); void render(); }
-    namespace step { void drawer(float dt); void physics(float dt); }
+    void initDrawer();
+    void initRender();
+
+    void stepDrawer();
+    void stepPhysics(float);
 }

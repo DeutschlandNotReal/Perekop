@@ -3,29 +3,29 @@
 #include <cstddef>
 
 namespace pk {
-    class VertexArr {
+    class VertexArr : public glResource<VertexArr> {
         friend struct Renderer;
         friend Buffer;
 
-        uint index{0};
+        struct Builder {
+            uint index{0};
+            uint binding{0};
+            size_t offset{0};
+
+            Builder& setBD(uint bind, uint div) noexcept;
+
+            Builder&  vec(int d=1) noexcept;
+            Builder& ivec(int d=1) noexcept;
+            Builder& uvec(int d=1) noexcept;
+            Builder&  mat(int d)   noexcept;
+
+            void operator()() noexcept { VertexArr().bind(); };
+        };
 
         public:
-            struct Builder {
-                uint index{0};
-                uint binding{0};
-                size_t offset{0};
-
-                Builder& setBD(uint bind, uint div) noexcept;
-
-                Builder&  vec(int d=1) noexcept;
-                Builder& ivec(int d=1) noexcept;
-                Builder& uvec(int d=1) noexcept;
-                Builder&  mat(int d)   noexcept;
-            };
-
-            static VertexArr generate() noexcept;
-
             void bind() noexcept;
-            void bindBuffer(uint bind, Buffer, BufferTar target, size_t stride) noexcept;
+            Builder config() { bind(); return {}; }
+
+            void bindBuffer(uint bind, const Buffer&, BufferTar target, size_t stride) noexcept;
     };
 }

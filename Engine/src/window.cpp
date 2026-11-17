@@ -7,8 +7,6 @@
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
 #include <string>
-#include <utility>
-
 using namespace pk;
 
 Window::~Window() noexcept { exit(); }

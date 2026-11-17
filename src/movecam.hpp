@@ -3,7 +3,7 @@
 #include <PK/world.hpp>
 
 namespace PKG {
-    class GameCam : public pk::Camera {
+    class MovableCamera : public pk::Camera {
         float pitch{0}, yaw{0};
 
         public:
@@ -12,7 +12,7 @@ namespace PKG {
             Type type{Type::orbit};
             pk::ModelID follow;
 
-            void init() noexcept;
+            void connect() noexcept;
             void step(float dt) noexcept;
 
             void target(pk::ModelHandle&) noexcept;

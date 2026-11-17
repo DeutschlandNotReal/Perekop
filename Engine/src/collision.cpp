@@ -116,7 +116,12 @@ overlapResult physics::getOverlap(const Body& bodyA, const Body& bodyB, AABB bou
 }
 
 void physics::collide(Body &A, Body &B, float) noexcept {
-    overlapResult result = getOverlap(A, B, A.box, B.box);
+    ModelHandle *MA = A.modelID.get();
+    ModelHandle *MB = B.modelID.get();
+
+    if (!MA | !MB) return;
+
+    overlapResult result = getOverlap(A, B, MA->bounds, MB->bounds);
     if (result.overlap < eps) return;
 
     float invMassSum = A.iMass + B.iMass;

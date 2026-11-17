@@ -10,6 +10,9 @@ namespace pk {
 
     class Body {
         public:
+            Body() noexcept = default;
+            Body(const ModelHandle&) noexcept;
+
             ModelID modelID;
             vec3 inertia{0.f};
 
@@ -19,11 +22,9 @@ namespace pk {
                  force  {0}, 
                  torque {0};
 
-            AABB box;
             float iMass{0.f};
             int tag{0};
 
-            
             physics::shapeType shapeType{physics::shapeType::box};
             void impulse(vec3 force, vec3 point = vec3{0.f}) noexcept;
 

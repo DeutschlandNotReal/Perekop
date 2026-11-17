@@ -6,20 +6,20 @@
 #include <source_location>
 
 namespace pk {
-    enum class shaderType {
-        Vertex   = 0x8B31,
+    enum class ShaderType {
+        vertex   = 0x8B31,
         fragment = 0x8B30
     };
 
-    class shaderStage {
+    class ShaderStage {
         friend struct Renderer;
         friend class shader;
 
         uint index{0};
 
         public:
-            shaderStage(shaderType type, const std::filesystem::path&) noexcept;
-            shaderStage(shaderType type, std::string_view) noexcept;
+            ShaderStage(ShaderType type, const std::filesystem::path&) noexcept;
+            ShaderStage(ShaderType type, std::string_view) noexcept;
 
             unsigned getIndex() const noexcept {
                 return index;
@@ -54,10 +54,10 @@ namespace pk {
             };
 
             Shader() noexcept = default;
-            Shader(std::initializer_list<shaderStage> stages) noexcept;
+            Shader(std::initializer_list<ShaderStage> stages) noexcept;
 
             void use() const noexcept;
             uniform getUniform(std::string_view name, std::source_location loc = std::source_location::current()) const noexcept;
-            void setTexture(std::string_view name, uint slot, const Texture&) noexcept;
+            void setTexture(std::string_view name, uint slot, glRefference<Texture>) noexcept;
     };
 }

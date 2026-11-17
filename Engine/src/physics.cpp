@@ -59,38 +59,33 @@ vec3 pk::getWeight(vec3 o) noexcept {
     return dot(o, o) != 0.f ? normalize(o) * -9.81f : o;
 }
 
-void Perekop::step::physics(float dt) {
-    //solveJoints(dt);
-
+void Perekop::stepPhysics(float dt) {
     // integrator
     float hdt2 = .5f * dt * dt;
-    for (BodyHandle &body : BodyHandle::items) {
+    for (BodyHandle& body : BodyHandle::items) {
         if (body.iMass > 0.f) {
             vec3 acc = body.force * body.iMass + getWeight(body.pose.pos);
-            body.vel += acc * dt;
+            body.vel  += acc * dt;
+            body.pose += body.vel * dt;
 
-            body.pose += body.vel * dt + acc * hdt2;
-
-            mat3 rot = (mat3) body.pose;
-
-            vec3 dAvel = rot * (body.inertia * body.iMass) * (transpose(rot) * body.torque) * dt;
-            body.avel += dAvel;
-
-            vec3 dRot = body.avel - dAvel * .5f;
-            float a2 = dot(dRot, dRot);
-            
-            if (a2 > 0.f) {
-                float a = sqrt(a2);
-                body.pose.rot = angleAxis(a * dt, dRot * (1.f / a)) * body.pose.rot;
+            vec3 dAvel{0.f};
+            if (dot(body.torque, body.torque) > 0.f) {
+                mat3 R = (mat3) body.pose;
+                dAvel = R * (body.getInertia() * (body.torque * R)) * dt;
+                body.avel += dAvel;
             }
+
+            vec3 w = body.avel - dAvel * .5f;
+            float a2 = dot(w, w);
+
+            if (a2 > 1e-12f) {
+                float a = sqrt(a2);
+                body.pose.rot = normalize(angleAxis(a * dt, w * (1.f / a)) * body.pose.rot);
+            }
+
+            if (ModelHandle* m = body.modelID.get()) m->pose = body.pose;
         }
 
-        ModelHandle* m = body.modelID.get();
-        if (m) m->pose = body.pose;   
-
-        body.pose.rot = normalize(body.pose.rot);
         body.torque = body.force = vec3{0.f};
     }
-
-    //correctJoints();
 }

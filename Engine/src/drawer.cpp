@@ -2,13 +2,13 @@
 #include "./internal.hpp"
 
 #include <PK/Render/Renderer.hpp>
-#include <PK/Render/lighting.hpp>
 #include <PK/Physics/Body.hpp>
 #include <PK/Render/window.hpp>
 #include <PK/world.hpp>
 #include <PK/Render/Resources/material.hpp>
-
 #include <PK/Math/format.hpp>
+#include <PK/tick.hpp>
+#include <PK/Util/time.hpp>
 
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
@@ -16,8 +16,11 @@
 using namespace pk;
 using namespace Perekop;
 
+static Renderer renderer;
+int drawcount{0};
+
 namespace {
-    void draw(const ModelHandle& model, const mat4& Camera) noexcept {
+    void draw(const ModelHandle& model, const mat4& VP) noexcept {
         const MeshHandle* meshptr = model.meshID.get();
 
         if (!meshptr) {
@@ -32,114 +35,58 @@ namespace {
             return;
         }
 
+        if (!mesh.loaded()) {
+            warn(std::format("Mesh {} isn't even loaded son", (uint)mesh.getID()));
+            return;
+        }
+
+        ++drawcount;
+
         Shader& shader = mesh.material->shader;
         shader.use();
-        shader.getUniform("camera") = Camera;
-        shader.getUniform("model")  = (mat4) model.pose;
+        shader.getUniform("MVP") = VP * (mat4) model.pose;
         shader.getUniform("scale")  = model.scale;
 
         shader.setTexture("T", 0, mesh.material->textures[0]);
 
-        meshVAO.bind();
-        meshVAO.bindBuffer(0, mesh.VBO, BufferTar::array,   sizeof(Mesh::Vertex));
-        meshVAO.bindBuffer(0, mesh.EBO, BufferTar::element, 0);
+        Mesh::VAO.bindBuffer(0, mesh.VBO, BufferTar::array,   sizeof(Mesh::Vertex));
+        Mesh::VAO.bindBuffer(0, mesh.EBO, BufferTar::element, 0);
 
-        lighting::Renderer.drawElems(mesh.ind.size());
-    }
-
-    vector<Wirebox> wireboxes;
-    
-   void drawModelBoxes() {
-        wireboxes.clear();
-        
-        for (const ModelHandle& model : ModelHandle::items) {
-            AABB b = model.getWorldAABB();
-            wireboxes.emplace(Wirebox{
-                mat3{1.f}, 
-                b.getExtents(), 
-                b.getCentre(), 
-                vec4{0, 0, 1, .7f}}
-            );
-        }
-
-        lighting::Renderer.drawWireboxes(span<Wirebox>{wireboxes});
-    }
-
-    void drawBVH(int maxdepth, bool leafonly) {
-        wireboxes.clear();
-        auto nodes = Perekop::ModelBVH.getNodes();
-        if (!nodes.size()) return;
-
-        struct Entry { int id, depth; } stack[128];
-        int top{0};
-        stack[top++] = {0, 0};
-
-        float rmaxd = 1.f / (float)max(maxdepth, 1);
-
-        while (top) {
-            auto [id, depth] = stack[--top];
-            const auto& n = nodes[id];
-            AABB b = n.bounds;
-
-            float t = depth * rmaxd;
-
-            static constexpr vec4 colHDepth = {1.f, 1.f, 1.f, .1f}; 
-            static constexpr vec4 colLDepth = {1.f, 1.f, 1.f, .05f};
-            static constexpr vec4 redcol    = {1.f, 0.f, 0.f, .05f};
-
-            vec4 colour = n.leaf ? mix(colLDepth, redcol, (n.lhs - n.rhs) / -5.f) : mix(colHDepth, colLDepth, t);
-
-            if (depth == maxdepth || !leafonly || n.leaf ) wireboxes.emplace(
-                Wirebox{
-                    mat3{1.f}, 
-                    b.getExtents(), 
-                    b.getCentre(), 
-                    colour
-                }
-            );
-
-            if (n.leaf || (depth >= maxdepth) && !leafonly) continue;
-      
-            stack[top++] = {n.rhs, depth + 1};
-            stack[top++] = {n.lhs, depth + 1};
-        }
-
-        lighting::Renderer.drawWireboxes(span<Wirebox>{wireboxes});
+        renderer.draw(DrawMode::element, mesh.ind.size());
     }
 }
 
 
-int   MaxBVH  = 3;
-bool  LeafBVH = false;
-void init::drawer() {
-    Window::main.onKeyDown.bind([](int key) {
-        switch (key) {
-            case 'I': ++MaxBVH; break;
-            case 'O': --MaxBVH; break;
-            case 'P': LeafBVH = !LeafBVH; break;
-        }
+void Perekop::initDrawer() {
 
-        MaxBVH = std::clamp(MaxBVH, 0, 12);
-    });
 }
 
-void step::drawer(float dt) {
+void Perekop::stepDrawer() {
+    drawcount = 0;
     if (!Window::main.camera) {
-        warn("Where the camera at?");
+        warn("Camera missing");
         return;
     };
 
-    lighting::Renderer.setMode(RasterMode::fill);
-    const mat4 VP = Window::main.camera->projection() * Window::main.camera->view();
-    lighting::Renderer.viewport();
-    lighting::Renderer.fill({.15f, .15f, .15f});
-    lighting::Renderer.clear((int)ClearTar::depth | (int)ClearTar::colour);
+    renderer.setMode(RasterMode::fill);
 
+    const mat4 VP = Window::main.camera->projection() * Window::main.camera->view();
+
+    time::Tracker<float> drawtime;
+    drawtime.begin();
+    renderer.viewport();
+    renderer.fill({.15f, .15f, .15f});
+    renderer.clear((int)ClearTar::depth | (int)ClearTar::colour);
+
+    
+    Mesh::VAO.bind();
     for (const ModelHandle& model : ModelHandle::items)
         draw(model, VP);
 
-    drawModelBoxes();
-    drawBVH(MaxBVH, LeafBVH);
+    float t = drawtime.stop();
 
-    lighting::Renderer.swap();
+    for (GLenum e; (e = glGetError()) != GL_NO_ERROR;) warn(std::format("GL error 0x{:X}", e));
+
+    Perekop::onRender();
+    renderer.swap();
 }

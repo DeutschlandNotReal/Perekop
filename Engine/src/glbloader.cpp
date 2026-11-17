@@ -1,5 +1,4 @@
 #include <PK/Render/Mesh.hpp>
-
 #include <cgltf.h>
 
 using namespace pk;
@@ -102,8 +101,6 @@ void MeshImporter::import(const std::filesystem::path& path, MeshImporter::callb
         cgltf_free(data);
         return;
     }
-
-    printf("Importing %S\n", path.c_str());
 
     for (cgltf_size sceneid{0}; sceneid < data->scenes_count; sceneid++) {
         cgltf_scene& scene = data->scenes[sceneid];

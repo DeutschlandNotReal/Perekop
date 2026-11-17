@@ -2,19 +2,12 @@
 #include <PK/Physics/Body.hpp>
 #include <PK/tick.hpp>
 
-#include "./gamecam.hpp"
-#include "./functions.hpp"
-
+#include "./movecam.hpp"
 using namespace pk;
-
-
-namespace {
-    PKG::GameCam gcamera;
-}
 
 constexpr float maxpitch{radians(85.f)};
 
-void PKG::GameCam::init() noexcept{
+void PKG::MovableCamera::connect() noexcept{
     rel = pose;
     vec3 euler = rel.eulerAngles();
     pitch = euler.x; yaw = euler.y;
@@ -48,7 +41,7 @@ void PKG::GameCam::init() noexcept{
 
 }
 
-void PKG::GameCam::step(float dt) noexcept {
+void PKG::MovableCamera::step(float dt) noexcept {
     vec3 delta{0};
 
     if (Window::main.held('S')) delta += vec3{0,0,1};
@@ -101,7 +94,7 @@ void PKG::GameCam::step(float dt) noexcept {
         pose = desired;
 };
 
-void PKG::GameCam::target(ModelHandle &tar) noexcept {
+void PKG::MovableCamera::target(ModelHandle &tar) noexcept {
     follow = tar.getID();
     if (type != Type::direct) {
         rel = localspace(pose, tar.pose);
@@ -110,19 +103,9 @@ void PKG::GameCam::target(ModelHandle &tar) noexcept {
     }
 }
 
-void PKG::GameCam::target() noexcept {
+void PKG::MovableCamera::target() noexcept {
     follow = nullid;
     rel = pose;
     vec3 euler = rel.eulerAngles();
     pitch = euler.x; yaw = euler.y;
-}
-
-void PKG::onInit::Camera() {
-    Window::main.camera = &gcamera;
-    gcamera.pose = pose::lookAt({0, 8, 25}, {0, 0, 0});
-    gcamera.init();
-}
-
-void PKG::onStep::Camera(float dt) {
-    gcamera.step(dt);
 }

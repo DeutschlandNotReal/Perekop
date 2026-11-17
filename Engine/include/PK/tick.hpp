@@ -5,5 +5,6 @@ namespace Perekop {
 
     void onInit();
     void onStep(float dt);
+    void onRender();
     void onExit();
 }
